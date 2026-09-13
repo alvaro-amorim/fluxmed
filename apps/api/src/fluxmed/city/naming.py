@@ -52,7 +52,11 @@ class StreetNamingService:
         start = request.ordinal % len(terms)
         for offset in range(len(terms)):
             term = terms[(start + offset) % len(terms)]
-            candidate = f"{street_type} {term}"
+            normalized_term = normalize_street_name(term)
+            if normalized_term.startswith(("rua ", "avenida ", "via ", "anel ")):
+                candidate = term
+            else:
+                candidate = f"{street_type} {term}"
             normalized = normalize_street_name(candidate)
             if normalized not in self._used:
                 self._used.add(normalized)

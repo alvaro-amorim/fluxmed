@@ -114,7 +114,9 @@ class CityService:
         )
 
     def _count(self, model: Any, city_column: Any, city_id: uuid.UUID) -> int:
-        value = self._session.scalar(select(func.count()).select_from(model).where(city_column == city_id))
+        value = self._session.scalar(
+            select(func.count()).select_from(model).where(city_column == city_id)
+        )
         return int(value or 0)
 
     def list_cities(self) -> list[CitySummary]:
@@ -179,8 +181,12 @@ class CityService:
             )
         )
         if number_query is not None:
-            statement = statement.where(func.upper(AddressModel.house_number) == number_query.upper())
-        statement = statement.order_by(StreetModel.name, AddressModel.house_number_numeric).limit(limit)
+            statement = statement.where(
+                func.upper(AddressModel.house_number) == number_query.upper()
+            )
+        statement = statement.order_by(
+            StreetModel.name, AddressModel.house_number_numeric
+        ).limit(limit)
         rows = self._session.execute(statement).all()
         matches = [self._address_match(*row) for row in rows]
 

@@ -68,3 +68,15 @@ class TrafficMode(StrEnum):
     AUTOMATIC = "AUTOMATIC"
     FREE = "FREE"
     CUSTOM = "CUSTOM"
+
+
+class CitySourceType(StrEnum):
+    SYNTHETIC = "SYNTHETIC"
+
+
+class RoadClass(StrEnum):
+    EXPRESSWAY = "EXPRESSWAY"
+    ARTERIAL = "ARTERIAL"
+    COLLECTOR = "COLLECTOR"
+    LOCAL = "LOCAL"
+    SERVICE = "SERVICE"

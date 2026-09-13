@@ -1,5 +1,6 @@
 import os
 
+from fluxmed.city.persistence import seed_santa_aurora
 from fluxmed.domain.enums import UserRole
 from fluxmed.infrastructure.database import session_scope
 from fluxmed.infrastructure.models.user import UserModel
@@ -43,9 +44,25 @@ def seed_demo_user() -> UserModel:
         return persisted
 
 
+def seed_demo_city() -> CityModel:
+    with session_scope() as session:
+        city = seed_santa_aurora(session)
+        session.flush()
+        city_id = city.id
+    with session_scope() as session:
+        persisted = session.get(CityModel, city_id)
+        if persisted is None:
+            raise RuntimeError("Demo city could not be persisted")
+        return persisted
+
+
 def main() -> None:
     user = seed_demo_user()
+    with session_scope() as session:
+        city = seed_santa_aurora(session)
+        city_name = city.name
     print(f"Demo planner ready: {user.email}")
+    print(f"Demo city ready: {city_name}")
 
 
 if __name__ == "__main__":

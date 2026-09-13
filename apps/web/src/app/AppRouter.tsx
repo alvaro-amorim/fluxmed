@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
+import { DeliveriesPage } from '../features/deliveries/DeliveriesPage'
+import '../features/deliveries/deliveries.css'
 import { NewOperationPage } from '../features/operations/NewOperationPage'
 import { OperationDetailPage } from '../features/operations/OperationDetailPage'
 import { OperationsPage } from '../features/operations/OperationsPage'
@@ -19,16 +21,7 @@ export function AppRouter() {
           <Route path="/operations" element={<OperationsPage />} />
           <Route path="/operations/new" element={<NewOperationPage />} />
           <Route path="/operations/:operationId" element={<OperationDetailPage />} />
-          <Route
-            path="/deliveries"
-            element={
-              <PlaceholderPage
-                title="Entregas"
-                description="Cadastro, importação e acompanhamento das entregas médicas."
-                phase="Planejado"
-              />
-            }
-          />
+          <Route path="/deliveries" element={<DeliveriesPage />} />
           <Route
             path="/fleet"
             element={

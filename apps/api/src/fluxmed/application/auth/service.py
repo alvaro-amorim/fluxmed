@@ -71,9 +71,7 @@ class AuthService:
     def authenticate(self, token: str | None) -> AuthenticatedUser:
         if not token:
             raise InvalidSessionError
-        user = self._sessions.get_user_for_token_hash(
-            hash_session_token(token), datetime.now(UTC)
-        )
+        user = self._sessions.get_user_for_token_hash(hash_session_token(token), datetime.now(UTC))
         if user is None:
             raise InvalidSessionError
         if not user.active:

@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from fluxmed.domain.enums import UserRole
 from fluxmed.infrastructure.database import session_scope
@@ -43,16 +43,16 @@ def user_factory() -> Iterator[UserFactory]:
 
     yield create_user
 
+    if not created_emails:
+        return
+
     with session_scope() as session:
         user_ids = list(
-            session.scalars(UserModel.__table__.select().with_only_columns(UserModel.id).where(
-                UserModel.email.in_(created_emails)
-            ))
-        ) if created_emails else []
+            session.scalars(select(UserModel.id).where(UserModel.email.in_(created_emails)))
+        )
         if user_ids:
             session.execute(delete(AuthSessionModel).where(AuthSessionModel.user_id.in_(user_ids)))
-        if created_emails:
-            session.execute(delete(UserModel).where(UserModel.email.in_(created_emails)))
+        session.execute(delete(UserModel).where(UserModel.email.in_(created_emails)))
 
 
 def test_login_me_and_logout_use_real_server_side_session(user_factory: UserFactory) -> None:
@@ -95,9 +95,7 @@ def test_login_rejects_inactive_user(user_factory: UserFactory) -> None:
     email, password = user_factory(active=False)
 
     with TestClient(app) as client:
-        response = client.post(
-            "/api/v1/auth/login", json={"email": email, "password": password}
-        )
+        response = client.post("/api/v1/auth/login", json={"email": email, "password": password})
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "USER_INACTIVE"
@@ -107,9 +105,7 @@ def test_login_returns_admin_role(user_factory: UserFactory) -> None:
     email, password = user_factory(role=UserRole.ADMIN)
 
     with TestClient(app) as client:
-        response = client.post(
-            "/api/v1/auth/login", json={"email": email, "password": password}
-        )
+        response = client.post("/api/v1/auth/login", json={"email": email, "password": password})
 
     assert response.status_code == 200
     assert response.json()["user"]["role"] == "ADMIN"

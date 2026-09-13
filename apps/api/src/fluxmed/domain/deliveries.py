@@ -92,7 +92,9 @@ class ServiceTimeEstimator:
         handling_requirement: HandlingRequirement,
     ) -> ServiceTimeEstimate:
         if package_count <= 0 or total_weight_kg <= 0 or total_volume_m3 <= 0:
-            raise DeliveryValidationError("Carga deve possuir volumes, peso e volume cúbico positivos.")
+            raise DeliveryValidationError(
+                "Carga deve possuir volumes, peso e volume cúbico positivos."
+            )
 
         base = self._BASE_MINUTES[building_type]
         package_minutes = min(12, math.ceil(package_count / 5) * 2)
@@ -100,7 +102,11 @@ class ServiceTimeEstimator:
         volume_minutes = min(8, math.ceil(float(total_volume_m3) / 1.5) * 2)
         solo = max(5, base + package_minutes + weight_minutes + volume_minutes)
         with_helper = max(5, math.ceil(solo * 0.72))
-        selected = with_helper if handling_requirement is HandlingRequirement.TWO_PERSON else solo
+        selected = (
+            with_helper
+            if handling_requirement is HandlingRequirement.TWO_PERSON
+            else solo
+        )
         return ServiceTimeEstimate(
             solo_minutes=solo,
             with_helper_minutes=with_helper,
@@ -126,7 +132,12 @@ def validate_delivery_values(
     if service_time_minutes <= 0:
         raise DeliveryValidationError("O tempo de atendimento deve ser maior que zero.")
     if (time_window_start is None) != (time_window_end is None):
-        raise DeliveryValidationError("A janela deve possuir início e fim, ou ambos devem ficar vazios.")
-    if time_window_start is not None and time_window_end is not None:
-        if time_window_end <= time_window_start:
-            raise DeliveryValidationError("O fim da janela deve ocorrer depois do início.")
+        raise DeliveryValidationError(
+            "A janela deve possuir início e fim, ou ambos devem ficar vazios."
+        )
+    if (
+        time_window_start is not None
+        and time_window_end is not None
+        and time_window_end <= time_window_start
+    ):
+        raise DeliveryValidationError("O fim da janela deve ocorrer depois do início.")

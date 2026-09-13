@@ -5,13 +5,13 @@ from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
-    Enum as SAEnum,
     ForeignKey,
     Integer,
     String,
     Time,
     func,
 )
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from fluxmed.domain.enums import OperationStatus, TrafficMode

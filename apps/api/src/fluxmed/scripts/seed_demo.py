@@ -44,18 +44,6 @@ def seed_demo_user() -> UserModel:
         return persisted
 
 
-def seed_demo_city() -> CityModel:
-    with session_scope() as session:
-        city = seed_santa_aurora(session)
-        session.flush()
-        city_id = city.id
-    with session_scope() as session:
-        persisted = session.get(CityModel, city_id)
-        if persisted is None:
-            raise RuntimeError("Demo city could not be persisted")
-        return persisted
-
-
 def main() -> None:
     user = seed_demo_user()
     with session_scope() as session:

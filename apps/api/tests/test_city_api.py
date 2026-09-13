@@ -50,17 +50,33 @@ def test_city_endpoints_expose_generated_santa_aurora() -> None:
             cities = client.get("/api/v1/cities")
             assert cities.status_code == 200
             assert len(cities.json()) == 1
-            assert cities.json()[0]["name"] == "Santa Aurora"
-            assert cities.json()[0]["district_count"] == 9
-            assert cities.json()[0]["bridge_count"] == 3
+            city_summary = cities.json()[0]
+            assert city_summary["name"] == "Santa Aurora"
+            assert city_summary["district_count"] == 9
+            assert 20_000 <= city_summary["address_count"] <= 40_000
+            assert 40 <= city_summary["facility_count"] <= 60
+            assert city_summary["bridge_count"] == 3
 
             detail = client.get(f"/api/v1/cities/{city_id}")
             assert detail.status_code == 200
-            assert detail.json()["generator_version"] == "santa-aurora-v1"
+            assert detail.json()["generator_version"] == "santa-aurora-v2"
 
             districts = client.get(f"/api/v1/cities/{city_id}/districts")
             assert districts.status_code == 200
             assert len(districts.json()) == 9
+
+            facilities = client.get(f"/api/v1/cities/{city_id}/facilities")
+            assert facilities.status_code == 200
+            assert len(facilities.json()) == city_summary["facility_count"]
+            depot = next(item for item in facilities.json() if item["facility_type"] == "DEPOT")
+
+            address_search = client.get(
+                f"/api/v1/cities/{city_id}/addresses/search",
+                params={"q": f"{depot['street_name']}, {depot['house_number']}"},
+            )
+            assert address_search.status_code == 200
+            assert address_search.json()["matches"]
+            assert address_search.json()["matches"][0]["id"] == depot["address_id"]
 
             city_map = client.get(f"/api/v1/cities/{city_id}/map")
             assert city_map.status_code == 200
@@ -68,7 +84,14 @@ def test_city_endpoints_expose_generated_santa_aurora() -> None:
             feature_types = {
                 feature["properties"]["feature_type"] for feature in city_map.json()["features"]
             }
-            assert {"district", "road", "river", "depot", "city_boundary"} <= feature_types
+            assert {
+                "district",
+                "road",
+                "river",
+                "depot",
+                "facility",
+                "city_boundary",
+            } <= feature_types
     finally:
         with session_scope() as session:
             session.execute(delete(AuthSessionModel).where(AuthSessionModel.user_id == user_id))

@@ -3,7 +3,8 @@ import type { GeoJSONSourceSpecification, Map as MapLibreMap, StyleSpecification
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 import { getCityMap, listCities } from '../../services/cities'
-import type { CityMapGeoJSON, CitySummary } from '../../types/city'
+import type { AddressMatch, CityMapGeoJSON, CitySummary } from '../../types/city'
+import { AddressAutocomplete } from './AddressAutocomplete'
 import './city.css'
 
 function cityStyle(data: CityMapGeoJSON): StyleSpecification {
@@ -44,7 +45,7 @@ function cityStyle(data: CityMapGeoJSON): StyleSpecification {
           ['==', ['get', 'feature_type'], 'road'],
           ['in', ['get', 'road_class'], ['literal', ['LOCAL', 'SERVICE']]],
         ],
-        paint: { 'line-color': '#aab6b9', 'line-width': 1.2 },
+        paint: { 'line-color': '#aab6b9', 'line-width': 1 },
       },
       {
         id: 'roads-collector',
@@ -55,7 +56,7 @@ function cityStyle(data: CityMapGeoJSON): StyleSpecification {
           ['==', ['get', 'feature_type'], 'road'],
           ['==', ['get', 'road_class'], 'COLLECTOR'],
         ],
-        paint: { 'line-color': '#718087', 'line-width': 2 },
+        paint: { 'line-color': '#718087', 'line-width': 1.5 },
       },
       {
         id: 'roads-arterial',
@@ -66,7 +67,7 @@ function cityStyle(data: CityMapGeoJSON): StyleSpecification {
           ['==', ['get', 'feature_type'], 'road'],
           ['==', ['get', 'road_class'], 'ARTERIAL'],
         ],
-        paint: { 'line-color': '#1c626c', 'line-width': 3 },
+        paint: { 'line-color': '#1c626c', 'line-width': 2.5 },
       },
       {
         id: 'roads-expressway',
@@ -77,7 +78,7 @@ function cityStyle(data: CityMapGeoJSON): StyleSpecification {
           ['==', ['get', 'feature_type'], 'road'],
           ['==', ['get', 'road_class'], 'EXPRESSWAY'],
         ],
-        paint: { 'line-color': '#b87428', 'line-width': 4 },
+        paint: { 'line-color': '#b87428', 'line-width': 3.5 },
       },
       {
         id: 'bridges',
@@ -88,7 +89,7 @@ function cityStyle(data: CityMapGeoJSON): StyleSpecification {
           ['==', ['get', 'feature_type'], 'road'],
           ['==', ['get', 'is_bridge'], true],
         ],
-        paint: { 'line-color': '#d2903e', 'line-width': 6 },
+        paint: { 'line-color': '#d2903e', 'line-width': 5 },
       },
       {
         id: 'river',
@@ -96,6 +97,18 @@ function cityStyle(data: CityMapGeoJSON): StyleSpecification {
         source: 'city',
         filter: ['==', ['get', 'feature_type'], 'river'],
         paint: { 'line-color': '#4d9ab1', 'line-width': 9, 'line-opacity': 0.8 },
+      },
+      {
+        id: 'facilities',
+        type: 'circle',
+        source: 'city',
+        filter: ['==', ['get', 'feature_type'], 'facility'],
+        paint: {
+          'circle-radius': 4.5,
+          'circle-color': '#ffffff',
+          'circle-stroke-color': '#276f78',
+          'circle-stroke-width': 2,
+        },
       },
       {
         id: 'depot',
@@ -165,6 +178,14 @@ export function SantaAuroraMap() {
     }
   }, [])
 
+  function focusAddress(address: AddressMatch) {
+    mapRef.current?.flyTo({
+      center: [address.longitude, address.latitude],
+      zoom: 15.2,
+      duration: 700,
+    })
+  }
+
   return (
     <section className="city-map-panel" aria-label="Mapa base de Santa Aurora">
       <div className="city-map-heading">
@@ -172,7 +193,8 @@ export function SantaAuroraMap() {
           <p className="eyebrow eyebrow--dark">Cidade sintética roteável</p>
           <h2>Santa Aurora</h2>
           <p>
-            Grafo viário determinístico gerado pelo backend, sem dependência de mapas externos.
+            Dataset determinístico completo, com malha viária, endereços existentes e facilities
+            médicas sem dependência de mapas externos.
           </p>
         </div>
         {city ? <span className="city-version">dataset {city.dataset_version}</span> : null}
@@ -181,8 +203,10 @@ export function SantaAuroraMap() {
       {city ? (
         <div className="city-map-metrics" aria-label="Métricas da cidade">
           <span><strong>{city.district_count}</strong>bairros</span>
+          <span><strong>{city.street_count}</strong>ruas</span>
           <span><strong>{city.intersection_count}</strong>interseções</span>
-          <span><strong>{city.road_segment_count}</strong>segmentos dirigidos</span>
+          <span><strong>{city.address_count.toLocaleString('pt-BR')}</strong>endereços</span>
+          <span><strong>{city.facility_count}</strong>facilities</span>
           <span><strong>{city.bridge_count}</strong>pontes</span>
         </div>
       ) : null}
@@ -193,11 +217,14 @@ export function SantaAuroraMap() {
           <span><i className="legend-swatch legend-swatch--ring" />Anel viário</span>
           <span><i className="legend-swatch legend-swatch--arterial" />Arteriais</span>
           <span><i className="legend-swatch legend-swatch--river" />Rio</span>
+          <span><i className="legend-swatch legend-swatch--facility" />Facilities</span>
           <span><i className="legend-swatch legend-swatch--depot" />Depósito FluxMed</span>
         </div>
         {loading ? <div className="city-map-overlay">Carregando Santa Aurora…</div> : null}
         {error ? <div className="city-map-overlay city-map-overlay--error">{error}</div> : null}
       </div>
+
+      {city ? <AddressAutocomplete cityId={city.id} onSelect={focusAddress} /> : null}
     </section>
   )
 }

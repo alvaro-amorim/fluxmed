@@ -5,9 +5,13 @@ Importing this package registers the current models in Base.metadata for Alembic
 
 from fluxmed.infrastructure.models.auth_session import AuthSessionModel
 from fluxmed.infrastructure.models.city import (
+    AddressModel,
+    BuildingModel,
     CityModel,
     DistrictModel,
+    FacilityModel,
     IntersectionModel,
+    LotModel,
     RoadSegmentModel,
     StreetModel,
 )
@@ -16,10 +20,14 @@ from fluxmed.infrastructure.models.operation_revision import OperationRevisionMo
 from fluxmed.infrastructure.models.user import UserModel
 
 __all__ = [
+    "AddressModel",
     "AuthSessionModel",
+    "BuildingModel",
     "CityModel",
     "DistrictModel",
+    "FacilityModel",
     "IntersectionModel",
+    "LotModel",
     "OperationModel",
     "OperationRevisionModel",
     "RoadSegmentModel",

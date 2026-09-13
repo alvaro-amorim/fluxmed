@@ -23,7 +23,7 @@
 }
 
 .city-map-heading > div > p:last-child {
-  max-width: 680px;
+  max-width: 760px;
   margin: 0.35rem 0 0;
   color: var(--graphite-500);
   font-size: 0.82rem;
@@ -120,6 +120,14 @@
   background: #4d9ab1;
 }
 
+.legend-swatch--facility {
+  width: 9px;
+  height: 9px;
+  border: 2px solid #276f78;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
 .legend-swatch--depot {
   width: 9px;
   height: 9px;
@@ -144,6 +152,111 @@
   text-align: center;
 }
 
+.address-search {
+  position: relative;
+  padding: 1rem 1.2rem 1.2rem;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.address-search > label {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--graphite-700);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.address-search-input-wrap {
+  position: relative;
+  max-width: 680px;
+}
+
+.address-search input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.68rem 6rem 0.68rem 0.78rem;
+  border: 1px solid #cbd7d9;
+  border-radius: 9px;
+  color: var(--graphite-900);
+  background: #fff;
+  font: inherit;
+}
+
+.address-search input:focus {
+  border-color: var(--petrol-500);
+  outline: 3px solid rgba(28, 98, 108, 0.12);
+}
+
+.address-search-spinner {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  color: var(--graphite-500);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.address-search-results {
+  width: min(680px, calc(100% - 2.4rem));
+  position: absolute;
+  z-index: 8;
+  top: 78px;
+  left: 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 18px 42px rgba(16, 52, 59, 0.16);
+}
+
+.address-search-results button {
+  width: 100%;
+  padding: 0.72rem 0.8rem;
+  border: 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 0.18rem;
+  text-align: left;
+  color: var(--graphite-900);
+  background: #fff;
+  cursor: pointer;
+}
+
+.address-search-results button:hover,
+.address-search-results button:focus-visible {
+  background: var(--surface-soft);
+  outline: none;
+}
+
+.address-search-results button strong {
+  font-size: 0.78rem;
+}
+
+.address-search-results button span,
+.address-search-hint,
+.address-search-empty,
+.address-search-error {
+  color: var(--graphite-500);
+  font-size: 0.7rem;
+}
+
+.address-search-hint {
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  background: #f5f9f9;
+}
+
+.address-search-empty,
+.address-search-error {
+  margin: 0.5rem 0 0;
+}
+
+.address-search-error {
+  color: #92393c;
+}
+
 @media (max-width: 720px) {
   .city-map-heading {
     flex-direction: column;
@@ -156,5 +269,9 @@
 
   .city-map-legend {
     right: 14px;
+  }
+
+  .address-search-results {
+    width: calc(100% - 2.4rem);
   }
 }

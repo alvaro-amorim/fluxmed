@@ -2,7 +2,7 @@ import { type FormEvent, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { ApiClientError } from '../../services/api'
-import { useAuth } from './AuthContext'
+import { useAuth } from './auth-context'
 
 const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL ?? 'planner@fluxmed.demo'
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? 'FluxMedDemo2026!'

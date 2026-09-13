@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 
 from fluxmed.api.errors import ApiError
 from fluxmed.application.auth import (
-    AuthService,
     AuthenticatedUser,
+    AuthService,
     InactiveUserError,
     InvalidSessionError,
 )

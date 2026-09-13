@@ -12,8 +12,8 @@ from fluxmed.api.dependencies import (
 )
 from fluxmed.api.errors import ApiError
 from fluxmed.application.auth import (
-    AuthService,
     AuthenticatedUser,
+    AuthService,
     InactiveUserError,
     InvalidCredentialsError,
 )

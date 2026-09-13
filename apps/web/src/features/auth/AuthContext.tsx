@@ -1,26 +1,9 @@
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 
 import * as authService from '../../services/auth'
 import { ApiClientError } from '../../services/api'
 import type { AuthUser } from '../../types/auth'
-
-type AuthStatus = 'loading' | 'anonymous' | 'authenticated'
-
-interface AuthContextValue {
-  user: AuthUser | null
-  status: AuthStatus
-  login: (email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
+import { AuthContext, type AuthContextValue, type AuthStatus } from './auth-context'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -73,10 +56,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext)
-  if (context === null) throw new Error('useAuth must be used inside AuthProvider')
-  return context
 }

@@ -1,8 +1,8 @@
 """Authentication application service."""
 
 from fluxmed.application.auth.service import (
-    AuthService,
     AuthenticatedUser,
+    AuthService,
     InactiveUserError,
     InvalidCredentialsError,
     InvalidSessionError,

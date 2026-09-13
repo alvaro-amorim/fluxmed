@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 
-import { useAuth } from '../features/auth/AuthContext'
+import { useAuth } from '../features/auth/auth-context'
 import type { UserRole } from '../types/auth'
 
 interface NavigationItem {

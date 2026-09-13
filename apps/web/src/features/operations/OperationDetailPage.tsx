@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { SantaAuroraMap } from '../city/SantaAuroraMap'
 import { getOperation, updateOperation } from '../../services/operations'
 import type { Operation, TrafficMode } from '../../types/operations'
 import {
@@ -177,6 +178,8 @@ export function OperationDetailPage() {
           </ol>
         </article>
       </section>
+
+      <SantaAuroraMap />
 
       {editing ? (
         <form className="operation-edit-card" onSubmit={(event) => void save(event)}>

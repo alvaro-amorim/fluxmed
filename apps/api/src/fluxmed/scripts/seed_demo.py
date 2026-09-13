@@ -1,5 +1,6 @@
 import os
 
+from fluxmed.city.persistence import seed_santa_aurora
 from fluxmed.domain.enums import UserRole
 from fluxmed.infrastructure.database import session_scope
 from fluxmed.infrastructure.models.user import UserModel
@@ -45,7 +46,11 @@ def seed_demo_user() -> UserModel:
 
 def main() -> None:
     user = seed_demo_user()
+    with session_scope() as session:
+        city = seed_santa_aurora(session)
+        city_name = city.name
     print(f"Demo planner ready: {user.email}")
+    print(f"Demo city ready: {city_name}")
 
 
 if __name__ == "__main__":

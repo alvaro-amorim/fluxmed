@@ -12,7 +12,11 @@ from fluxmed.infrastructure.database import Base
 class OperationRevisionModel(Base):
     __tablename__ = "operation_revisions"
     __table_args__ = (
-        UniqueConstraint("operation_id", "revision_number", name="operation_revision_number"),
+        UniqueConstraint(
+            "operation_id",
+            "revision_number",
+            name="uq_operation_revisions_operation_revision_number",
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
@@ -27,7 +31,7 @@ class OperationRevisionModel(Base):
     operation_start_time: Mapped[time] = mapped_column(Time, nullable=False)
     operation_end_time: Mapped[time] = mapped_column(Time, nullable=False)
     traffic_mode: Mapped[TrafficMode] = mapped_column(
-        SAEnum(TrafficMode, name="traffic_mode", create_type=False), nullable=False
+        SAEnum(TrafficMode, name="traffic_mode"), nullable=False
     )
     created_by_user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False

@@ -1,6 +1,6 @@
 import uuid
 from dataclasses import dataclass
-from datetime import date, time
+from datetime import date, datetime, time
 
 from sqlalchemy.orm import Session
 
@@ -25,8 +25,8 @@ class OperationView:
     status: OperationStatus
     current_revision_number: int
     created_by_user_id: uuid.UUID
-    created_at: object
-    updated_at: object
+    created_at: datetime
+    updated_at: datetime
 
 
 @dataclass(frozen=True, slots=True)

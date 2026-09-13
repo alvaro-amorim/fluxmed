@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.orm import Session
 
 from fluxmed.domain.enums import OperationStatus
@@ -42,7 +42,7 @@ class OperationRepository:
         sort: str = "updated_at",
         order: str = "desc",
     ) -> tuple[list[OperationModel], int]:
-        filters = []
+        filters: list[ColumnElement[bool]] = []
         if status is not None:
             filters.append(OperationModel.status == status)
         if date_from is not None:
@@ -50,8 +50,7 @@ class OperationRepository:
         if date_to is not None:
             filters.append(OperationModel.operation_date <= date_to)
         if q:
-            normalized = f"%{q.strip()}%"
-            filters.append(or_(OperationModel.operation_code.ilike(normalized)))
+            filters.append(OperationModel.operation_code.ilike(f"%{q.strip()}%"))
 
         count_statement = select(func.count()).select_from(OperationModel).where(*filters)
         total = int(self._session.scalar(count_statement) or 0)

@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react'
+import { type FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { createOperation } from '../../services/operations'
@@ -37,7 +37,11 @@ export function NewOperationPage() {
       })
       navigate(`/operations/${operation.id}`)
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível criar a operação.')
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Não foi possível criar a operação.',
+      )
     } finally {
       setSubmitting(false)
     }
@@ -49,7 +53,9 @@ export function NewOperationPage() {
         <div>
           <p className="eyebrow eyebrow--dark">Operações · criação</p>
           <h1>Nova operação</h1>
-          <p>Defina a janela operacional e o modo de trânsito. As demais etapas entram no wizard completo.</p>
+          <p>
+            Defina a janela operacional e o modo de trânsito. As demais etapas entram no wizard completo.
+          </p>
         </div>
         <Link className="button button--ghost button-link" to="/operations">
           Voltar
@@ -113,7 +119,9 @@ export function NewOperationPage() {
                 <option value="FREE">Livre</option>
                 <option value="CUSTOM">Personalizado</option>
               </select>
-              <small>O modo automático será conectado aos perfis viários de Santa Aurora nas próximas fases.</small>
+              <small>
+                O modo automático será conectado aos perfis viários de Santa Aurora nas próximas fases.
+              </small>
             </label>
           </div>
 
@@ -137,9 +145,18 @@ export function NewOperationPage() {
             fases seguintes sem substituir este fluxo.
           </p>
           <dl>
-            <div><dt>Origem</dt><dd>Centro de Distribuição FluxMed</dd></div>
-            <div><dt>Cidade</dt><dd>Santa Aurora</dd></div>
-            <div><dt>Estado inicial</dt><dd>Rascunho</dd></div>
+            <div>
+              <dt>Origem</dt>
+              <dd>Centro de Distribuição FluxMed</dd>
+            </div>
+            <div>
+              <dt>Cidade</dt>
+              <dd>Santa Aurora</dd>
+            </div>
+            <div>
+              <dt>Estado inicial</dt>
+              <dd>Rascunho</dd>
+            </div>
           </dl>
         </aside>
       </div>

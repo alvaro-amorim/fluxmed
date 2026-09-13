@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { getOperation, updateOperation } from '../../services/operations'
@@ -34,7 +34,9 @@ export function OperationDetailPage() {
         setError(null)
       })
       .catch((requestError: unknown) => {
-        if (active) setError(requestError instanceof Error ? requestError.message : 'Falha ao abrir operação.')
+        if (active) {
+          setError(requestError instanceof Error ? requestError.message : 'Falha ao abrir operação.')
+        }
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -63,21 +65,31 @@ export function OperationDetailPage() {
       setOperation(updated)
       setEditing(false)
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível salvar as alterações.')
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Não foi possível salvar as alterações.',
+      )
     } finally {
       setSaving(false)
     }
   }
 
   if (loading) {
-    return <main className="content-page"><p className="operations-state">Abrindo operação…</p></main>
+    return (
+      <main className="content-page">
+        <p className="operations-state">Abrindo operação…</p>
+      </main>
+    )
   }
 
   if (!operation) {
     return (
       <main className="content-page">
         <p className="form-error">{error ?? 'Operação não encontrada.'}</p>
-        <Link className="table-link" to="/operations">Voltar para operações</Link>
+        <Link className="table-link" to="/operations">
+          Voltar para operações
+        </Link>
       </main>
     )
   }
@@ -88,14 +100,22 @@ export function OperationDetailPage() {
     <main className="content-page operation-detail-page">
       <header className="page-heading operations-heading">
         <div>
-          <p className="eyebrow eyebrow--dark">Operações · {formatOperationDate(operation.operation_date)}</p>
+          <p className="eyebrow eyebrow--dark">
+            Operações · {formatOperationDate(operation.operation_date)}
+          </p>
           <h1>{operation.operation_code}</h1>
           <p>{operation.city_name} · planejamento diário</p>
         </div>
         <div className="detail-actions">
-          <Link className="button button--ghost button-link" to="/operations">Voltar</Link>
+          <Link className="button button--ghost button-link" to="/operations">
+            Voltar
+          </Link>
           {!immutable ? (
-            <button className="button button--secondary" type="button" onClick={() => setEditing((value) => !value)}>
+            <button
+              className="button button--secondary"
+              type="button"
+              onClick={() => setEditing((value) => !value)}
+            >
               {editing ? 'Fechar edição' : 'Editar operação'}
             </button>
           ) : null}
@@ -109,17 +129,37 @@ export function OperationDetailPage() {
               <strong>Visão geral</strong>
               <span>Dados persistidos da operação.</span>
             </div>
-            <span className={`operation-status operation-status--${operation.status.toLowerCase()}`}>
+            <span
+              className={`operation-status operation-status--${operation.status.toLowerCase()}`}
+            >
               {operationStatusLabel(operation.status)}
             </span>
           </div>
           <dl className="operation-details-list">
-            <div><dt>Data</dt><dd>{formatOperationDate(operation.operation_date)}</dd></div>
-            <div><dt>Saída</dt><dd>{formatOperationTime(operation.operation_start_time)}</dd></div>
-            <div><dt>Encerramento</dt><dd>{formatOperationTime(operation.operation_end_time)}</dd></div>
-            <div><dt>Trânsito</dt><dd>{trafficModeLabel(operation.traffic_mode)}</dd></div>
-            <div><dt>Cidade</dt><dd>{operation.city_name}</dd></div>
-            <div><dt>Revisão atual</dt><dd>{operation.current_revision_number || 'Ainda não otimizada'}</dd></div>
+            <div>
+              <dt>Data</dt>
+              <dd>{formatOperationDate(operation.operation_date)}</dd>
+            </div>
+            <div>
+              <dt>Saída</dt>
+              <dd>{formatOperationTime(operation.operation_start_time)}</dd>
+            </div>
+            <div>
+              <dt>Encerramento</dt>
+              <dd>{formatOperationTime(operation.operation_end_time)}</dd>
+            </div>
+            <div>
+              <dt>Trânsito</dt>
+              <dd>{trafficModeLabel(operation.traffic_mode)}</dd>
+            </div>
+            <div>
+              <dt>Cidade</dt>
+              <dd>{operation.city_name}</dd>
+            </div>
+            <div>
+              <dt>Revisão atual</dt>
+              <dd>{operation.current_revision_number || 'Ainda não otimizada'}</dd>
+            </div>
           </dl>
           {immutable ? (
             <p className="immutable-note">Esta operação foi despachada e seu snapshot é imutável.</p>
@@ -141,20 +181,34 @@ export function OperationDetailPage() {
       {editing ? (
         <form className="operation-edit-card" onSubmit={(event) => void save(event)}>
           <div className="panel-heading">
-            <div><strong>Editar configuração</strong><span>Alterações relevantes serão revalidadas pelo backend.</span></div>
+            <div>
+              <strong>Editar configuração</strong>
+              <span>Alterações relevantes serão revalidadas pelo backend.</span>
+            </div>
           </div>
           <div className="operation-edit-fields">
             <label>
               Horário de saída
-              <input type="time" value={startTime} onChange={(event) => setStartTime(event.target.value)} />
+              <input
+                type="time"
+                value={startTime}
+                onChange={(event) => setStartTime(event.target.value)}
+              />
             </label>
             <label>
               Encerramento máximo
-              <input type="time" value={endTime} onChange={(event) => setEndTime(event.target.value)} />
+              <input
+                type="time"
+                value={endTime}
+                onChange={(event) => setEndTime(event.target.value)}
+              />
             </label>
             <label>
               Modo de trânsito
-              <select value={trafficMode} onChange={(event) => setTrafficMode(event.target.value as TrafficMode)}>
+              <select
+                value={trafficMode}
+                onChange={(event) => setTrafficMode(event.target.value as TrafficMode)}
+              >
                 <option value="AUTOMATIC">Automático</option>
                 <option value="FREE">Livre</option>
                 <option value="CUSTOM">Personalizado</option>
@@ -168,7 +222,9 @@ export function OperationDetailPage() {
             </button>
           </div>
         </form>
-      ) : error ? <p className="form-error detail-error">{error}</p> : null}
+      ) : error ? (
+        <p className="form-error detail-error">{error}</p>
+      ) : null}
     </main>
   )
 }

@@ -95,6 +95,7 @@ def logout(
     auth_service = AuthService(session, timedelta(hours=SESSION_TTL_HOURS))
     auth_service.logout(request.cookies.get(SESSION_COOKIE_NAME))
     response.delete_cookie(SESSION_COOKIE_NAME, path="/")
+    response.status_code = status.HTTP_204_NO_CONTENT
     return response
 
 

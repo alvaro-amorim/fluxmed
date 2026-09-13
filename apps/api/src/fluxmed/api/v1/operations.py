@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, datetime, time
+from typing import Annotated
 
 from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
@@ -96,14 +97,17 @@ def _raise_operation_error(exc: Exception) -> None:
 def list_operations(
     session: DbSession,
     current_user: CurrentUser,
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
-    status_filter: OperationStatus | None = Query(default=None, alias="status"),
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    status_filter: Annotated[OperationStatus | None, Query(alias="status")] = None,
     date_from: date | None = None,
     date_to: date | None = None,
-    q: str | None = Query(default=None, max_length=100),
-    sort: str = Query(default="updated_at", pattern="^(created_at|updated_at|operation_date|operation_code)$"),
-    order: str = Query(default="desc", pattern="^(asc|desc)$"),
+    q: Annotated[str | None, Query(max_length=100)] = None,
+    sort: Annotated[
+        str,
+        Query(pattern="^(created_at|updated_at|operation_date|operation_code)$"),
+    ] = "updated_at",
+    order: Annotated[str, Query(pattern="^(asc|desc)$")] = "desc",
 ) -> OperationListResponse:
     del current_user
     result = OperationService(session).list(

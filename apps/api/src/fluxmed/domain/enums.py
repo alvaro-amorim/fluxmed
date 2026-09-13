@@ -16,6 +16,14 @@ class OperationStatus(StrEnum):
     DISPATCHED = "DISPATCHED"
 
 
+class RevisionStatus(StrEnum):
+    DRAFT = "DRAFT"
+    OPTIMIZED = "OPTIMIZED"
+    OUTDATED = "OUTDATED"
+    APPROVED = "APPROVED"
+    DISPATCHED = "DISPATCHED"
+
+
 class DeliveryPriority(StrEnum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"

@@ -2,6 +2,10 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
+import { NewOperationPage } from '../features/operations/NewOperationPage'
+import { OperationDetailPage } from '../features/operations/OperationDetailPage'
+import { OperationsPage } from '../features/operations/OperationsPage'
+import '../features/operations/operations.css'
 import { PlaceholderPage } from '../pages/PlaceholderPage'
 import { AppShell } from './AppShell'
 
@@ -12,16 +16,9 @@ export function AppRouter() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route index element={<Navigate to="/operations" replace />} />
-          <Route
-            path="/operations"
-            element={
-              <PlaceholderPage
-                title="Operações"
-                description="Criação, planejamento e histórico das operações diárias do FluxMed."
-                phase="Próxima fase"
-              />
-            }
-          />
+          <Route path="/operations" element={<OperationsPage />} />
+          <Route path="/operations/new" element={<NewOperationPage />} />
+          <Route path="/operations/:operationId" element={<OperationDetailPage />} />
           <Route
             path="/deliveries"
             element={

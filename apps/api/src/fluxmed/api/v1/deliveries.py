@@ -216,7 +216,7 @@ def _raise_delivery_error(exc: Exception) -> None:
         raise ApiError(status.HTTP_409_CONFLICT, "IMPORT_VALIDATION_FAILED", str(exc)) from exc
     if isinstance(exc, UnsupportedImportFormatError):
         raise ApiError(status.HTTP_422_UNPROCESSABLE_ENTITY, "IMPORT_FORMAT_INVALID", str(exc)) from exc
-    if isinstance(exc, (DeliveryValidationError, ValueError)):
+    if isinstance(exc, DeliveryValidationError | ValueError):
         raise ApiError(status.HTTP_422_UNPROCESSABLE_ENTITY, "INVALID_DELIVERY", str(exc)) from exc
     raise exc
 

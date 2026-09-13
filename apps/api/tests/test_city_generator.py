@@ -94,6 +94,8 @@ def test_facilities_have_valid_addresses_and_depot(city: GeneratedCity) -> None:
 
     assert all(facility.address_id in address_ids for facility in city.facilities)
     assert all(facility.building_id in building_ids for facility in city.facilities)
-    depots = [facility for facility in city.facilities if facility.facility_type == FacilityType.DEPOT]
+    depots = [
+        facility for facility in city.facilities if facility.facility_type == FacilityType.DEPOT
+    ]
     assert len(depots) == 1
     assert depots[0].name == "Centro de Distribuição FluxMed"

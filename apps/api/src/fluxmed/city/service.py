@@ -150,9 +150,7 @@ class CityService:
         street_query, number_query = self._split_address_query(cleaned_query)
         streets = list(
             self._session.scalars(
-                select(StreetModel)
-                .where(StreetModel.city_id == city_id)
-                .order_by(StreetModel.name)
+                select(StreetModel).where(StreetModel.city_id == city_id).order_by(StreetModel.name)
             )
         )
         ranked_streets = self._rank_streets(streets, street_query)
@@ -184,9 +182,9 @@ class CityService:
             statement = statement.where(
                 func.upper(AddressModel.house_number) == number_query.upper()
             )
-        statement = statement.order_by(
-            StreetModel.name, AddressModel.house_number_numeric
-        ).limit(limit)
+        statement = statement.order_by(StreetModel.name, AddressModel.house_number_numeric).limit(
+            limit
+        )
         rows = self._session.execute(statement).all()
         matches = [self._address_match(*row) for row in rows]
 
@@ -360,9 +358,7 @@ class CityService:
         return query, None
 
     @staticmethod
-    def _rank_streets(
-        streets: list[StreetModel], query: str
-    ) -> list[tuple[StreetModel, float]]:
+    def _rank_streets(streets: list[StreetModel], query: str) -> list[tuple[StreetModel, float]]:
         normalized_query = normalize_street_name(query)
         if not normalized_query:
             return []

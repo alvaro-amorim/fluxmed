@@ -4,7 +4,7 @@ import pytest
 
 from fluxmed.city.generator import GeneratedCity, build_santa_aurora
 from fluxmed.city.naming import normalize_street_name
-from fluxmed.domain.enums import FacilityType, LotStatus
+from fluxmed.domain.enums import FacilityType, LotStatus, RoadClass
 
 
 @pytest.fixture(scope="module")
@@ -66,16 +66,21 @@ def test_graph_is_connected_and_river_crossings_are_bridges(city: GeneratedCity)
             assert segment.is_bridge
 
 
-def test_addresses_map_to_buildings_and_road_segments(city: GeneratedCity) -> None:
+def test_addresses_map_to_buildings_and_safe_road_frontages(city: GeneratedCity) -> None:
     building_ids = {building.id for building in city.buildings}
-    segment_ids = {segment.id for segment in city.road_segments}
+    segment_by_id = {segment.id: segment for segment in city.road_segments}
     vacant_lot_ids = {lot.id for lot in city.lots if lot.status == LotStatus.VACANT}
     building_lot_ids = {building.lot_id for building in city.buildings}
 
     assert all(address.building_id in building_ids for address in city.addresses)
-    assert all(address.road_segment_id in segment_ids for address in city.addresses)
+    assert all(address.road_segment_id in segment_by_id for address in city.addresses)
     assert vacant_lot_ids.isdisjoint(building_lot_ids)
     assert all(0 < address.position_on_segment < 1 for address in city.addresses)
+    assert all(not segment_by_id[address.road_segment_id].is_bridge for address in city.addresses)
+    assert all(
+        segment_by_id[address.road_segment_id].road_class != RoadClass.EXPRESSWAY
+        for address in city.addresses
+    )
 
 
 def test_street_names_are_normalized_unique(city: GeneratedCity) -> None:

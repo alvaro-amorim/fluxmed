@@ -76,7 +76,7 @@ class CityService:
             bridge_count=int(bridge_count or 0),
         )
 
-    def list(self) -> list[CitySummary]:
+    def list_cities(self) -> list[CitySummary]:
         cities = self._session.scalars(select(CityModel).order_by(CityModel.name)).all()
         return [self._summary(city) for city in cities]
 

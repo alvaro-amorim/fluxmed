@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fluxmed}
+      POSTGRES_USER: ${POSTGRES_USER:-fluxmed}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fluxmed}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fluxmed} -d ${POSTGRES_DB:-fluxmed}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - fluxmed_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  fluxmed_postgres_data:

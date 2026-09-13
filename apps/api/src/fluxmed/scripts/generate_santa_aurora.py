@@ -25,9 +25,7 @@ def main() -> None:
         dataset_version = city.dataset_version
         generation_seed = city.generation_seed
 
-    print(
-        f"{city_name} ready: id={city_id} dataset={dataset_version} seed={generation_seed}"
-    )
+    print(f"{city_name} ready: id={city_id} dataset={dataset_version} seed={generation_seed}")
 
 
 if __name__ == "__main__":

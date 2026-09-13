@@ -211,13 +211,29 @@ def _raise_delivery_error(exc: Exception) -> None:
             "Entrega ou operação não encontrada.",
         ) from exc
     if isinstance(exc, DeliveryMutationBlockedError):
-        raise ApiError(status.HTTP_409_CONFLICT, "INVALID_OPERATION_STATE", str(exc)) from exc
+        raise ApiError(
+            status.HTTP_409_CONFLICT,
+            "INVALID_OPERATION_STATE",
+            str(exc),
+        ) from exc
     if isinstance(exc, DeliveryImportValidationError):
-        raise ApiError(status.HTTP_409_CONFLICT, "IMPORT_VALIDATION_FAILED", str(exc)) from exc
+        raise ApiError(
+            status.HTTP_409_CONFLICT,
+            "IMPORT_VALIDATION_FAILED",
+            str(exc),
+        ) from exc
     if isinstance(exc, UnsupportedImportFormatError):
-        raise ApiError(status.HTTP_422_UNPROCESSABLE_ENTITY, "IMPORT_FORMAT_INVALID", str(exc)) from exc
+        raise ApiError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "IMPORT_FORMAT_INVALID",
+            str(exc),
+        ) from exc
     if isinstance(exc, DeliveryValidationError | ValueError):
-        raise ApiError(status.HTTP_422_UNPROCESSABLE_ENTITY, "INVALID_DELIVERY", str(exc)) from exc
+        raise ApiError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "INVALID_DELIVERY",
+            str(exc),
+        ) from exc
     raise exc
 
 
@@ -250,7 +266,9 @@ def list_deliveries(
 
 @router.get("/deliveries/{delivery_id}", response_model=DeliveryResponse)
 def get_delivery(
-    delivery_id: uuid.UUID, session: DbSession, current_user: CurrentUser
+    delivery_id: uuid.UUID,
+    session: DbSession,
+    current_user: CurrentUser,
 ) -> DeliveryResponse:
     del current_user
     try:
@@ -271,7 +289,9 @@ def list_operation_deliveries(
     del current_user
     try:
         result = DeliveryService(session).list_for_operation(
-            operation_id, page=page, page_size=page_size
+            operation_id,
+            page=page,
+            page_size=page_size,
         )
         return _page_response(result)
     except Exception as exc:
@@ -292,7 +312,9 @@ def create_delivery(
 ) -> DeliveryResponse:
     del current_user
     try:
-        return _delivery_response(DeliveryService(session).create(operation_id, _input(payload)))
+        return _delivery_response(
+            DeliveryService(session).create(operation_id, _input(payload))
+        )
     except Exception as exc:
         _raise_delivery_error(exc)
         raise
@@ -313,7 +335,11 @@ def update_delivery(
     try:
         changes = payload.model_dump(exclude_unset=True)
         return _delivery_response(
-            DeliveryService(session).update(operation_id, delivery_id, changes)
+            DeliveryService(session).update(
+                operation_id,
+                delivery_id,
+                changes,
+            )
         )
     except Exception as exc:
         _raise_delivery_error(exc)
@@ -338,7 +364,10 @@ def delete_delivery(
         raise
 
 
-@router.post("/operations/{operation_id}/generate-scenario", response_model=ScenarioResponse)
+@router.post(
+    "/operations/{operation_id}/generate-scenario",
+    response_model=ScenarioResponse,
+)
 def generate_operation_scenario(
     operation_id: uuid.UUID,
     payload: ScenarioRequest,
@@ -358,7 +387,10 @@ def generate_operation_scenario(
             summary=ScenarioSummaryResponse(**asdict(result.summary)),
             validation={
                 "status": "PENDING_RESOURCES",
-                "message": "Endereços validados; capacidade de frota será avaliada no preflight.",
+                "message": (
+                    "Endereços validados; capacidade de frota será avaliada "
+                    "no preflight."
+                ),
             },
             deliveries=[_delivery_response(item) for item in result.deliveries],
         )
@@ -394,9 +426,14 @@ async def create_delivery_import(
         raise
 
 
-@router.get("/delivery-imports/{import_id}", response_model=DeliveryImportResponse)
+@router.get(
+    "/delivery-imports/{import_id}",
+    response_model=DeliveryImportResponse,
+)
 def get_delivery_import(
-    import_id: uuid.UUID, session: DbSession, current_user: CurrentUser
+    import_id: uuid.UUID,
+    session: DbSession,
+    current_user: CurrentUser,
 ) -> DeliveryImportResponse:
     del current_user
     try:
@@ -406,9 +443,14 @@ def get_delivery_import(
         raise
 
 
-@router.post("/delivery-imports/{import_id}/confirm", response_model=DeliveryImportResponse)
+@router.post(
+    "/delivery-imports/{import_id}/confirm",
+    response_model=DeliveryImportResponse,
+)
 def confirm_delivery_import(
-    import_id: uuid.UUID, session: DbSession, current_user: CurrentUser
+    import_id: uuid.UUID,
+    session: DbSession,
+    current_user: CurrentUser,
 ) -> DeliveryImportResponse:
     del current_user
     try:
@@ -418,9 +460,14 @@ def confirm_delivery_import(
         raise
 
 
-@router.delete("/delivery-imports/{import_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/delivery-imports/{import_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 def delete_delivery_import(
-    import_id: uuid.UUID, session: DbSession, current_user: CurrentUser
+    import_id: uuid.UUID,
+    session: DbSession,
+    current_user: CurrentUser,
 ) -> None:
     del current_user
     try:

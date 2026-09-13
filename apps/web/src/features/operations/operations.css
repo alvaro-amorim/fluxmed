@@ -1,0 +1,380 @@
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.operations-heading {
+  align-items: center;
+}
+
+.operations-summary {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.operations-summary article,
+.operations-panel,
+.operation-form-card,
+.operation-context-card,
+.operation-overview-card,
+.operation-stage-card,
+.operation-edit-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.operations-summary article {
+  padding: 1rem 1.1rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.operations-summary span,
+.panel-heading span,
+.operation-details-list dt,
+.operation-context-card dt {
+  color: var(--graphite-500);
+  font-size: 0.76rem;
+}
+
+.operations-summary strong {
+  color: var(--graphite-900);
+  font-size: 1.55rem;
+}
+
+.operations-panel {
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.panel-heading {
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.panel-heading > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.panel-heading strong,
+.operation-context-card > strong,
+.operation-stage-card > strong {
+  color: var(--graphite-900);
+}
+
+.operations-state,
+.operations-empty {
+  margin: 0;
+  padding: 2.2rem 1.2rem;
+  color: var(--graphite-500);
+}
+
+.operations-empty {
+  min-height: 260px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.operations-empty strong {
+  color: var(--graphite-900);
+  font-size: 1.05rem;
+}
+
+.operations-empty p {
+  max-width: 480px;
+}
+
+.operations-table-wrap {
+  overflow-x: auto;
+}
+
+.operations-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.operations-table th,
+.operations-table td {
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.operations-table th {
+  color: var(--graphite-500);
+  background: var(--surface-soft);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.operations-table td:first-child {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.operations-table td:first-child span {
+  color: var(--graphite-500);
+  font-size: 0.72rem;
+}
+
+.table-link {
+  color: var(--petrol-700);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.table-link:hover {
+  text-decoration: underline;
+}
+
+.operation-status {
+  width: fit-content;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.operation-status--draft,
+.operation-status--ready {
+  color: var(--petrol-700);
+  background: #e9f4f5;
+}
+
+.operation-status--optimizing,
+.operation-status--outdated {
+  color: #8a5a18;
+  background: #fff4dc;
+}
+
+.operation-status--optimized,
+.operation-status--approved {
+  color: #237253;
+  background: #e7f5ee;
+}
+
+.operation-status--dispatched {
+  color: #49545a;
+  background: #edf0f1;
+}
+
+.operation-form-layout,
+.operation-detail-grid {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.65fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.operation-form-card,
+.operation-edit-card {
+  padding: 1.2rem;
+}
+
+.form-section-heading {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 0.8rem;
+}
+
+.form-section-heading > span {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  color: var(--petrol-700);
+  background: var(--petrol-100);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.form-section-heading > div {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.form-section-heading p,
+.operation-context-card p,
+.operation-stage-card li,
+.immutable-note {
+  margin: 0;
+  color: var(--graphite-500);
+  line-height: 1.55;
+}
+
+.operation-form-grid,
+.operation-edit-fields {
+  margin-top: 1.1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.operation-form-grid label,
+.operation-edit-fields label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--graphite-700);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.operation-form-grid input,
+.operation-form-grid select,
+.operation-edit-fields input,
+.operation-edit-fields select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.65rem 0.72rem;
+  border: 1px solid #cbd7d9;
+  border-radius: 9px;
+  color: var(--graphite-900);
+  background: #fff;
+  font: inherit;
+}
+
+.operation-form-grid input[readonly] {
+  color: var(--graphite-500);
+  background: var(--surface-soft);
+}
+
+.operation-form-grid small {
+  color: var(--graphite-500);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.field-span {
+  grid-column: 1 / -1;
+}
+
+.form-actions,
+.detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.form-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.operation-context-card,
+.operation-stage-card {
+  padding: 1.3rem;
+}
+
+.operation-context-card > p,
+.operation-stage-card > p {
+  margin-top: 0;
+}
+
+.operation-context-card > strong,
+.operation-stage-card > strong {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-size: 1.05rem;
+}
+
+.operation-context-card dl,
+.operation-details-list {
+  margin: 1.2rem 0 0;
+  display: grid;
+  gap: 0;
+}
+
+.operation-context-card dl div,
+.operation-details-list div {
+  padding: 0.72rem 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.operation-context-card dd,
+.operation-details-list dd {
+  margin: 0;
+  color: var(--graphite-900);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.operation-overview-card {
+  overflow: hidden;
+}
+
+.operation-details-list {
+  padding: 0 1.15rem 1rem;
+}
+
+.operation-stage-card ol {
+  margin: 1rem 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.operation-stage-card .stage-complete {
+  color: var(--success);
+  font-weight: 750;
+}
+
+.immutable-note {
+  margin: 0 1.15rem 1.15rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #f1f4f4;
+}
+
+.operation-edit-card {
+  margin-top: 1rem;
+}
+
+.operation-edit-card .panel-heading {
+  margin: -1.2rem -1.2rem 0;
+}
+
+.detail-error {
+  margin-top: 1rem;
+}
+
+@media (max-width: 900px) {
+  .operations-summary,
+  .operation-form-layout,
+  .operation-detail-grid,
+  .operation-form-grid,
+  .operation-edit-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .field-span {
+    grid-column: auto;
+  }
+
+  .operations-heading {
+    align-items: flex-start;
+  }
+}

@@ -7,12 +7,18 @@ from sqlalchemy import delete, func, select
 from fluxmed.city.persistence import seed_santa_aurora
 from fluxmed.city.service import CityService
 from fluxmed.infrastructure.database import session_scope
-from fluxmed.infrastructure.models.city import CityModel, DistrictModel, RoadSegmentModel
+from fluxmed.infrastructure.models.city import (
+    AddressModel,
+    CityModel,
+    DistrictModel,
+    RoadSegmentModel,
+    StreetModel,
+)
 
 pytestmark = pytest.mark.integration
 
 
-def test_city_persists_valid_geometry_and_serves_geojson() -> None:
+def test_city_persists_valid_geometry_and_serves_address_search() -> None:
     if not os.getenv("TEST_DATABASE_URL"):
         pytest.skip("TEST_DATABASE_URL is not configured")
 
@@ -38,19 +44,41 @@ def test_city_persists_valid_geometry_and_serves_geojson() -> None:
             )
             summary = CityService(session).get(city_id)
             geojson = CityService(session).map_geojson(city_id)
+            first_address = session.execute(
+                select(AddressModel, StreetModel.name)
+                .join(StreetModel, StreetModel.id == AddressModel.street_id)
+                .where(AddressModel.city_id == city_id)
+                .order_by(StreetModel.name, AddressModel.house_number_numeric)
+                .limit(1)
+            ).one()
+            address, street_name = first_address
+            search = CityService(session).search_addresses(
+                city_id, f"{street_name}, {address.house_number}"
+            )
+            facilities = CityService(session).facilities(city_id)
 
         assert boundary_valid is True
         assert districts_valid is True
         assert segments_valid is True
         assert summary.district_count == 9
-        assert summary.intersection_count == 56
+        assert 140 <= summary.street_count <= 170
+        assert 700 <= summary.intersection_count <= 900
+        assert 20_000 <= summary.address_count <= 40_000
+        assert 40 <= summary.facility_count <= 60
         assert summary.bridge_count == 3
+        assert search.matches
+        assert search.matches[0].id == address.id
+        assert len(facilities) == summary.facility_count
         assert geojson["type"] == "FeatureCollection"
         assert any(
             feature["properties"]["feature_type"] == "depot" for feature in geojson["features"]
         )
         assert any(
             feature["properties"]["feature_type"] == "river" for feature in geojson["features"]
+        )
+        assert any(
+            feature["properties"]["feature_type"] == "facility"
+            for feature in geojson["features"]
         )
     finally:
         with session_scope() as session:

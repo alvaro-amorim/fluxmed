@@ -191,9 +191,8 @@ def _road_class_for_local(orientation: str, index: int, district_slug: str) -> R
         base = RoadClass.COLLECTOR if index % 5 == 0 else RoadClass.LOCAL
     else:
         base = RoadClass.COLLECTOR if index % 6 == 0 else RoadClass.LOCAL
-    if district_slug in {"distrito-industrial", "distrito-logistico"}:
-        if base == RoadClass.LOCAL:
-            return RoadClass.SERVICE
+    if district_slug in {"distrito-industrial", "distrito-logistico"} and base == RoadClass.LOCAL:
+        return RoadClass.SERVICE
     return base
 
 

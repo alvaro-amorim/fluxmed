@@ -82,6 +82,8 @@ export interface DeliveryCreateInput {
   notes?: string | null
 }
 
+export type DeliveryUpdateInput = Partial<DeliveryCreateInput>
+
 export interface DeliveryFilters {
   operation_id?: string
   priority?: DeliveryPriority

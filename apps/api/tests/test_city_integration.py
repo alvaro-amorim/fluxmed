@@ -18,9 +18,7 @@ def test_city_persists_valid_geometry_and_serves_geojson() -> None:
 
     seed = int(uuid.uuid4().int % 1_000_000_000)
     with session_scope() as session:
-        city = seed_santa_aurora(
-            session, seed=seed, dataset_version=f"test-{seed}", replace=True
-        )
+        city = seed_santa_aurora(session, seed=seed, dataset_version=f"test-{seed}", replace=True)
         city_id = city.id
 
     try:
@@ -49,12 +47,10 @@ def test_city_persists_valid_geometry_and_serves_geojson() -> None:
         assert summary.bridge_count == 3
         assert geojson["type"] == "FeatureCollection"
         assert any(
-            feature["properties"]["feature_type"] == "depot"
-            for feature in geojson["features"]
+            feature["properties"]["feature_type"] == "depot" for feature in geojson["features"]
         )
         assert any(
-            feature["properties"]["feature_type"] == "river"
-            for feature in geojson["features"]
+            feature["properties"]["feature_type"] == "river" for feature in geojson["features"]
         )
     finally:
         with session_scope() as session:

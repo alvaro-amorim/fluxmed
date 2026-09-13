@@ -50,7 +50,8 @@ def seed_santa_aurora(
             return existing
         if not replace:
             raise RuntimeError(
-                "Santa Aurora already exists with another seed/version. Use replace=True explicitly."
+                "Santa Aurora already exists with another seed/version. "
+                "Use replace=True explicitly."
             )
         session.execute(delete(CityModel).where(CityModel.id == existing.id))
         session.flush()

@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0",
+  "global_corridors": {
+    "ring": "Anel Viário de Santa Aurora",
+    "santa-aurora": "Avenida Santa Aurora",
+    "integracao": "Avenida da Integração",
+    "republica": "Avenida República",
+    "central": "Avenida Central",
+    "universidade": "Avenida do Conhecimento",
+    "logistica": "Avenida da Logística"
+  },
+  "themes": {
+    "vale-verde": [
+      "Serra Clara", "Vale do Cedro", "Pedra Serena", "Rio Manso", "Mata Alta", "Horizonte Verde",
+      "Bosque Azul", "Colina Branda", "Nascente Bela", "Ipê do Vale", "Caminho das Águas", "Lagoa Serena",
+      "Monte Claro", "Vereda Verde", "Pico Aurora", "Campo das Nascentes", "Alameda do Bosque", "Encosta Azul",
+      "Reserva do Vale", "Morro da Lua", "Trilha Serena", "Jardim do Cedro", "Fonte Clara", "Vista da Serra"
+    ],
+    "parque-universitario": [
+      "Método", "Pesquisa", "Descoberta", "Conhecimento", "Laboratório", "Academia", "Hipótese", "Evidência",
+      "Ciência Aplicada", "Inovação", "Observatório", "Biblioteca", "Horizonte Científico", "Campus Norte",
+      "Campus Sul", "Estudo", "Tecnologia", "Saber", "Experimento", "Engenharia", "Biociências", "Pesquisa Clínica",
+      "Aprendizado", "Instituto Aurora"
+    ],
+    "nova-esperanca": [
+      "Progresso", "Novo Horizonte", "Cidadania", "Futuro", "Integração Cívica", "Desenvolvimento", "Renovação",
+      "Conquista", "Cooperação", "Esperança Nova", "Comunidade", "Pioneirismo", "Planejamento", "Avanço",
+      "Prosperidade", "União", "Horizonte Cívico", "Nova Aurora", "Bem Comum", "Participação", "Modernidade",
+      "Crescimento", "Construção", "Amanhã"
+    ],
+    "vila-aurora": [
+      "Casa Antiga", "Largo Aurora", "Estação Velha", "Travessa do Sol", "Vila Serena", "Pátio das Palmeiras",
+      "Comércio Antigo", "Jardim da Vila", "Praça do Coreto", "Rua do Bonde", "Passagem Aurora", "Mercado da Vila",
+      "Ponte Velha", "Rua das Oficinas", "Alameda do Casario", "Rua do Sobrado", "Largo do Relógio", "Vila do Carmo",
+      "Rua da Fonte", "Rua do Cruzeiro", "Rua do Mirante", "Rua do Pátio", "Rua da Estação", "Rua da Matriz"
+    ],
+    "centro-historico": [
+      "Sete de Aurora", "Praça do Comércio", "Relógio Central", "Mercado Velho", "Casa da Câmara", "Largo Central",
+      "Memória", "Fundação", "Arquivo Municipal", "Passagem do Teatro", "Rua do Correio", "Rua da Alfândega",
+      "Rua dos Arcos", "Rua do Fórum", "Rua do Paço", "Rua do Tesouro", "Rua da Imprensa", "Rua do Museu",
+      "Rua do Carmo", "Rua da República Velha", "Rua do Mercado", "Rua da Estação Central", "Rua do Largo", "Rua da Aurora Antiga"
+    ],
+    "santa-cecilia": [
+      "Comércio Novo", "Praça Santa Cecília", "Serviços", "Convivência", "Bairro Alto", "Rua das Lojas",
+      "Rua das Clínicas", "Rua do Mercado Novo", "Rua do Parque", "Rua das Palmeiras", "Rua das Acácias",
+      "Rua dos Jacarandás", "Rua da Harmonia", "Rua da Amizade", "Rua do Encontro", "Rua da Praça",
+      "Rua do Comércio", "Rua das Oficinas Urbanas", "Rua do Centro Cívico", "Rua da Biblioteca", "Rua do Jardim",
+      "Rua do Passeio", "Rua do Colégio", "Rua da Saúde"
+    ],
+    "jardim-das-flores": [
+      "das Acácias", "das Azaleias", "das Begônias", "das Camélias", "das Dálias", "das Gardênias", "dos Girassóis",
+      "dos Hibiscos", "dos Ipês", "dos Jasmins", "das Lavandas", "das Magnólias", "das Orquídeas", "das Petúnias",
+      "das Rosas", "das Tulipas", "das Violetas", "dos Lírios", "das Bromélias", "dos Manacás", "das Hortênsias",
+      "das Palmeiras", "dos Cedros", "das Paineiras"
+    ],
+    "distrito-industrial": [
+      "Produção", "Fundição", "Montagem", "Energia", "Mecânica", "Usinagem", "Metalurgia", "Ferramentaria",
+      "Operação", "Manufatura", "Engrenagem", "Caldeiraria", "Precisão", "Oficinas", "Polo Industrial",
+      "Parque Fabril", "Máquinas", "Componentes", "Processos", "Expedição Industrial", "Armazém Industrial",
+      "Tecnologia Fabril", "Controle de Produção", "Linha de Montagem"
+    ],
+    "distrito-logistico": [
+      "Distribuição", "Transporte", "Expedição", "Armazéns", "Terminal", "Carga", "Rota", "Integração Logística",
+      "Entreposto", "Centro de Distribuição", "Pátio de Cargas", "Eixo Logístico", "Conexão", "Movimentação",
+      "Abastecimento", "Operações Logísticas", "Transbordo", "Recebimento", "Despacho", "Consolidação",
+      "Corredor de Cargas", "Plataforma Logística", "Pátio Norte", "Pátio Sul"
+    ]
+  }
+}

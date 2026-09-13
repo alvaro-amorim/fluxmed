@@ -8,8 +8,12 @@ version = "0.1.0"
 description = "FluxMed FastAPI backend"
 requires-python = ">=3.12,<3.14"
 dependencies = [
+  "alembic>=1.14,<2.0",
   "fastapi>=0.115,<1.0",
+  "geoalchemy2>=0.17,<1.0",
+  "psycopg[binary]>=3.2,<4.0",
   "pydantic>=2.10,<3.0",
+  "sqlalchemy>=2.0,<3.0",
   "uvicorn[standard]>=0.32,<1.0",
 ]
 
@@ -27,6 +31,9 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+  "integration: requires PostgreSQL/PostGIS",
+]
 
 [tool.ruff]
 target-version = "py312"

@@ -1,3 +1,4 @@
+import uuid
 from collections import Counter, deque
 
 from fluxmed.city.generator import build_santa_aurora
@@ -22,13 +23,13 @@ def validate() -> list[str]:
     if len(normalized_names) != len(set(normalized_names)):
         errors.append("street names are not normalized-unique")
 
-    adjacency: dict[object, list[object]] = {item.id: [] for item in city.intersections}
+    adjacency: dict[uuid.UUID, list[uuid.UUID]] = {item.id: [] for item in city.intersections}
     segment_ids = {segment.id for segment in city.road_segments}
     for segment in city.road_segments:
         adjacency[segment.from_intersection_id].append(segment.to_intersection_id)
     start = city.intersections[0].id
-    visited = {start}
-    queue = deque([start])
+    visited: set[uuid.UUID] = {start}
+    queue: deque[uuid.UUID] = deque([start])
     while queue:
         current = queue.popleft()
         for neighbor in adjacency[current]:

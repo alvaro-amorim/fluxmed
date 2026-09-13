@@ -6,6 +6,27 @@ on:
     branches: [main]
 
 jobs:
+  database:
+    name: PostgreSQL + PostGIS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start database
+        run: docker compose up -d db
+      - name: Wait for database readiness
+        run: |
+          for attempt in {1..20}; do
+            if docker compose exec -T db pg_isready -U fluxmed -d fluxmed; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs db
+          exit 1
+      - name: Stop database
+        if: always()
+        run: docker compose down -v
+
   backend:
     name: Backend
     runs-on: ubuntu-latest

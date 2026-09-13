@@ -84,8 +84,7 @@ def test_city_persists_valid_geometry_and_serves_address_search() -> None:
             feature["properties"]["feature_type"] == "river" for feature in geojson["features"]
         )
         assert any(
-            feature["properties"]["feature_type"] == "facility"
-            for feature in geojson["features"]
+            feature["properties"]["feature_type"] == "facility" for feature in geojson["features"]
         )
     finally:
         with session_scope() as session:

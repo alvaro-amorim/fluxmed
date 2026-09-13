@@ -19,7 +19,7 @@ from fluxmed.security.passwords import hash_password
 pytestmark = pytest.mark.integration
 
 
-def test_delivery_endpoints_use_real_addresses_and_confirm_import_atomically() -> None:
+def test_delivery_endpoints_use_real_addresses_and_confirm_import() -> None:
     if not os.getenv("TEST_DATABASE_URL"):
         pytest.skip("TEST_DATABASE_URL is not configured")
 
@@ -59,7 +59,10 @@ def test_delivery_endpoints_use_real_addresses_and_confirm_import_atomically() -
         address, street_name = session.execute(
             select(AddressModel, StreetModel.name)
             .join(StreetModel, StreetModel.id == AddressModel.street_id)
-            .where(AddressModel.city_id == city_id, AddressModel.active.is_(True))
+            .where(
+                AddressModel.city_id == city_id,
+                AddressModel.active.is_(True),
+            )
             .order_by(AddressModel.id)
             .limit(1)
         ).one()
@@ -68,7 +71,10 @@ def test_delivery_endpoints_use_real_addresses_and_confirm_import_atomically() -
 
     try:
         with TestClient(app) as client:
-            login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+            login = client.post(
+                "/api/v1/auth/login",
+                json={"email": email, "password": password},
+            )
             assert login.status_code == 200
 
             created = client.post(
@@ -112,7 +118,11 @@ def test_delivery_endpoints_use_real_addresses_and_confirm_import_atomically() -
 
             scenario = client.post(
                 f"/api/v1/operations/{operation_id}/generate-scenario",
-                json={"profile": "NORMAL", "delivery_count": 3, "random_seed": 424242},
+                json={
+                    "profile": "NORMAL",
+                    "delivery_count": 3,
+                    "random_seed": 424242,
+                },
             )
             assert scenario.status_code == 200
             assert scenario.json()["seed"] == 424242
@@ -120,13 +130,20 @@ def test_delivery_endpoints_use_real_addresses_and_confirm_import_atomically() -
             assert scenario.json()["validation"]["status"] == "PENDING_RESOURCES"
 
             csv_content = (
-                "numero_nf,serie_nf,emissor_documento,destinatario,rua,numero,peso_kg,"
-                "volume_m3,quantidade_volumes,prioridade\n"
-                f"700,1,12345678000190,Clínica Importada,{street_name},{house_number},12,0.08,2,HIGH\n"
+                "numero_nf,serie_nf,emissor_documento,destinatario,rua,numero,"
+                "peso_kg,volume_m3,quantidade_volumes,prioridade\n"
+                f"700,1,12345678000190,Clínica Importada,{street_name},"
+                f"{house_number},12,0.08,2,HIGH\n"
             )
             preview = client.post(
                 f"/api/v1/operations/{operation_id}/delivery-imports",
-                files={"file": ("entregas.csv", csv_content.encode(), "text/csv")},
+                files={
+                    "file": (
+                        "entregas.csv",
+                        csv_content.encode(),
+                        "text/csv",
+                    )
+                },
             )
             assert preview.status_code == 201
             preview_body = preview.json()
@@ -147,7 +164,11 @@ def test_delivery_endpoints_use_real_addresses_and_confirm_import_atomically() -
             assert deliveries.json()["total"] == 5
     finally:
         with session_scope() as session:
-            session.execute(delete(OperationModel).where(OperationModel.id == operation_id))
-            session.execute(delete(AuthSessionModel).where(AuthSessionModel.user_id == user_id))
+            session.execute(
+                delete(OperationModel).where(OperationModel.id == operation_id)
+            )
+            session.execute(
+                delete(AuthSessionModel).where(AuthSessionModel.user_id == user_id)
+            )
             session.execute(delete(UserModel).where(UserModel.id == user_id))
             session.execute(delete(CityModel).where(CityModel.id == city_id))

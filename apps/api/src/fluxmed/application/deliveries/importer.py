@@ -59,7 +59,8 @@ def _text(value: object) -> str:
 
 
 def _decimal(value: object, field: str) -> Decimal:
-    raw = _text(value).replace(".", "").replace(",", ".") if "," in _text(value) else _text(value)
+    text = _text(value)
+    raw = text.replace(".", "").replace(",", ".") if "," in text else text
     try:
         parsed = Decimal(raw)
     except (InvalidOperation, ValueError) as exc:
@@ -83,7 +84,12 @@ def _bool(value: object) -> bool:
     return _text(value).lower() in {"1", "true", "sim", "s", "yes", "y"}
 
 
-def _enum_value(enum_type: type[Any], value: object, default: Any, field: str) -> Any:
+def _enum_value(
+    enum_type: type[Any],
+    value: object,
+    default: Any,
+    field: str,
+) -> Any:
     raw = _text(value).upper()
     if not raw:
         return default
@@ -143,7 +149,10 @@ def _table(filename: str, content: bytes) -> tuple[list[str], list[list[object]]
 
 def _mapping(headers: list[str], row: Iterable[object]) -> dict[str, object]:
     values = list(row)
-    return {header: values[index] if index < len(values) else None for index, header in enumerate(headers)}
+    return {
+        header: values[index] if index < len(values) else None
+        for index, header in enumerate(headers)
+    }
 
 
 def parse_delivery_file(
@@ -151,7 +160,10 @@ def parse_delivery_file(
     filename: str,
     content: bytes,
     operation_date: date,
-    resolve_address: Callable[[str, str], AddressContext | None],
+    resolve_address: Callable[
+        [str, str],
+        AddressContext | None,
+    ],
 ) -> list[ParsedImportRow]:
     headers, rows = _table(filename, content)
     missing = sorted(REQUIRED_COLUMNS - set(headers))
@@ -182,21 +194,30 @@ def parse_delivery_file(
                 "rua": street,
                 "numero": number,
             }
-            empty_fields = [field for field, value in required_text.items() if not value]
+            empty_fields = [
+                field for field, value in required_text.items() if not value
+            ]
             if empty_fields:
-                raise ValueError(f"Campos obrigatórios vazios: {', '.join(empty_fields)}.")
+                raise ValueError(
+                    f"Campos obrigatórios vazios: {', '.join(empty_fields)}."
+                )
 
             context = resolve_address(street, number)
             if context is None:
                 errors.append(
                     {
                         "code": "ADDRESS_NOT_FOUND",
-                        "message": f"{street}, {number} não existe no dataset de Santa Aurora.",
+                        "message": (
+                            f"{street}, {number} não existe no dataset de Santa Aurora."
+                        ),
                     }
                 )
                 raise LookupError("address")
 
-            package_count = _integer(data.get("quantidade_volumes"), "quantidade_volumes")
+            package_count = _integer(
+                data.get("quantidade_volumes"),
+                "quantidade_volumes",
+            )
             weight = _decimal(data.get("peso_kg"), "peso_kg")
             volume = _decimal(data.get("volume_m3"), "volume_m3")
             priority = _enum_value(
@@ -225,18 +246,29 @@ def parse_delivery_file(
             window_start = _datetime_value(data.get("janela_inicio"), operation_date)
             window_end = _datetime_value(data.get("janela_fim"), operation_date)
             if (window_start is None) != (window_end is None):
-                raise ValueError("janela_inicio e janela_fim devem ser informadas em conjunto.")
-            if window_start is not None and window_end is not None and window_end <= window_start:
+                raise ValueError(
+                    "janela_inicio e janela_fim devem ser informadas em conjunto."
+                )
+            if (
+                window_start is not None
+                and window_end is not None
+                and window_end <= window_start
+            ):
                 raise ValueError("janela_fim deve ser posterior a janela_inicio.")
 
             service_raw = _text(data.get("tempo_servico_min"))
-            service_minutes = _integer(service_raw, "tempo_servico_min") if service_raw else None
+            service_minutes = (
+                _integer(service_raw, "tempo_servico_min") if service_raw else None
+            )
             key = (issuer_document, invoice_series, invoice_number)
             if key in document_keys:
                 warnings.append(
                     {
                         "code": "DUPLICATE_INVOICE_IN_FILE",
-                        "message": "A mesma NF aparece em mais de uma linha; serão geradas entregas separadas.",
+                        "message": (
+                            "A mesma NF aparece em mais de uma linha; "
+                            "serão geradas entregas separadas."
+                        ),
                     }
                 )
             document_keys.add(key)
@@ -254,7 +286,9 @@ def parse_delivery_file(
                 "total_weight_kg": str(weight),
                 "total_volume_m3": str(volume),
                 "priority": priority.value,
-                "time_window_start": window_start.isoformat() if window_start else None,
+                "time_window_start": (
+                    window_start.isoformat() if window_start else None
+                ),
                 "time_window_end": window_end.isoformat() if window_end else None,
                 "time_window_policy": window_policy.value,
                 "temperature_class": temperature.value,

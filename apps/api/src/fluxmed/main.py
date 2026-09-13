@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 
+from fluxmed.api.errors import ApiError, api_error_handler
+from fluxmed.api.v1.auth import router as auth_router
+
 app = FastAPI(
     title="FluxMed API",
     description="Backend API for FluxMed route planning.",
     version="0.1.0",
 )
+
+app.add_exception_handler(ApiError, api_error_handler)
+app.include_router(auth_router, prefix="/api/v1")
 
 
 @app.get("/health/live", tags=["health"])

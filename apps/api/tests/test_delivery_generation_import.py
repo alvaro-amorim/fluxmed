@@ -25,12 +25,17 @@ def _context(index: int, facility_type: FacilityType | None = None) -> AddressCo
         location=None,
         active=True,
     )
+    building_type = (
+        BuildingType.HOSPITAL
+        if facility_type is FacilityType.HOSPITAL
+        else BuildingType.HOUSE
+    )
     building = BuildingModel(
         id=building_id,
         city_id=address.city_id,
         district_id=address.district_id,
         lot_id=uuid.uuid5(uuid.NAMESPACE_URL, f"lot-{index}"),
-        building_type=BuildingType.HOSPITAL if facility_type is FacilityType.HOSPITAL else BuildingType.HOUSE,
+        building_type=building_type,
         entrance_location=None,
     )
     facility = None
@@ -54,7 +59,10 @@ def _context(index: int, facility_type: FacilityType | None = None) -> AddressCo
 
 
 def test_scenario_generation_is_deterministic_for_same_seed() -> None:
-    pool = [_context(index, FacilityType.HOSPITAL if index < 2 else None) for index in range(12)]
+    pool = [
+        _context(index, FacilityType.HOSPITAL if index < 2 else None)
+        for index in range(12)
+    ]
 
     first = generate_scenario(
         address_pool=pool,
@@ -91,7 +99,7 @@ def test_import_does_not_approximate_missing_address() -> None:
     csv_content = (
         "numero_nf,serie_nf,emissor_documento,destinatario,rua,numero,peso_kg,"
         "volume_m3,quantidade_volumes\n"
-        "123,1,12345678000190,Hospital A,Rua Teste,999,10,0.1,2\n"
+        "123,1,12345678000190,Destino Teste,Rua Teste,999,10,0.1,2\n"
     ).encode()
 
     rows = parse_delivery_file(

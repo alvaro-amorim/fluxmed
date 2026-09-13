@@ -4,6 +4,7 @@ import type {
   DeliveryFilters,
   DeliveryImport,
   DeliveryListResponse,
+  DeliveryUpdateInput,
   ScenarioRequest,
   ScenarioResponse,
 } from '../types/deliveries'
@@ -30,6 +31,17 @@ export function createDelivery(
 ): Promise<Delivery> {
   return apiRequest<Delivery>(`/api/v1/operations/${operationId}/deliveries`, {
     method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateDelivery(
+  operationId: string,
+  deliveryId: string,
+  payload: DeliveryUpdateInput,
+): Promise<Delivery> {
+  return apiRequest<Delivery>(`/api/v1/operations/${operationId}/deliveries/${deliveryId}`, {
+    method: 'PATCH',
     body: JSON.stringify(payload),
   })
 }

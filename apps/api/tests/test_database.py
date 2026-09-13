@@ -25,4 +25,4 @@ def test_postgis_and_foundation_tables_are_available() -> None:
         engine.dispose()
 
     assert postgis_version
-    assert {"alembic_version", "users", "operations"}.issubset(table_names)
+    assert {"alembic_version", "users", "operations", "auth_sessions"}.issubset(table_names)

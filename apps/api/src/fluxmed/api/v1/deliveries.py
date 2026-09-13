@@ -1,7 +1,8 @@
 import uuid
+from dataclasses import asdict
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import APIRouter, File, Query, UploadFile, status
 from pydantic import BaseModel, Field
@@ -12,6 +13,7 @@ from fluxmed.application.deliveries import (
     DeliveryAddressNotFoundError,
     DeliveryImportNotFoundError,
     DeliveryImportValidationError,
+    DeliveryImportView,
     DeliveryInput,
     DeliveryMutationBlockedError,
     DeliveryNotFoundError,
@@ -153,7 +155,7 @@ class DeliveryImportResponse(BaseModel):
 
 
 def _delivery_response(view: DeliveryView) -> DeliveryResponse:
-    return DeliveryResponse(**view.__dict__)
+    return DeliveryResponse(**asdict(view))
 
 
 def _page_response(page: DeliveryPage) -> DeliveryListResponse:
@@ -166,7 +168,7 @@ def _page_response(page: DeliveryPage) -> DeliveryListResponse:
     )
 
 
-def _import_response(view: Any) -> DeliveryImportResponse:
+def _import_response(view: DeliveryImportView) -> DeliveryImportResponse:
     return DeliveryImportResponse(
         id=view.id,
         operation_id=view.operation_id,
@@ -353,7 +355,7 @@ def generate_operation_scenario(
         )
         return ScenarioResponse(
             seed=result.seed,
-            summary=ScenarioSummaryResponse(**result.summary.__dict__),
+            summary=ScenarioSummaryResponse(**asdict(result.summary)),
             validation={
                 "status": "PENDING_RESOURCES",
                 "message": "Endereços validados; capacidade de frota será avaliada no preflight.",

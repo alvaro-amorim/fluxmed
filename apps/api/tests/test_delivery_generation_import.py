@@ -97,10 +97,10 @@ def test_import_does_not_approximate_missing_address() -> None:
         return None
 
     csv_content = (
-        "numero_nf,serie_nf,emissor_documento,destinatario,rua,numero,peso_kg,"
-        "volume_m3,quantidade_volumes\n"
-        "123,1,12345678000190,Destino Teste,Rua Teste,999,10,0.1,2\n"
-    ).encode()
+        b"numero_nf,serie_nf,emissor_documento,destinatario,rua,numero,peso_kg,"
+        b"volume_m3,quantidade_volumes\n"
+        b"123,1,12345678000190,Destino Teste,Rua Teste,999,10,0.1,2\n"
+    )
 
     rows = parse_delivery_file(
         filename="entregas.csv",

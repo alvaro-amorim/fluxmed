@@ -1,3 +1,4 @@
+import uuid
 from collections.abc import Iterable
 
 from geoalchemy2.elements import WKTElement
@@ -71,7 +72,7 @@ def seed_santa_aurora(
     session.add(city)
     session.flush()
 
-    district_ids: dict[str, object] = {}
+    district_ids: dict[str, uuid.UUID] = {}
     for district in generated.districts:
         session.add(
             DistrictModel(

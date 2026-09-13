@@ -1,4 +1,4 @@
-.PHONY: api-dev web-dev db-up db-down test lint typecheck
+.PHONY: api-dev web-dev db-up db-down migrate test lint typecheck
 
 api-dev:
 	cd apps/api && uvicorn fluxmed.main:app --app-dir src --reload
@@ -11,6 +11,9 @@ db-up:
 
 db-down:
 	docker compose down
+
+migrate:
+	cd apps/api && alembic upgrade head
 
 test:
 	cd apps/api && pytest -q

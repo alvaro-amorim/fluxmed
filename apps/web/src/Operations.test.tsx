@@ -64,6 +64,6 @@ describe('operations flow', () => {
     await user.click(screen.getByRole('button', { name: 'Criar operação' }))
 
     expect(await screen.findByRole('heading', { name: 'OP-20260914-001' })).toBeInTheDocument()
-    expect(screen.getByText('Santa Aurora · planejamento diário')).toBeInTheDocument()
+    expect(screen.getByText('Rascunho')).toBeInTheDocument()
   })
 })

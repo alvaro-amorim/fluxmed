@@ -45,7 +45,7 @@ def _not_found(exc: CityNotFoundError) -> ApiError:
 @router.get("", response_model=list[CityResponse])
 def list_cities(session: DbSession, current_user: CurrentUser) -> list[CityResponse]:
     del current_user
-    return [_city_response(city) for city in CityService(session).list()]
+    return [_city_response(city) for city in CityService(session).list_cities()]
 
 
 @router.get("/{city_id}", response_model=CityResponse)

@@ -52,10 +52,13 @@ def test_city_persists_valid_geometry_and_serves_address_search() -> None:
                 .limit(1)
             ).one()
             address, street_name = first_address
-            search = CityService(session).search_addresses(
+            service = CityService(session)
+            exact_search = service.search_addresses(
                 city_id, f"{street_name}, {address.house_number}"
             )
-            facilities = CityService(session).facilities(city_id)
+            fuzzy_search = service.search_addresses(city_id, street_name[:-1])
+            missing_number = service.search_addresses(city_id, f"{street_name}, 999999")
+            facilities = service.facilities(city_id)
 
         assert boundary_valid is True
         assert districts_valid is True
@@ -66,8 +69,12 @@ def test_city_persists_valid_geometry_and_serves_address_search() -> None:
         assert 20_000 <= summary.address_count <= 40_000
         assert 40 <= summary.facility_count <= 60
         assert summary.bridge_count == 3
-        assert search.matches
-        assert search.matches[0].id == address.id
+        assert exact_search.matches
+        assert exact_search.matches[0].id == address.id
+        assert fuzzy_search.matches
+        assert fuzzy_search.street_suggestion == street_name
+        assert not missing_number.matches
+        assert missing_number.number_suggestions
         assert len(facilities) == summary.facility_count
         assert geojson["type"] == "FeatureCollection"
         assert any(

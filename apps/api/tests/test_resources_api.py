@@ -131,7 +131,7 @@ def test_resource_crud_costs_availability_and_operation_selection() -> None:
             aggregated_body = aggregated.json()
             aggregated_id = uuid.UUID(aggregated_body["id"])
             vehicle_ids.append(aggregated_id)
-            assert aggregated_body["cost"]["contract_price_brl"] == "480"
+            assert aggregated_body["cost"]["contract_price_brl"] == "480.00"
             assert aggregated_body["cost"]["fuel_included"] is True
             assert aggregated_body["cost"]["driver_included"] is True
 

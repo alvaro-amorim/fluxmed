@@ -312,9 +312,7 @@ def create_delivery(
 ) -> DeliveryResponse:
     del current_user
     try:
-        return _delivery_response(
-            DeliveryService(session).create(operation_id, _input(payload))
-        )
+        return _delivery_response(DeliveryService(session).create(operation_id, _input(payload)))
     except Exception as exc:
         _raise_delivery_error(exc)
         raise
@@ -387,10 +385,7 @@ def generate_operation_scenario(
             summary=ScenarioSummaryResponse(**asdict(result.summary)),
             validation={
                 "status": "PENDING_RESOURCES",
-                "message": (
-                    "Endereços validados; capacidade de frota será avaliada "
-                    "no preflight."
-                ),
+                "message": ("Endereços validados; capacidade de frota será avaliada no preflight."),
             },
             deliveries=[_delivery_response(item) for item in result.deliveries],
         )

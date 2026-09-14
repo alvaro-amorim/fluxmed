@@ -237,19 +237,19 @@ def ensure_demo_operation_resources(
 
     existing_vehicles = {item.plate: item for item in service.list_vehicles(active=None)}
     selected_vehicle_ids: list[uuid.UUID] = []
-    for payload in _demo_vehicle_inputs():
-        vehicle = existing_vehicles.get(payload.plate)
+    for vehicle_payload in _demo_vehicle_inputs():
+        vehicle = existing_vehicles.get(vehicle_payload.plate)
         if vehicle is None:
-            vehicle = service.create_vehicle(payload)
+            vehicle = service.create_vehicle(vehicle_payload)
         if vehicle.active and vehicle.status is VehicleStatus.AVAILABLE:
             selected_vehicle_ids.append(vehicle.id)
 
     existing_workers = {item.name: item for item in service.list_workers(active=None)}
     selected_worker_ids: list[uuid.UUID] = []
-    for payload in _demo_worker_inputs():
-        worker = existing_workers.get(payload.name)
+    for worker_payload in _demo_worker_inputs():
+        worker = existing_workers.get(worker_payload.name)
         if worker is None:
-            worker = service.create_worker(payload)
+            worker = service.create_worker(worker_payload)
         if worker.active:
             selected_worker_ids.append(worker.id)
 

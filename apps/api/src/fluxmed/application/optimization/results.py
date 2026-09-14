@@ -11,7 +11,6 @@ from fluxmed.application.optimization.routing_matrix import RoutingMatrixBuilder
 from fluxmed.application.optimization.team_assignment import (
     RouteTeamAssignment,
     TeamAssignmentError,
-    TeamAssignmentPlan,
     TeamAssignmentSolver,
 )
 from fluxmed.application.resources import ResourceService, VehicleView, WorkerView
@@ -23,6 +22,7 @@ from fluxmed.domain.enums import (
     VehicleType,
     WorkerRole,
 )
+from fluxmed.domain.resources import WorkerCompensationCalculator
 from fluxmed.infrastructure.models.city import AddressModel, DistrictModel, StreetModel
 from fluxmed.infrastructure.models.delivery import DeliveryModel
 from fluxmed.infrastructure.models.operation import OperationModel
@@ -34,7 +34,12 @@ from fluxmed.infrastructure.models.optimization_result import (
     RouteTeamAssignmentModel,
 )
 from fluxmed.infrastructure.models.resource import VehicleModel, WorkerModel
-from fluxmed.optimization import OptimizationDelivery, OptimizationResult, ValidationResult
+from fluxmed.optimization import (
+    DecodedRoute,
+    OptimizationDelivery,
+    OptimizationResult,
+    ValidationResult,
+)
 
 ZERO = Decimal("0")
 HUNDRED = Decimal("100")
@@ -213,8 +218,14 @@ class OptimizationResultService:
             vehicle = vehicle_by_id[route.vehicle_id]
             team = team_by_vehicle[route.vehicle_id]
             breakdown = self._cost_engine.calculate(route=route, vehicle=vehicle, team=team)
-            weight_utilization = self._percentage(route.total_weight_kg, vehicle.max_payload_kg)
-            volume_utilization = self._percentage(route.total_volume_m3, vehicle.max_volume_m3)
+            weight_utilization = self._percentage(
+                route.total_weight_kg,
+                vehicle.max_payload_kg,
+            )
+            volume_utilization = self._percentage(
+                route.total_volume_m3,
+                vehicle.max_volume_m3,
+            )
             geometry = geometry_builder.build_route_geometry(
                 operation=operation,
                 delivery_addresses=delivery_addresses,
@@ -253,15 +264,20 @@ class OptimizationResultService:
 
         total_cost = sum((breakdown.total_brl for _row, breakdown in route_rows), ZERO)
         total_distance = sum((row.distance_km for row, _breakdown in route_rows), ZERO)
-        makespan = max((row.duration_minutes for row, _breakdown in route_rows), default=ZERO)
+        makespan = max(
+            (row.duration_minutes for row, _breakdown in route_rows),
+            default=ZERO,
+        )
         avg_weight = self._average(
             [row.weight_utilization_pct for row, _breakdown in route_rows]
         )
         avg_volume = self._average(
             [row.volume_utilization_pct for row, _breakdown in route_rows]
         )
-        on_time = HUNDRED if total_stops == 0 else (
-            Decimal(on_time_count) / Decimal(total_stops) * HUNDRED
+        on_time = (
+            HUNDRED
+            if total_stops == 0
+            else Decimal(on_time_count) / Decimal(total_stops) * HUNDRED
         )
 
         run = OptimizationRunModel(
@@ -295,7 +311,9 @@ class OptimizationResultService:
             self._session.add(
                 RouteTeamAssignmentModel(
                     route_id=route_row.id,
-                    primary_role=team.primary_role.value if team.primary_role is not None else None,
+                    primary_role=(
+                        team.primary_role.value if team.primary_role is not None else None
+                    ),
                     primary_worker_id=team.primary_worker_id,
                     helper_worker_id=team.helper_worker_id,
                     primary_included=team.primary_included,
@@ -318,7 +336,9 @@ class OptimizationResultService:
                         sequence=sequence,
                         planned_arrival_at=stop.arrival_at if stop is not None else None,
                         planned_departure_at=stop.departure_at if stop is not None else None,
-                        lateness_minutes=stop.lateness_minutes if stop is not None else ZERO,
+                        lateness_minutes=(
+                            stop.lateness_minutes if stop is not None else ZERO
+                        ),
                     )
                 )
 
@@ -391,7 +411,9 @@ class OptimizationResultService:
         if operation is None or revision is None:
             raise OptimizationResultNotFoundError(run.operation_id)
         if operation.current_revision_number != revision.revision_number:
-            raise OptimizationApprovalError("O resultado não corresponde à revisão atual da operação.")
+            raise OptimizationApprovalError(
+                "O resultado não corresponde à revisão atual da operação."
+            )
         if operation.status is OperationStatus.OUTDATED:
             raise OptimizationApprovalError("Plano desatualizado precisa ser reotimizado.")
         if operation.status is OperationStatus.DISPATCHED:
@@ -427,8 +449,18 @@ class OptimizationResultService:
         if vehicle is None:
             raise TeamSimulationError("Veículo da rota não está mais disponível no cadastro.")
         issues: list[str] = []
-        primary = self._selected_worker(primary_worker_id, workers, selected_worker_ids, issues)
-        helper = self._selected_worker(helper_worker_id, workers, selected_worker_ids, issues)
+        primary = self._selected_worker(
+            primary_worker_id,
+            workers,
+            selected_worker_ids,
+            issues,
+        )
+        helper = self._selected_worker(
+            helper_worker_id,
+            workers,
+            selected_worker_ids,
+            issues,
+        )
         required_primary_role = (
             WorkerRole.MOTORCYCLE_COURIER
             if vehicle.type is VehicleType.MOTO
@@ -476,8 +508,6 @@ class OptimizationResultService:
         team_cost = ZERO
         for worker in (primary, helper):
             if worker is not None:
-                from fluxmed.domain.resources import WorkerCompensationCalculator
-
                 team_cost += WorkerCompensationCalculator.estimate(
                     model=worker.compensation_model,
                     value_brl=worker.compensation_value_brl,
@@ -503,7 +533,9 @@ class OptimizationResultService:
             if team_row is None:
                 raise OptimizationResultNotFoundError(route.id)
             team_row.primary_role = (
-                assignment.primary_role.value if assignment.primary_role is not None else None
+                assignment.primary_role.value
+                if assignment.primary_role is not None
+                else None
             )
             team_row.primary_worker_id = assignment.primary_worker_id
             team_row.helper_worker_id = assignment.helper_worker_id
@@ -638,7 +670,9 @@ class OptimizationResultService:
     ) -> RouteTeamView:
         return RouteTeamView(
             primary_role=(
-                assignment.primary_role.value if assignment.primary_role is not None else None
+                assignment.primary_role.value
+                if assignment.primary_role is not None
+                else None
             ),
             primary_worker=(
                 WorkerResultView(id=primary.id, name=primary.name, role=primary.role.value)
@@ -702,9 +736,7 @@ class OptimizationResultService:
         }
 
     @staticmethod
-    def _decoded_route_proxy(route: RoutePlanModel):
-        from fluxmed.optimization import DecodedRoute
-
+    def _decoded_route_proxy(route: RoutePlanModel) -> DecodedRoute:
         return DecodedRoute(
             vehicle_id=route.vehicle_id,
             delivery_ids=(),

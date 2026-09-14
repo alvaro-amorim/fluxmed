@@ -649,9 +649,8 @@ class ResourceService:
             raise ResourceValidationError("Capacidade de volume deve ser maior que zero.")
         if model.max_range_km <= Decimal("0"):
             raise ResourceValidationError("Autonomia deve ser maior que zero.")
-        if (
-            model.fuel_efficiency_km_per_l is not None
-            and model.fuel_efficiency_km_per_l <= Decimal("0")
+        if model.fuel_efficiency_km_per_l is not None and model.fuel_efficiency_km_per_l <= Decimal(
+            "0"
         ):
             raise ResourceValidationError("Eficiência de combustível deve ser maior que zero.")
 

@@ -20,6 +20,7 @@ from fluxmed.infrastructure.models.operation import OperationModel
 from fluxmed.infrastructure.models.operation_revision import OperationRevisionModel
 from fluxmed.infrastructure.models.optimization_result import (
     OptimizationRunModel,
+    OptimizationTraceEventModel,
     RoutePlanModel,
     RouteStopModel,
     RouteTeamAssignmentModel,
@@ -54,6 +55,7 @@ __all__ = [
     "OperationVehicleSelectionModel",
     "OperationWorkerSelectionModel",
     "OptimizationRunModel",
+    "OptimizationTraceEventModel",
     "OwnedVehicleCostProfileModel",
     "RoadOverrideModel",
     "RoadSegmentModel",

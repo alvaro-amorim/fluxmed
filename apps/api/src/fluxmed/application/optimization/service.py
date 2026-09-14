@@ -1,6 +1,8 @@
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -9,11 +11,13 @@ from fluxmed.application.optimization.routing_matrix import RoutingMatrixBuilder
 from fluxmed.application.preflight import PreflightService
 from fluxmed.application.resources import ResourceService, VehicleView
 from fluxmed.domain.enums import OperationStatus, VehicleOwnershipType
+from fluxmed.infrastructure.models.city import AddressModel, CityModel
 from fluxmed.infrastructure.models.delivery import DeliveryModel
 from fluxmed.infrastructure.models.operation import OperationModel
 from fluxmed.optimization import (
     GeneticOptimizer,
     GeneticOptimizerConfig,
+    OptimizationContext,
     OptimizationDelivery,
     OptimizationResult,
     OptimizationVehicle,
@@ -87,6 +91,11 @@ class OptimizationService:
                 weight_kg=delivery.total_weight_kg,
                 volume_m3=delivery.total_volume_m3,
                 service_minutes=delivery.service_time_minutes,
+                priority=delivery.priority,
+                temperature_class=delivery.temperature_class,
+                time_window_policy=delivery.time_window_policy,
+                time_window_start=delivery.time_window_start,
+                time_window_end=delivery.time_window_end,
             )
             for delivery in delivery_models
         ]
@@ -100,6 +109,7 @@ class OptimizationService:
         if not deliveries or not vehicles:
             raise OptimizationInputError("Otimização exige entregas e veículos selecionados.")
 
+        context = self._optimization_context(operation, delivery_models)
         matrix = RoutingMatrixBuilder(self._session).build(
             operation=operation,
             delivery_addresses={
@@ -112,11 +122,13 @@ class OptimizationService:
             vehicles=vehicles,
             travel_matrix=matrix,
             random_seed=seed,
+            context=context,
         )
         validation = self._validator.validate(
             solution=result.best.solution,
             deliveries=deliveries,
             vehicles=vehicles,
+            context=context,
         )
         if result.best.fitness.feasible != validation.valid:
             raise OptimizationValidationMismatchError(
@@ -135,6 +147,31 @@ class OptimizationService:
             validation=validation,
         )
 
+    def _optimization_context(
+        self,
+        operation: OperationModel,
+        deliveries: list[DeliveryModel],
+    ) -> OptimizationContext:
+        first_address = self._session.get(AddressModel, deliveries[0].destination_address_id)
+        if first_address is None:
+            raise OptimizationInputError("Não foi possível determinar a cidade da operação.")
+        city = self._session.get(CityModel, first_address.city_id)
+        if city is None:
+            raise OptimizationInputError("Não foi possível determinar o timezone da operação.")
+        timezone = ZoneInfo(city.timezone)
+        return OptimizationContext(
+            operation_start_at=datetime.combine(
+                operation.operation_date,
+                operation.operation_start_time,
+                tzinfo=timezone,
+            ),
+            operation_end_at=datetime.combine(
+                operation.operation_date,
+                operation.operation_end_time,
+                tzinfo=timezone,
+            ),
+        )
+
     @staticmethod
     def _vehicle_input(vehicle: VehicleView) -> OptimizationVehicle:
         if vehicle.ownership_type is VehicleOwnershipType.OWNED:
@@ -151,6 +188,8 @@ class OptimizationService:
             id=vehicle.id,
             max_payload_kg=vehicle.max_payload_kg,
             max_volume_m3=vehicle.max_volume_m3,
+            max_range_km=vehicle.max_range_km,
+            refrigerated=vehicle.refrigerated,
             fixed_route_cost_brl=fixed_route_cost,
             cost_per_km_brl=cost_per_km,
             cost_per_hour_brl=cost_per_hour,

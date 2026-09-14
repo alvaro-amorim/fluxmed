@@ -345,7 +345,7 @@ def test_diversity_drives_adaptive_mutation_and_time_budget_keeps_best_valid() -
         random_seed=123,
     )
     assert adaptive.mutation_rate_history
-    assert adaptive.mutation_rate_history[0] > Decimal("0.10")
+    assert adaptive.mutation_rate_history[0] > 0.10
 
     class FakeClock:
         def __init__(self) -> None:

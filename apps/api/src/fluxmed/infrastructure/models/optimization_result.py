@@ -28,9 +28,7 @@ class OptimizationRunModel(Base):
     operation_revision_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("operation_revisions.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    status: Mapped[str] = mapped_column(
-        String(24), nullable=False, default="COMPLETED", index=True
-    )
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="COMPLETED", index=True)
     random_seed: Mapped[int] = mapped_column(Integer, nullable=False)
     generations_completed: Mapped[int] = mapped_column(Integer, nullable=False)
     stop_reason: Mapped[str] = mapped_column(String(60), nullable=False)
@@ -42,12 +40,8 @@ class OptimizationRunModel(Base):
     makespan_minutes: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
     critical_delays: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     on_time_percentage: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
-    average_weight_utilization_pct: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    average_volume_utilization_pct: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
+    average_weight_utilization_pct: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    average_volume_utilization_pct: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
     pruning_counts: Mapped[dict[str, int]] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -110,9 +104,7 @@ class RouteStopModel(Base):
     planned_departure_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    lateness_minutes: Mapped[Decimal] = mapped_column(
-        Numeric(12, 2), nullable=False, default=0
-    )
+    lateness_minutes: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=0)
 
 
 class RouteTeamAssignmentModel(Base):

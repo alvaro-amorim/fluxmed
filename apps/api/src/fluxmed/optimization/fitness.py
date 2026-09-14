@@ -2,13 +2,13 @@ from collections import Counter
 from decimal import Decimal
 
 from fluxmed.optimization.models import (
+    ZERO,
     DecodedSolution,
     FitnessVector,
     OptimizationDelivery,
     OptimizationVehicle,
     ValidationIssue,
     ValidationResult,
-    ZERO,
 )
 
 

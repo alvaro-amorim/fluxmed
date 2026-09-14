@@ -1,9 +1,17 @@
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 from decimal import Decimal
 
+from fluxmed.domain.enums import (
+    DeliveryPriority,
+    HandlingRequirement,
+    HelperPolicy,
+    TemperatureClass,
+    TimeWindowPolicy,
+)
+
 LocationKey = uuid.UUID | None
-FitnessKey = tuple[int, int, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, int]
 ZERO = Decimal("0")
 
 
@@ -13,6 +21,12 @@ class OptimizationDelivery:
     weight_kg: Decimal
     volume_m3: Decimal
     service_minutes: int
+    priority: DeliveryPriority = DeliveryPriority.NORMAL
+    temperature_class: TemperatureClass = TemperatureClass.AMBIENT
+    handling_requirement: HandlingRequirement = HandlingRequirement.STANDARD
+    time_window_start: datetime | None = None
+    time_window_end: datetime | None = None
+    time_window_policy: TimeWindowPolicy = TimeWindowPolicy.SOFT
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,6 +34,10 @@ class OptimizationVehicle:
     id: uuid.UUID
     max_payload_kg: Decimal
     max_volume_m3: Decimal
+    max_range_km: Decimal = Decimal("999999")
+    refrigerated: bool = False
+    helper_policy: HelperPolicy = HelperPolicy.OPTIONAL
+    helper_available: bool = True
     fixed_route_cost_brl: Decimal = ZERO
     cost_per_km_brl: Decimal = ZERO
     cost_per_hour_brl: Decimal = ZERO
@@ -45,6 +63,15 @@ class TravelMatrix:
 
 
 @dataclass(frozen=True, slots=True)
+class DecodedStop:
+    delivery_id: uuid.UUID
+    arrival_at: datetime
+    service_start_at: datetime
+    departure_at: datetime
+    lateness_minutes: Decimal = ZERO
+
+
+@dataclass(frozen=True, slots=True)
 class DecodedRoute:
     vehicle_id: uuid.UUID
     delivery_ids: tuple[uuid.UUID, ...]
@@ -55,6 +82,10 @@ class DecodedRoute:
     service_minutes: int
     total_duration_minutes: Decimal
     total_cost_brl: Decimal
+    stops: tuple[DecodedStop, ...] = ()
+    hard_violations: tuple[str, ...] = ()
+    soft_lateness_minutes: Decimal = ZERO
+    critical_risk: Decimal = ZERO
     starts_at_depot: bool = True
     returns_to_depot: bool = True
 
@@ -63,6 +94,7 @@ class DecodedRoute:
 class DecodedSolution:
     routes: tuple[DecodedRoute, ...]
     unassigned_delivery_ids: tuple[uuid.UUID, ...] = ()
+    pruning_counts: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,7 +109,7 @@ class FitnessVector:
     distance_km: Decimal
     vehicles_used: int
 
-    def sort_key(self) -> FitnessKey:
+    def sort_key(self) -> tuple[object, ...]:
         return (
             0 if self.feasible else 1,
             self.hard_violations,
@@ -113,6 +145,10 @@ class OptimizationResult:
     stop_reason: str
     best: EvaluatedIndividual
     baselines: tuple[BaselineResult, ...]
+    diversity_ratio: float = 1.0
+    effective_mutation_rate: float = 0.0
+    immigrants_added: int = 0
+    pruning_counts: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)

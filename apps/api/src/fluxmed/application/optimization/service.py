@@ -1,5 +1,6 @@
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 from fluxmed.application.optimization.routing_matrix import RoutingMatrixBuilder
 from fluxmed.application.preflight import PreflightService
 from fluxmed.application.resources import ResourceService, VehicleView
-from fluxmed.domain.enums import OperationStatus, VehicleOwnershipType
+from fluxmed.domain.enums import OperationStatus, VehicleOwnershipType, WorkerRole
 from fluxmed.infrastructure.models.delivery import DeliveryModel
 from fluxmed.infrastructure.models.operation import OperationModel
 from fluxmed.optimization import (
@@ -87,16 +88,30 @@ class OptimizationService:
                 weight_kg=delivery.total_weight_kg,
                 volume_m3=delivery.total_volume_m3,
                 service_minutes=delivery.service_time_minutes,
+                priority=delivery.priority,
+                temperature_class=delivery.temperature_class,
+                handling_requirement=delivery.handling_requirement,
+                time_window_start=delivery.time_window_start,
+                time_window_end=delivery.time_window_end,
+                time_window_policy=delivery.time_window_policy,
             )
             for delivery in delivery_models
         ]
 
         resource_view = ResourceService(self._session).get_operation_resources(operation_id)
         selected_ids = set(resource_view.selected_vehicle_ids)
+        selected_worker_ids = set(resource_view.selected_worker_ids)
+        selected_workers = [
+            worker for worker in resource_view.workers if worker.id in selected_worker_ids
+        ]
+        helper_available = any(worker.role is WorkerRole.HELPER for worker in selected_workers)
         selected_vehicle_views = [
             vehicle for vehicle in resource_view.vehicles if vehicle.id in selected_ids
         ]
-        vehicles = [self._vehicle_input(vehicle) for vehicle in selected_vehicle_views]
+        vehicles = [
+            self._vehicle_input(vehicle, helper_available=helper_available)
+            for vehicle in selected_vehicle_views
+        ]
         if not deliveries or not vehicles:
             raise OptimizationInputError("Otimização exige entregas e veículos selecionados.")
 
@@ -112,6 +127,14 @@ class OptimizationService:
             vehicles=vehicles,
             travel_matrix=matrix,
             random_seed=seed,
+            operation_start_at=datetime.combine(
+                operation.operation_date,
+                operation.operation_start_time,
+            ),
+            operation_end_at=datetime.combine(
+                operation.operation_date,
+                operation.operation_end_time,
+            ),
         )
         validation = self._validator.validate(
             solution=result.best.solution,
@@ -136,7 +159,11 @@ class OptimizationService:
         )
 
     @staticmethod
-    def _vehicle_input(vehicle: VehicleView) -> OptimizationVehicle:
+    def _vehicle_input(
+        vehicle: VehicleView,
+        *,
+        helper_available: bool,
+    ) -> OptimizationVehicle:
         if vehicle.ownership_type is VehicleOwnershipType.OWNED:
             cost_per_km = (vehicle.cost.depreciation_per_km or ZERO) + (
                 vehicle.cost.maintenance_per_km or ZERO
@@ -151,6 +178,10 @@ class OptimizationService:
             id=vehicle.id,
             max_payload_kg=vehicle.max_payload_kg,
             max_volume_m3=vehicle.max_volume_m3,
+            max_range_km=vehicle.max_range_km,
+            refrigerated=vehicle.refrigerated,
+            helper_policy=vehicle.helper_policy,
+            helper_available=vehicle.cost.helper_included or helper_available,
             fixed_route_cost_brl=fixed_route_cost,
             cost_per_km_brl=cost_per_km,
             cost_per_hour_brl=cost_per_hour,

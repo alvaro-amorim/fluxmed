@@ -9,6 +9,7 @@ from fluxmed.optimization.models import (
     BaselineResult,
     DecodedRoute,
     DecodedSolution,
+    DecodedStop,
     EvaluatedIndividual,
     FitnessVector,
     OptimizationDelivery,
@@ -26,11 +27,13 @@ from fluxmed.optimization.operators import (
     swap_mutation,
     tournament_select,
 )
+from fluxmed.optimization.repair import repair_chromosome
 
 __all__ = [
     "BaselineResult",
     "DecodedRoute",
     "DecodedSolution",
+    "DecodedStop",
     "EvaluatedIndividual",
     "FitnessEvaluator",
     "FitnessVector",
@@ -50,6 +53,7 @@ __all__ = [
     "inversion_mutation",
     "nearest_neighbor_chromosome",
     "order_crossover",
+    "repair_chromosome",
     "swap_mutation",
     "tournament_select",
 ]

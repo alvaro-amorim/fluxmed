@@ -1,4 +1,5 @@
 import uuid
+from dataclasses import asdict
 from datetime import datetime, time
 from typing import Any
 
@@ -80,7 +81,7 @@ class RoutePreviewResponse(BaseModel):
 
 
 def _override_response(view: RoadOverrideView) -> RoadOverrideResponse:
-    return RoadOverrideResponse(**view.__dict__)
+    return RoadOverrideResponse(**asdict(view))
 
 
 def _raise_routing_error(exc: Exception) -> None:

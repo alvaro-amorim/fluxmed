@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from fluxmed.application.optimization.routing_matrix import RoutingMatrixBuilder
 from fluxmed.application.preflight import PreflightService
-from fluxmed.application.resources import ResourceService
+from fluxmed.application.resources import ResourceService, VehicleView
 from fluxmed.domain.enums import OperationStatus, VehicleOwnershipType
 from fluxmed.infrastructure.models.delivery import DeliveryModel
 from fluxmed.infrastructure.models.operation import OperationModel
@@ -136,23 +136,21 @@ class OptimizationService:
         )
 
     @staticmethod
-    def _vehicle_input(vehicle: object) -> OptimizationVehicle:
-        ownership_type = getattr(vehicle, "ownership_type")
-        cost = getattr(vehicle, "cost")
-        if ownership_type is VehicleOwnershipType.OWNED:
-            cost_per_km = (getattr(cost, "depreciation_per_km") or ZERO) + (
-                getattr(cost, "maintenance_per_km") or ZERO
+    def _vehicle_input(vehicle: VehicleView) -> OptimizationVehicle:
+        if vehicle.ownership_type is VehicleOwnershipType.OWNED:
+            cost_per_km = (vehicle.cost.depreciation_per_km or ZERO) + (
+                vehicle.cost.maintenance_per_km or ZERO
             )
-            cost_per_hour = getattr(cost, "fixed_cost_per_hour") or ZERO
+            cost_per_hour = vehicle.cost.fixed_cost_per_hour or ZERO
             fixed_route_cost = ZERO
         else:
             cost_per_km = ZERO
             cost_per_hour = ZERO
-            fixed_route_cost = getattr(cost, "contract_price_brl") or ZERO
+            fixed_route_cost = vehicle.cost.contract_price_brl or ZERO
         return OptimizationVehicle(
-            id=getattr(vehicle, "id"),
-            max_payload_kg=getattr(vehicle, "max_payload_kg"),
-            max_volume_m3=getattr(vehicle, "max_volume_m3"),
+            id=vehicle.id,
+            max_payload_kg=vehicle.max_payload_kg,
+            max_volume_m3=vehicle.max_volume_m3,
             fixed_route_cost_brl=fixed_route_cost,
             cost_per_km_brl=cost_per_km,
             cost_per_hour_brl=cost_per_hour,

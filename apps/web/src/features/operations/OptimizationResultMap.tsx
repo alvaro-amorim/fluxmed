@@ -8,14 +8,13 @@ import type {
 import { getCityMap, listCities } from '../../services/cities'
 import type { CityMapGeoJSON } from '../../types/city'
 import type { ResultRoute } from '../../types/optimization'
+import { routeColor } from './optimization-result-palette'
 
 interface OptimizationResultMapProps {
   routes: ResultRoute[]
   selectedRouteId: string | null
   onSelectRoute: (routeId: string) => void
 }
-
-const routeColors = ['#0f6973', '#b86f2b', '#5264a3', '#8a557f', '#447a52', '#8b6b2f']
 
 function resultStyle(city: CityMapGeoJSON, routes: ResultRoute[]): StyleSpecification {
   const routeFeatures = routes.map((route, index) => ({
@@ -25,7 +24,7 @@ function resultStyle(city: CityMapGeoJSON, routes: ResultRoute[]): StyleSpecific
     properties: {
       route_id: route.id,
       route_code: route.route_code,
-      color: routeColors[index % routeColors.length],
+      color: routeColor(index),
     },
   }))
   return {
@@ -171,8 +170,4 @@ export function OptimizationResultMap({
       {error ? <div className="result-map-error">{error}</div> : null}
     </div>
   )
-}
-
-export function routeColor(index: number): string {
-  return routeColors[index % routeColors.length]
 }

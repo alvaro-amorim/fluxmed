@@ -188,22 +188,22 @@ class SolutionValidator:
                         )
                     )
                 for stop in route.stops:
-                    delivery = delivery_by_id.get(stop.delivery_id)
-                    if delivery is None:
+                    stop_delivery = delivery_by_id.get(stop.delivery_id)
+                    if stop_delivery is None:
                         continue
                     if (
-                        delivery.time_window_policy is TimeWindowPolicy.HARD
-                        and delivery.time_window_end is not None
+                        stop_delivery.time_window_policy is TimeWindowPolicy.HARD
+                        and stop_delivery.time_window_end is not None
                         and (
                             stop.service_start_at is None
-                            or stop.service_start_at > delivery.time_window_end
+                            or stop.service_start_at > stop_delivery.time_window_end
                         )
                     ):
                         issues.append(
                             ValidationIssue(
                                 code="HARD_TIME_WINDOW_MISSED",
                                 message="Delivery starts service after its HARD window closes.",
-                                delivery_id=delivery.id,
+                                delivery_id=stop_delivery.id,
                                 vehicle_id=route.vehicle_id,
                             )
                         )

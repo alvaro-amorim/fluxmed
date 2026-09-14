@@ -5,6 +5,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from decimal import Decimal
 
 from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 from fluxmed.application.optimization.routing_matrix import (
     OptimizationRoutingError,
@@ -20,7 +21,6 @@ from fluxmed.infrastructure.models.operation import OperationModel
 from fluxmed.infrastructure.models.optimization_result import OptimizationRunModel
 from fluxmed.optimization import (
     FitnessVector,
-    GeneticOptimizerConfig,
     OptimizationCancelled,
     OptimizationProgress,
 )
@@ -262,10 +262,8 @@ class OptimizationRunCoordinator:
         return max(0, int((time.monotonic() - started_monotonic) * 1000))
 
     @staticmethod
-    def _db_cancel_requested(session: object, run_id: uuid.UUID) -> bool:
-        # Session is kept typed loosely here so the cooperative check stays tiny and reusable.
-        scalar = getattr(session, "scalar")
-        value = scalar(
+    def _db_cancel_requested(session: Session, run_id: uuid.UUID) -> bool:
+        value = session.scalar(
             select(OptimizationRunModel.cancel_requested_at).where(
                 OptimizationRunModel.id == run_id
             )
@@ -303,35 +301,51 @@ class OptimizationRunCoordinator:
         current: FitnessVector,
     ) -> list[dict[str, object]]:
         if previous is None:
-            return [
-                {
-                    "code": "INITIAL_BEST",
-                    "metric": "fitness",
-                    "after": list(OptimizationRunCoordinator._fitness_payload(current).values()),
-                }
-            ]
+            return [{"code": "INITIAL_BEST", "metric": "fitness"}]
         reasons: list[dict[str, object]] = []
-        metrics: tuple[tuple[str, object, object], ...] = (
-            ("hard_violations", previous.hard_violations, current.hard_violations),
-            ("service_penalty", previous.service_penalty, current.service_penalty),
-            ("critical_risk", previous.critical_risk, current.critical_risk),
-            ("cost_brl", previous.total_cost_brl, current.total_cost_brl),
-            ("makespan_minutes", previous.makespan_minutes, current.makespan_minutes),
-            ("travel_minutes", previous.travel_minutes, current.travel_minutes),
-            ("distance_km", previous.distance_km, current.distance_km),
-            ("vehicles_used", previous.vehicles_used, current.vehicles_used),
+        OptimizationRunCoordinator._append_reason(
+            reasons, "hard_violations", previous.hard_violations, current.hard_violations
         )
-        for metric, before, after in metrics:
-            if after < before:  # type: ignore[operator]
-                reasons.append(
-                    {
-                        "code": "METRIC_IMPROVED",
-                        "metric": metric,
-                        "before": str(before),
-                        "after": str(after),
-                    }
-                )
+        OptimizationRunCoordinator._append_reason(
+            reasons, "service_penalty", previous.service_penalty, current.service_penalty
+        )
+        OptimizationRunCoordinator._append_reason(
+            reasons, "critical_risk", previous.critical_risk, current.critical_risk
+        )
+        OptimizationRunCoordinator._append_reason(
+            reasons, "cost_brl", previous.total_cost_brl, current.total_cost_brl
+        )
+        OptimizationRunCoordinator._append_reason(
+            reasons, "makespan_minutes", previous.makespan_minutes, current.makespan_minutes
+        )
+        OptimizationRunCoordinator._append_reason(
+            reasons, "travel_minutes", previous.travel_minutes, current.travel_minutes
+        )
+        OptimizationRunCoordinator._append_reason(
+            reasons, "distance_km", previous.distance_km, current.distance_km
+        )
+        OptimizationRunCoordinator._append_reason(
+            reasons, "vehicles_used", previous.vehicles_used, current.vehicles_used
+        )
         return reasons or [{"code": "LEXICOGRAPHIC_IMPROVEMENT", "metric": "fitness"}]
+
+    @staticmethod
+    def _append_reason(
+        reasons: list[dict[str, object]],
+        metric: str,
+        before: int | Decimal,
+        after: int | Decimal,
+    ) -> None:
+        if after >= before:
+            return
+        reasons.append(
+            {
+                "code": "METRIC_IMPROVED",
+                "metric": metric,
+                "before": str(before),
+                "after": str(after),
+            }
+        )
 
     @staticmethod
     def _routes_payload(

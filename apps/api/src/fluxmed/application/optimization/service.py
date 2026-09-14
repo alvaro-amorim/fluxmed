@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -17,10 +18,12 @@ from fluxmed.application.resources import ResourceService, VehicleView
 from fluxmed.domain.enums import OperationStatus, VehicleOwnershipType, WorkerRole
 from fluxmed.infrastructure.models.delivery import DeliveryModel
 from fluxmed.infrastructure.models.operation import OperationModel
+from fluxmed.infrastructure.models.optimization_result import OptimizationRunModel
 from fluxmed.optimization import (
     GeneticOptimizer,
     GeneticOptimizerConfig,
     OptimizationDelivery,
+    OptimizationProgress,
     OptimizationResult,
     OptimizationVehicle,
     SolutionValidator,
@@ -63,20 +66,31 @@ class OptimizationService:
         self._optimizer = GeneticOptimizer(config)
         self._validator = SolutionValidator()
 
+    @property
+    def config(self) -> GeneticOptimizerConfig:
+        return self._optimizer.config
+
     def optimize_operation(
         self,
         operation_id: uuid.UUID,
         *,
         random_seed: int | None = None,
         actor_user_id: uuid.UUID | None = None,
+        run_id: uuid.UUID | None = None,
+        on_progress: Callable[[OptimizationProgress], None] | None = None,
+        should_cancel: Callable[[], bool] | None = None,
     ) -> OperationOptimizationView:
         operation = self._session.get(OperationModel, operation_id)
         if operation is None:
             raise OptimizationOperationNotFoundError(operation_id)
         if operation.status is OperationStatus.DISPATCHED:
             raise OptimizationInputError("Operação despachada não pode ser reotimizada.")
-        if operation.status is OperationStatus.OPTIMIZING:
+        if operation.status is OperationStatus.OPTIMIZING and run_id is None:
             raise OptimizationInputError("Já existe uma otimização em andamento.")
+        if run_id is not None:
+            queued_run = self._session.get(OptimizationRunModel, run_id)
+            if queued_run is None or queued_run.operation_id != operation.id:
+                raise OptimizationInputError("Execução de otimização não pertence à operação informada.")
 
         preflight = PreflightService(self._session).validate_operation(operation_id)
         if not preflight.is_valid:
@@ -144,6 +158,8 @@ class OptimizationService:
                 operation.operation_date,
                 operation.operation_end_time,
             ),
+            on_progress=on_progress,
+            should_cancel=should_cancel,
         )
         validation = self._validator.validate(
             solution=result.best.solution,
@@ -170,6 +186,7 @@ class OptimizationService:
                 vehicles=selected_vehicle_views,
                 workers=selected_workers,
                 actor_user_id=actor_user_id or operation.created_by_user_id,
+                run_id=run_id,
             )
         except TeamAssignmentError as exc:
             raise OptimizationInputError(f"TEAM_INFEASIBLE: {exc}") from exc

@@ -149,7 +149,7 @@ describe('optimization result', () => {
     expect(screen.getAllByText('ABC1D23').length).toBeGreaterThan(0)
     expect(screen.getByText('Hospital Aurora')).toBeInTheDocument()
     expect(screen.getByTestId('optimization-result-map')).toBeInTheDocument()
-    expect(screen.getByText('R$ 166,00')).toBeInTheDocument()
+    expect(screen.getByText(/R\$\s*166,00/)).toBeInTheDocument()
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Aprovar plano' }))
     expect(onOperationChanged).toHaveBeenCalled()

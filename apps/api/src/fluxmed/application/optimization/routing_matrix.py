@@ -6,7 +6,7 @@ from decimal import Decimal
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from fluxmed.domain.enums import FacilityType, RoadOverrideType, TrafficLevel
+from fluxmed.domain.enums import FacilityType, RoadOverrideType, TrafficLevel, TrafficMode
 from fluxmed.infrastructure.models.city import (
     AddressModel,
     CityModel,
@@ -83,7 +83,7 @@ class RoutingMatrixBuilder:
         origin: AddressModel,
         destination: AddressModel,
         departure_at: datetime,
-        traffic_mode: object,
+        traffic_mode: TrafficMode,
         closed_edges: set[uuid.UUID],
         traffic_overrides: dict[uuid.UUID, TrafficLevel],
     ) -> tuple[float, float]:
@@ -141,7 +141,7 @@ class RoutingMatrixBuilder:
         edge: GraphEdge,
         fraction: float,
         entered_at: datetime,
-        traffic_mode: object,
+        traffic_mode: TrafficMode,
         district_slug: str,
         override_level: TrafficLevel | None,
     ) -> float:

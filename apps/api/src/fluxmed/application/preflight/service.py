@@ -149,8 +149,7 @@ class PreflightValidator:
                     PreflightIssue(
                         code="ADDRESS_NOT_FOUND",
                         message=(
-                            f"O endereço da entrega {delivery.delivery_code} "
-                            "não está roteável."
+                            f"O endereço da entrega {delivery.delivery_code} não está roteável."
                         ),
                         related_delivery_ids=related,
                     )
@@ -300,11 +299,7 @@ class PreflightValidator:
             delivery.handling_requirement is HandlingRequirement.TWO_PERSON
             or vehicle.helper_policy is HelperPolicy.REQUIRED
         )
-        return (
-            not helper_required
-            or vehicle.helper_included
-            or WorkerRole.HELPER in worker_roles
-        )
+        return not helper_required or vehicle.helper_included or WorkerRole.HELPER in worker_roles
 
     @staticmethod
     def _window_minutes(operation: PreflightOperation) -> int:
@@ -411,10 +406,7 @@ class PreflightService:
             else None
         )
         address_valid = bool(
-            address is not None
-            and address.active
-            and segment is not None
-            and segment.active
+            address is not None and address.active and segment is not None and segment.active
         )
         minimum_roundtrip_km: Decimal | None = None
         if address_valid:
@@ -424,9 +416,7 @@ class PreflightService:
                 .where(AddressModel.id == delivery.destination_address_id)
             )
             if distance_m is not None:
-                minimum_roundtrip_km = (Decimal(str(distance_m)) * Decimal("2")) / Decimal(
-                    "1000"
-                )
+                minimum_roundtrip_km = (Decimal(str(distance_m)) * Decimal("2")) / Decimal("1000")
 
         return PreflightDelivery(
             id=delivery.id,

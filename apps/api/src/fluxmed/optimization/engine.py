@@ -217,9 +217,7 @@ class GeneticOptimizer:
                 pruning_tracker.merge(outcome.pruning)
             repairs_applied += sum(outcome.repairs_applied for outcome in evaluation_outcomes)
             evaluated = [outcome.individual for outcome in evaluation_outcomes]
-            diversity_history.append(
-                population_diversity([item.chromosome for item in evaluated])
-            )
+            diversity_history.append(population_diversity([item.chromosome for item in evaluated]))
 
             generation_best = min(evaluated, key=lambda item: item.fitness.sort_key())
             generation_best_valid = self._best_valid(evaluated)

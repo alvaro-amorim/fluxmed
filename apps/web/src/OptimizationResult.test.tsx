@@ -73,6 +73,8 @@ const result: OptimizationResult = {
           recipient_name: 'Hospital Aurora',
           address_label: 'Rua Aurora, 10 — Centro',
           priority: 'HIGH',
+          longitude: -46.62,
+          latitude: -22.4,
           planned_arrival_at: '2026-09-14T11:00:00-03:00',
           planned_departure_at: '2026-09-14T11:10:00-03:00',
           time_window_start: null,

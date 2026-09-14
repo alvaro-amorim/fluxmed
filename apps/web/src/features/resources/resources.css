@@ -1,0 +1,365 @@
+.resources-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.resources-heading {
+  align-items: flex-end;
+}
+
+.resource-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.resource-kpis article {
+  display: grid;
+  gap: 0.15rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border, #dfe6e7);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.resource-kpis strong {
+  font-size: 1.55rem;
+  color: #143f45;
+}
+
+.resource-kpis span {
+  color: #63777a;
+  font-size: 0.86rem;
+}
+
+.resource-form,
+.availability-toolbar,
+.operation-resources-panel {
+  border: 1px solid #dfe6e7;
+  border-radius: 18px;
+  background: #fff;
+  padding: 1.15rem;
+  box-shadow: 0 8px 24px rgb(20 63 69 / 4%);
+}
+
+.resource-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.resource-form-grid label,
+.maintenance-row label,
+.availability-toolbar label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #3d5659;
+}
+
+.resource-form-grid input,
+.resource-form-grid select,
+.maintenance-row input,
+.availability-toolbar input {
+  min-height: 42px;
+  border: 1px solid #cad6d8;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  background: #fff;
+  color: #19383d;
+}
+
+.resource-checkbox {
+  display: flex !important;
+  align-items: center;
+  gap: 0.55rem !important;
+  align-self: end;
+  min-height: 42px;
+}
+
+.resource-checkbox input {
+  min-height: auto;
+  width: 16px;
+  height: 16px;
+}
+
+.resource-cost-editor {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e8eeee;
+}
+
+.resource-cost-editor h3 {
+  margin: 0;
+  color: #173f45;
+  font-size: 1rem;
+}
+
+.maintenance-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.resource-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.resource-list--workers {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.resource-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #dfe6e7;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.resource-card--inactive {
+  opacity: 0.62;
+  background: #f7f9f9;
+}
+
+.resource-card > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.resource-card h2 {
+  margin: 0.25rem 0 0;
+  color: #173f45;
+  font-size: 1.15rem;
+}
+
+.resource-card p {
+  margin: 0.2rem 0 0;
+  color: #718184;
+  font-size: 0.86rem;
+}
+
+.resource-badge,
+.resource-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.resource-badge {
+  background: #edf5f5;
+  color: #28626a;
+}
+
+.resource-status--available {
+  background: #e9f7ef;
+  color: #237548;
+}
+
+.resource-status--unavailable,
+.resource-status--maintenance {
+  background: #fff3db;
+  color: #9b6810;
+}
+
+.resource-status--inactive {
+  background: #edf0f0;
+  color: #657174;
+}
+
+.resource-spec-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.resource-spec-grid div {
+  min-width: 0;
+}
+
+.resource-spec-grid dt {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #829194;
+}
+
+.resource-spec-grid dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: #2e4a4e;
+}
+
+.resource-cost-view {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background: #f5f9f9;
+}
+
+.resource-cost-view > strong {
+  color: #214b51;
+  font-size: 0.84rem;
+}
+
+.resource-cost-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.resource-cost-grid span {
+  display: grid;
+  gap: 0.15rem;
+  color: #6d7d80;
+  font-size: 0.74rem;
+}
+
+.resource-cost-grid b {
+  color: #173f45;
+  font-size: 0.84rem;
+}
+
+.resource-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #edf1f1;
+}
+
+.button--danger {
+  border-color: #efd0d0;
+  color: #a53d3d;
+  background: #fffafa;
+}
+
+.resource-empty {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  padding: 2.5rem 1rem;
+  border: 1px dashed #cbd8d9;
+  border-radius: 18px;
+  color: #63777a;
+  background: #fbfcfc;
+}
+
+.resource-empty strong {
+  color: #294f54;
+}
+
+.availability-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.availability-toolbar > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.availability-toolbar strong {
+  color: #173f45;
+}
+
+.availability-toolbar span {
+  color: #718184;
+  font-size: 0.82rem;
+}
+
+.operation-resources-panel {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.operation-resource-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.operation-resource-group {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.operation-resource-group h3 {
+  margin: 0;
+  color: #173f45;
+}
+
+.operation-resource-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.7rem;
+  border: 1px solid #e4eaea;
+  border-radius: 12px;
+}
+
+.operation-resource-option input {
+  margin-top: 0.2rem;
+}
+
+.operation-resource-option span {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.operation-resource-option strong {
+  font-size: 0.84rem;
+  color: #2a4d52;
+}
+
+.operation-resource-option small {
+  color: #748487;
+}
+
+.operation-resource-option--disabled {
+  opacity: 0.5;
+  background: #f7f9f9;
+}
+
+@media (max-width: 1100px) {
+  .resource-list--workers,
+  .resource-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .resource-kpis,
+  .resource-list,
+  .resource-list--workers,
+  .resource-form-grid,
+  .maintenance-row,
+  .operation-resource-columns,
+  .resource-cost-grid,
+  .resource-spec-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .availability-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

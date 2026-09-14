@@ -10,6 +10,7 @@ from fluxmed.domain.enums import (
     TimeWindowPolicy,
 )
 from fluxmed.optimization import (
+    DecodedSolution,
     GeneticOptimizer,
     GeneticOptimizerConfig,
     OptimizationDelivery,
@@ -180,21 +181,9 @@ def test_two_person_delivery_requires_helper_capability() -> None:
     assert solution.pruning_counts["TEAM_INFEASIBLE"] == 1
 
 
-def test_repair_preserves_permutation_and_prioritizes_unassigned() -> None:
+def test_repair_preserves_permutation() -> None:
     chromosome = (_id(1), _id(2), _id(3), _id(4))
-    solution = RouteDecoder(
-        deliveries=[
-            OptimizationDelivery(
-                id=gene,
-                weight_kg=Decimal("1"),
-                volume_m3=Decimal("0.1"),
-                service_minutes=1,
-            )
-            for gene in chromosome
-        ],
-        vehicles=[],
-        travel_matrix=_matrix(list(chromosome)),
-    ).decode(chromosome)
+    solution = DecodedSolution(routes=(), unassigned_delivery_ids=chromosome)
     repaired = repair_chromosome(chromosome, solution, random.Random(42))
 
     assert set(repaired) == set(chromosome)
@@ -231,7 +220,7 @@ def test_solution_validator_rechecks_range_and_refrigeration() -> None:
     ).decode((delivery.id,)).routes[0]
 
     validation = SolutionValidator().validate(
-        solution=type("Solution", (), {"routes": (route,), "unassigned_delivery_ids": ()})(),
+        solution=DecodedSolution(routes=(route,)),
         deliveries=[delivery],
         vehicles=[vehicle],
     )

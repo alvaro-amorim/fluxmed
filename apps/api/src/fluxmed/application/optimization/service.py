@@ -90,7 +90,9 @@ class OptimizationService:
         if run_id is not None:
             queued_run = self._session.get(OptimizationRunModel, run_id)
             if queued_run is None or queued_run.operation_id != operation.id:
-                raise OptimizationInputError("Execução de otimização não pertence à operação informada.")
+                raise OptimizationInputError(
+                    "Execução de otimização não pertence à operação informada."
+                )
 
         preflight = PreflightService(self._session).validate_operation(operation_id)
         if not preflight.is_valid:

@@ -21,7 +21,7 @@ afterEach(() => {
 
 describe('routing api client', () => {
   it('requests a real route preview with the selected destination', async () => {
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
       response({
         operation_id: 'operation-1',
         destination_address_id: 'address-1',
@@ -48,8 +48,9 @@ describe('routing api client', () => {
       '/api/v1/operations/operation-1/route-preview',
       expect.objectContaining({ method: 'POST', credentials: 'include' }),
     )
-    const init = fetchMock.mock.calls[0]?.[1] as RequestInit
-    expect(JSON.parse(String(init.body))).toEqual({
+    const init = fetchMock.mock.calls[0]?.[1]
+    expect(init).toBeDefined()
+    expect(JSON.parse(String(init?.body))).toEqual({
       destination_address_id: 'address-1',
       departure_time: '07:30:00',
       algorithm: 'ASTAR',
@@ -87,8 +88,9 @@ describe('routing api client', () => {
 
     expect(created.id).toBe('override-1')
     expect(listed).toHaveLength(1)
-    const createInit = fetchMock.mock.calls[0]?.[1] as RequestInit
-    expect(JSON.parse(String(createInit.body))).toEqual({
+    const createInit = fetchMock.mock.calls[0]?.[1]
+    expect(createInit).toBeDefined()
+    expect(JSON.parse(String(createInit?.body))).toEqual({
       road_segment_id: 'segment-1',
       override_type: 'CLOSURE',
       reason: 'ROADWORK',

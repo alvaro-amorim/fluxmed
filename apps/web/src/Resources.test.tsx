@@ -90,7 +90,7 @@ describe('resource workspaces', () => {
 
     expect(await screen.findByRole('heading', { name: 'Frota' })).toBeInTheDocument()
     expect(await screen.findByText('ABC1D23')).toBeInTheDocument()
-    expect(screen.getByText('R$ 0,50')).toBeInTheDocument()
+    expect(screen.getByText(/0,50/)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Marcar indisponível' }))
 

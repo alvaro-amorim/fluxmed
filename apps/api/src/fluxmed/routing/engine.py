@@ -108,9 +108,7 @@ class RoutingEngine:
                     queue,
                     (
                         candidate
-                        + self._heuristic_seconds(
-                            edge.to_node_id, destination_node_id, algorithm
-                        ),
+                        + self._heuristic_seconds(edge.to_node_id, destination_node_id, algorithm),
                         next(serial),
                         edge.to_node_id,
                     ),

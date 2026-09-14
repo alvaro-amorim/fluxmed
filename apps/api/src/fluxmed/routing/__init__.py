@@ -2,7 +2,7 @@
 
 from fluxmed.routing.engine import NoRouteFoundError, RoutingEngine
 from fluxmed.routing.graph import DirectedGraph, GraphEdge, GraphNode, RoutePath
-from fluxmed.routing.traffic import TrafficModel, TimeBucket, time_bucket
+from fluxmed.routing.traffic import TimeBucket, TrafficModel, time_bucket
 
 __all__ = [
     "DirectedGraph",

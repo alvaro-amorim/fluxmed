@@ -30,9 +30,10 @@ def repair_candidates(
     assigned = [gene for gene in chromosome if gene not in unassigned]
 
     front_loaded = tuple([*constrained, *assigned])
+    deferred = tuple([*assigned, *constrained])
     interleaved = _interleave_constrained(constrained, assigned)
     candidates = []
-    for candidate in (front_loaded, interleaved):
+    for candidate in (front_loaded, deferred, interleaved):
         if candidate != chromosome and candidate not in candidates:
             candidates.append(candidate)
     return tuple(candidates)

@@ -20,6 +20,12 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.alter_column(
         "optimization_runs",
+        "operation_revision_id",
+        existing_type=postgresql.UUID(as_uuid=True),
+        nullable=True,
+    )
+    op.alter_column(
+        "optimization_runs",
         "completed_at",
         existing_type=sa.DateTime(timezone=True),
         nullable=True,
@@ -109,4 +115,10 @@ def downgrade() -> None:
         existing_type=sa.DateTime(timezone=True),
         nullable=False,
         server_default=sa.func.now(),
+    )
+    op.alter_column(
+        "optimization_runs",
+        "operation_revision_id",
+        existing_type=postgresql.UUID(as_uuid=True),
+        nullable=False,
     )

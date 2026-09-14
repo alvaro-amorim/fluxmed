@@ -32,15 +32,11 @@ class OwnedVehicleCostInput:
             if value < ZERO:
                 raise ResourceValidationError(f"{field} não pode ser negativo.")
         if self.residual_value_brl > self.acquisition_value_brl:
-            raise ResourceValidationError(
-                "O valor residual não pode superar o valor de aquisição."
-            )
+            raise ResourceValidationError("O valor residual não pode superar o valor de aquisição.")
         if self.useful_life_km <= ZERO:
             raise ResourceValidationError("A vida útil em km deve ser maior que zero.")
         if self.expected_productive_hours_per_year <= ZERO:
-            raise ResourceValidationError(
-                "As horas produtivas anuais devem ser maiores que zero."
-            )
+            raise ResourceValidationError("As horas produtivas anuais devem ser maiores que zero.")
 
     @property
     def depreciation_per_km(self) -> Decimal:
@@ -51,9 +47,7 @@ class OwnedVehicleCostInput:
     def fixed_cost_per_hour(self) -> Decimal:
         self.validate()
         annual_total = (
-            self.annual_ipva_brl
-            + self.annual_insurance_brl
-            + self.annual_fixed_costs_brl
+            self.annual_ipva_brl + self.annual_insurance_brl + self.annual_fixed_costs_brl
         )
         return annual_total / self.expected_productive_hours_per_year
 
@@ -67,9 +61,7 @@ class MaintenanceItemInput:
         if self.cost_brl < ZERO:
             raise ResourceValidationError("O custo de manutenção não pode ser negativo.")
         if self.interval_km <= ZERO:
-            raise ResourceValidationError(
-                "O intervalo de manutenção deve ser maior que zero."
-            )
+            raise ResourceValidationError("O intervalo de manutenção deve ser maior que zero.")
 
     @property
     def cost_per_km(self) -> Decimal:

@@ -98,10 +98,11 @@ class RouteDecoder:
         *,
         best_known_fitness: FitnessVector | None = None,
     ) -> DecodeOutcome:
+        operation_start = self._context.operation_start_at if self._context is not None else None
         states = [
             _RouteState(
                 vehicle=vehicle,
-                current_at=(self._context.operation_start_at if self._context is not None else None),
+                current_at=operation_start,
             )
             for vehicle in self._vehicles
         ]
@@ -210,7 +211,9 @@ class RouteDecoder:
         except KeyError:
             return None, PruningReason.ROAD_ACCESS_IMPOSSIBLE
 
-        projected_distance_with_return = state.distance_km + leg.distance_km + return_leg.distance_km
+        projected_distance_with_return = (
+            state.distance_km + leg.distance_km + return_leg.distance_km
+        )
         if projected_distance_with_return > self._effective_range(vehicle):
             return None, PruningReason.RANGE_IMPOSSIBLE
 
@@ -442,14 +445,11 @@ class RouteDecoder:
         )
 
     def _finalize_route(self, state: _RouteState) -> DecodedRoute:
-        try:
-            return_metric = self._travel_matrix.metric(
-                state.current_location,
-                None,
-                state.current_at,
-            )
-        except KeyError:
-            return_metric = TravelMetric(distance_km=ZERO, travel_minutes=ZERO)
+        return_metric = self._travel_matrix.metric(
+            state.current_location,
+            None,
+            state.current_at,
+        )
         distance_km = state.distance_km + return_metric.distance_km
         travel_minutes = state.travel_minutes + return_metric.travel_minutes
         return_at = self._plus_minutes(state.current_at, return_metric.travel_minutes)

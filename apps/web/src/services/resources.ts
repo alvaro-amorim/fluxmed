@@ -76,6 +76,13 @@ export function deactivateWorker(workerId: string): Promise<Worker> {
   })
 }
 
+export function getWorkerAvailability(workerId: string, date: string): Promise<WorkerAvailability> {
+  const query = new URLSearchParams({ date })
+  return apiRequest<WorkerAvailability>(
+    `/api/v1/workers/${workerId}/availability?${query.toString()}`,
+  )
+}
+
 export function setWorkerAvailability(
   workerId: string,
   payload: { date: string; available: boolean; notes?: string | null },

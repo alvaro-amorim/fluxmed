@@ -163,10 +163,7 @@ class RouteDecoder:
         remaining_ids: tuple[uuid.UUID, ...],
     ) -> tuple[_Candidate | None, PruningReason | None]:
         vehicle = state.vehicle
-        if (
-            delivery.temperature_class is TemperatureClass.REFRIGERATED
-            and not vehicle.refrigerated
-        ):
+        if delivery.temperature_class is TemperatureClass.REFRIGERATED and not vehicle.refrigerated:
             return None, PruningReason.REFRIGERATION_INCOMPATIBLE
 
         projected_weight = state.weight_kg + delivery.weight_kg
@@ -326,8 +323,7 @@ class RouteDecoder:
                 return False
 
         return all(
-            any(self._can_serve_next(state, delivery) for state in states)
-            for delivery in remaining
+            any(self._can_serve_next(state, delivery) for state in states) for delivery in remaining
         )
 
     def _can_serve_next(self, state: _RouteState, delivery: OptimizationDelivery) -> bool:
@@ -509,8 +505,7 @@ class RouteDecoder:
             return 0
         return int(
             any(
-                self._deliveries[delivery_id].temperature_class
-                is TemperatureClass.REFRIGERATED
+                self._deliveries[delivery_id].temperature_class is TemperatureClass.REFRIGERATED
                 for delivery_id in remaining_ids
             )
         )

@@ -26,8 +26,8 @@ class OptimizationRunModel(Base):
     operation_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("operations.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    operation_revision_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("operation_revisions.id", ondelete="CASCADE"), nullable=False, index=True
+    operation_revision_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("operation_revisions.id", ondelete="CASCADE"), nullable=True, index=True
     )
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="COMPLETED", index=True)
     random_seed: Mapped[int] = mapped_column(Integer, nullable=False)

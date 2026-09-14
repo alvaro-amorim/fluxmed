@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import {
+  generateDemoOperationResources,
   getOperationResources,
   updateOperationResources,
 } from '../../services/resources'
@@ -38,8 +39,10 @@ export function OperationResourcesPanel({
   const [workerIds, setWorkerIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [generatingDemo, setGeneratingDemo] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [demoGenerated, setDemoGenerated] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -75,6 +78,7 @@ export function OperationResourcesPanel({
 
   function toggleVehicle(vehicleId: string) {
     setSaved(false)
+    setDemoGenerated(false)
     setVehicleIds((current) =>
       current.includes(vehicleId)
         ? current.filter((item) => item !== vehicleId)
@@ -84,6 +88,7 @@ export function OperationResourcesPanel({
 
   function toggleWorker(workerId: string) {
     setSaved(false)
+    setDemoGenerated(false)
     setWorkerIds((current) =>
       current.includes(workerId)
         ? current.filter((item) => item !== workerId)
@@ -94,6 +99,7 @@ export function OperationResourcesPanel({
   async function save() {
     setSaving(true)
     setSaved(false)
+    setDemoGenerated(false)
     setError(null)
     try {
       const updated = await updateOperationResources(operationId, {
@@ -112,6 +118,28 @@ export function OperationResourcesPanel({
       )
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function generateDemo() {
+    setGeneratingDemo(true)
+    setSaved(false)
+    setDemoGenerated(false)
+    setError(null)
+    try {
+      const generated = await generateDemoOperationResources(operationId)
+      setResources(generated)
+      setVehicleIds(generated.selected_vehicle_ids)
+      setWorkerIds(generated.selected_worker_ids)
+      setDemoGenerated(true)
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Não foi possível gerar os recursos de demonstração.',
+      )
+    } finally {
+      setGeneratingDemo(false)
     }
   }
 
@@ -206,11 +234,23 @@ export function OperationResourcesPanel({
 
       {resources && !immutable ? (
         <div className="form-actions">
-          {saved ? <span className="resource-save-success">Recursos atualizados.</span> : null}
+          {demoGenerated ? (
+            <span className="resource-save-success">Recursos demo gerados e selecionados.</span>
+          ) : saved ? (
+            <span className="resource-save-success">Recursos atualizados.</span>
+          ) : null}
+          <button
+            className="button button--secondary"
+            type="button"
+            disabled={saving || generatingDemo}
+            onClick={() => void generateDemo()}
+          >
+            {generatingDemo ? 'Gerando demo…' : 'Gerar frota e equipe demo'}
+          </button>
           <button
             className="button button--primary"
             type="button"
-            disabled={saving}
+            disabled={saving || generatingDemo}
             onClick={() => void save()}
           >
             {saving ? 'Salvando…' : 'Salvar seleção'}

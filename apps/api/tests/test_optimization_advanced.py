@@ -205,19 +205,23 @@ def test_solution_validator_rechecks_range_and_refrigeration() -> None:
         max_range_km=Decimal("5"),
         refrigerated=False,
     )
-    route = RouteDecoder(
-        deliveries=[delivery],
-        vehicles=[
-            OptimizationVehicle(
-                id=vehicle.id,
-                max_payload_kg=vehicle.max_payload_kg,
-                max_volume_m3=vehicle.max_volume_m3,
-                max_range_km=Decimal("100"),
-                refrigerated=True,
-            )
-        ],
-        travel_matrix=_matrix([delivery.id]),
-    ).decode((delivery.id,)).routes[0]
+    route = (
+        RouteDecoder(
+            deliveries=[delivery],
+            vehicles=[
+                OptimizationVehicle(
+                    id=vehicle.id,
+                    max_payload_kg=vehicle.max_payload_kg,
+                    max_volume_m3=vehicle.max_volume_m3,
+                    max_range_km=Decimal("100"),
+                    refrigerated=True,
+                )
+            ],
+            travel_matrix=_matrix([delivery.id]),
+        )
+        .decode((delivery.id,))
+        .routes[0]
+    )
 
     validation = SolutionValidator().validate(
         solution=DecodedSolution(routes=(route,)),

@@ -3,7 +3,12 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from fluxmed.domain.enums import DeliveryPriority, HandlingRequirement, TemperatureClass
+from fluxmed.domain.enums import (
+    DeliveryPriority,
+    HandlingRequirement,
+    HelperPolicy,
+    TemperatureClass,
+)
 from fluxmed.optimization.models import (
     ZERO,
     DecodedRoute,
@@ -139,9 +144,15 @@ class RouteDecoder:
             and not vehicle.refrigerated
         ):
             return "REFRIGERATION_INCOMPATIBLE"
+        helper_required = (
+            delivery.handling_requirement is HandlingRequirement.TWO_PERSON
+            or vehicle.helper_policy is HelperPolicy.REQUIRED
+        )
+        if helper_required and not vehicle.helper_available:
+            return "TEAM_INFEASIBLE"
         if (
             delivery.handling_requirement is HandlingRequirement.TWO_PERSON
-            and not vehicle.helper_available
+            and vehicle.helper_policy is HelperPolicy.FORBIDDEN
         ):
             return "TEAM_INFEASIBLE"
         return None
@@ -158,6 +169,14 @@ class RouteDecoder:
             volume_m3=state.volume_m3 + delivery.volume_m3,
         )
         return self._finalize_route(candidate)
+
+    @staticmethod
+    def _align(reference: datetime, value: datetime) -> datetime:
+        if reference.tzinfo is None and value.tzinfo is not None:
+            return value.replace(tzinfo=None)
+        if reference.tzinfo is not None and value.tzinfo is None:
+            return value.replace(tzinfo=reference.tzinfo)
+        return value
 
     def _finalize_route(self, state: _RouteState) -> DecodedRoute:
         distance_km = ZERO
@@ -180,21 +199,29 @@ class RouteDecoder:
             if current_at is not None:
                 arrival_at = current_at + timedelta(minutes=float(metric.travel_minutes))
                 service_start_at = arrival_at
-                if delivery.time_window_start is not None and service_start_at < delivery.time_window_start:
-                    service_start_at = delivery.time_window_start
+                window_start = (
+                    self._align(service_start_at, delivery.time_window_start)
+                    if delivery.time_window_start is not None
+                    else None
+                )
+                window_end = (
+                    self._align(service_start_at, delivery.time_window_end)
+                    if delivery.time_window_end is not None
+                    else None
+                )
+                if window_start is not None and service_start_at < window_start:
+                    service_start_at = window_start
                 lateness = ZERO
-                if delivery.time_window_end is not None and service_start_at > delivery.time_window_end:
-                    lateness = Decimal(
-                        str((service_start_at - delivery.time_window_end).total_seconds() / 60)
-                    )
+                if window_end is not None and service_start_at > window_end:
+                    lateness = Decimal(str((service_start_at - window_end).total_seconds() / 60))
                     if delivery.time_window_policy.value == "HARD":
                         hard_violations.append("HARD_TIME_WINDOW_IMPOSSIBLE")
                     else:
                         soft_lateness += lateness
                 if delivery.priority is DeliveryPriority.CRITICAL:
-                    if delivery.time_window_end is not None:
+                    if window_end is not None:
                         slack_minutes = Decimal(
-                            str((delivery.time_window_end - service_start_at).total_seconds() / 60)
+                            str((window_end - service_start_at).total_seconds() / 60)
                         )
                         if slack_minutes < Decimal("30"):
                             critical_risk += max(ZERO, Decimal("30") - slack_minutes)
@@ -217,8 +244,10 @@ class RouteDecoder:
         travel_minutes += return_metric.travel_minutes
         if current_at is not None:
             current_at = current_at + timedelta(minutes=float(return_metric.travel_minutes))
-            if self._operation_end_at is not None and current_at > self._operation_end_at:
-                hard_violations.append("END_OF_SHIFT_IMPOSSIBLE")
+            if self._operation_end_at is not None:
+                operation_end = self._align(current_at, self._operation_end_at)
+                if current_at > operation_end:
+                    hard_violations.append("END_OF_SHIFT_IMPOSSIBLE")
 
         total_duration = travel_minutes + Decimal(service_minutes)
         vehicle = state.vehicle

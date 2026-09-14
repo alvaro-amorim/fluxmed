@@ -7,6 +7,7 @@ from fluxmed.api.v1.deliveries import router as deliveries_router
 from fluxmed.api.v1.operations import router as operations_router
 from fluxmed.api.v1.preflight import router as preflight_router
 from fluxmed.api.v1.resources import router as resources_router
+from fluxmed.api.v1.routing import router as routing_router
 
 app = FastAPI(
     title="FluxMed API",
@@ -21,6 +22,7 @@ app.include_router(operations_router, prefix="/api/v1")
 app.include_router(deliveries_router, prefix="/api/v1")
 app.include_router(resources_router, prefix="/api/v1")
 app.include_router(preflight_router, prefix="/api/v1")
+app.include_router(routing_router, prefix="/api/v1")
 
 
 @app.get("/health/live", tags=["health"])

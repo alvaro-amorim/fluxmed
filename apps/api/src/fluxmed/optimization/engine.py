@@ -220,9 +220,10 @@ class GeneticOptimizer:
         if solution.unassigned_delivery_ids:
             repaired_chromosome = repair_chromosome(chromosome, solution, rng)
             repaired_solution = decoder.decode(repaired_chromosome)
-            if self._fitness.evaluate(repaired_solution).sort_key() < self._fitness.evaluate(
-                solution
-            ).sort_key():
+            if (
+                self._fitness.evaluate(repaired_solution).sort_key()
+                < self._fitness.evaluate(solution).sort_key()
+            ):
                 chromosome = repaired_chromosome
                 solution = repaired_solution
         return EvaluatedIndividual(

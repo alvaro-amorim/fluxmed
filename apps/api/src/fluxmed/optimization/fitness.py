@@ -158,7 +158,10 @@ class SolutionValidator:
                             vehicle_id=route.vehicle_id,
                         )
                     )
-                if delivery.handling_requirement.value == "TWO_PERSON" and not vehicle.helper_available:
+                if (
+                    delivery.handling_requirement.value == "TWO_PERSON"
+                    and not vehicle.helper_available
+                ):
                     issues.append(
                         ValidationIssue(
                             code="TEAM_INFEASIBLE",

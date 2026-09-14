@@ -50,7 +50,8 @@ class FinalCostEngine:
 
         fuel = ZERO
         if not vehicle.cost.fuel_included:
-            efficiency = vehicle.fuel_efficiency_km_per_l or DEFAULT_EFFICIENCY_KM_PER_L[vehicle.type]
+            default_efficiency = DEFAULT_EFFICIENCY_KM_PER_L[vehicle.type]
+            efficiency = vehicle.fuel_efficiency_km_per_l or default_efficiency
             if efficiency > ZERO:
                 fuel = (route.distance_km / efficiency) * REFERENCE_FUEL_PRICE_BRL_PER_L
 

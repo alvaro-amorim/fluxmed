@@ -71,9 +71,7 @@ _CONFIG = {
 }
 
 
-def _weighted_address_choice(
-    rng: random.Random, available: list[AddressContext]
-) -> AddressContext:
+def _weighted_address_choice(rng: random.Random, available: list[AddressContext]) -> AddressContext:
     weights: list[int] = []
     for context in available:
         if context.facility is None:

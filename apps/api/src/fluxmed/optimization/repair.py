@@ -57,9 +57,7 @@ def _interleave_constrained(
         return tuple(assigned)
     output = list(assigned)
     step = max(1, len(output) // (len(constrained) + 1))
-    offset = 0
-    for index, delivery_id in enumerate(constrained):
-        position = min(len(output), (index + 1) * step + offset)
+    for index, delivery_id in enumerate(constrained, start=1):
+        position = min(len(output), index * step + index - 1)
         output.insert(position, delivery_id)
-        offset += 1
     return tuple(output)

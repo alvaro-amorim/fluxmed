@@ -105,9 +105,7 @@ def routing_fixture() -> Iterator[RoutingFixture]:
         with session_scope() as session:
             if operation_id is not None:
                 session.execute(
-                    delete(RoadOverrideModel).where(
-                        RoadOverrideModel.operation_id == operation_id
-                    )
+                    delete(RoadOverrideModel).where(RoadOverrideModel.operation_id == operation_id)
                 )
                 session.execute(
                     delete(OperationRevisionModel).where(

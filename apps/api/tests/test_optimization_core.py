@@ -2,13 +2,17 @@ import random
 import uuid
 from decimal import Decimal
 
+import pytest
+
 from fluxmed.optimization import (
     DecodedRoute,
     DecodedSolution,
     FitnessEvaluator,
     GeneticOptimizer,
     GeneticOptimizerConfig,
+    OptimizationCancelled,
     OptimizationDelivery,
+    OptimizationProgress,
     OptimizationVehicle,
     RouteDecoder,
     SolutionValidator,
@@ -185,3 +189,58 @@ def test_genetic_optimizer_is_deterministic_and_never_worse_than_seed_baselines(
     assert all(
         first.best.fitness.sort_key() <= baseline.fitness.sort_key() for baseline in first.baselines
     )
+
+
+def test_genetic_optimizer_emits_real_generation_progress() -> None:
+    deliveries, vehicles, matrix = _problem(delivery_count=10)
+    snapshots: list[OptimizationProgress] = []
+    optimizer = GeneticOptimizer(
+        GeneticOptimizerConfig(
+            population_size=16,
+            max_generations=8,
+            stagnation_generations=5,
+        )
+    )
+
+    result = optimizer.optimize(
+        deliveries=deliveries,
+        vehicles=vehicles,
+        travel_matrix=matrix,
+        random_seed=582914,
+        on_progress=snapshots.append,
+    )
+
+    assert snapshots
+    assert snapshots[0].generation == 0
+    assert [snapshot.generation for snapshot in snapshots] == sorted(
+        snapshot.generation for snapshot in snapshots
+    )
+    assert snapshots[-1].generation == result.generations_completed
+    assert all(0 <= snapshot.diversity_ratio <= 1 for snapshot in snapshots)
+    assert all(snapshot.effective_mutation_rate >= 0 for snapshot in snapshots)
+    assert snapshots[-1].best.fitness.sort_key() == result.best.fitness.sort_key()
+
+
+def test_genetic_optimizer_supports_cooperative_cancellation() -> None:
+    deliveries, vehicles, matrix = _problem(delivery_count=10)
+    snapshots: list[OptimizationProgress] = []
+    optimizer = GeneticOptimizer(
+        GeneticOptimizerConfig(
+            population_size=16,
+            max_generations=20,
+            stagnation_generations=10,
+        )
+    )
+
+    with pytest.raises(OptimizationCancelled):
+        optimizer.optimize(
+            deliveries=deliveries,
+            vehicles=vehicles,
+            travel_matrix=matrix,
+            random_seed=42,
+            on_progress=snapshots.append,
+            should_cancel=lambda: bool(snapshots),
+        )
+
+    assert len(snapshots) == 1
+    assert snapshots[0].generation == 0

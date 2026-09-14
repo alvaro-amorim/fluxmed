@@ -194,22 +194,16 @@ def parse_delivery_file(
                 "rua": street,
                 "numero": number,
             }
-            empty_fields = [
-                field for field, value in required_text.items() if not value
-            ]
+            empty_fields = [field for field, value in required_text.items() if not value]
             if empty_fields:
-                raise ValueError(
-                    f"Campos obrigatórios vazios: {', '.join(empty_fields)}."
-                )
+                raise ValueError(f"Campos obrigatórios vazios: {', '.join(empty_fields)}.")
 
             context = resolve_address(street, number)
             if context is None:
                 errors.append(
                     {
                         "code": "ADDRESS_NOT_FOUND",
-                        "message": (
-                            f"{street}, {number} não existe no dataset de Santa Aurora."
-                        ),
+                        "message": (f"{street}, {number} não existe no dataset de Santa Aurora."),
                     }
                 )
                 raise LookupError("address")
@@ -246,20 +240,12 @@ def parse_delivery_file(
             window_start = _datetime_value(data.get("janela_inicio"), operation_date)
             window_end = _datetime_value(data.get("janela_fim"), operation_date)
             if (window_start is None) != (window_end is None):
-                raise ValueError(
-                    "janela_inicio e janela_fim devem ser informadas em conjunto."
-                )
-            if (
-                window_start is not None
-                and window_end is not None
-                and window_end <= window_start
-            ):
+                raise ValueError("janela_inicio e janela_fim devem ser informadas em conjunto.")
+            if window_start is not None and window_end is not None and window_end <= window_start:
                 raise ValueError("janela_fim deve ser posterior a janela_inicio.")
 
             service_raw = _text(data.get("tempo_servico_min"))
-            service_minutes = (
-                _integer(service_raw, "tempo_servico_min") if service_raw else None
-            )
+            service_minutes = _integer(service_raw, "tempo_servico_min") if service_raw else None
             key = (issuer_document, invoice_series, invoice_number)
             if key in document_keys:
                 warnings.append(
@@ -286,9 +272,7 @@ def parse_delivery_file(
                 "total_weight_kg": str(weight),
                 "total_volume_m3": str(volume),
                 "priority": priority.value,
-                "time_window_start": (
-                    window_start.isoformat() if window_start else None
-                ),
+                "time_window_start": (window_start.isoformat() if window_start else None),
                 "time_window_end": window_end.isoformat() if window_end else None,
                 "time_window_policy": window_policy.value,
                 "temperature_class": temperature.value,

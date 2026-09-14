@@ -135,6 +135,16 @@
   background: #0f5963;
 }
 
+.legend-swatch--route {
+  height: 4px;
+  background: #0c7c86;
+}
+
+.legend-swatch--closure {
+  height: 5px;
+  background: #bd3b36;
+}
+
 .city-map-overlay {
   position: absolute;
   z-index: 3;
@@ -257,6 +267,157 @@
   color: #92393c;
 }
 
+.routing-workbench {
+  padding: 0 1.2rem 1.25rem;
+  display: grid;
+  gap: 0.9rem;
+  background: var(--surface);
+}
+
+.routing-summary {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(220px, 2fr) repeat(3, minmax(100px, 0.7fr));
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+
+.routing-summary > div {
+  min-width: 0;
+  padding: 0.72rem 0.8rem;
+  border-right: 1px solid var(--line);
+  display: grid;
+  gap: 0.2rem;
+}
+
+.routing-summary > div:last-child {
+  border-right: 0;
+}
+
+.routing-summary span,
+.routing-road-card span,
+.routing-road-card small,
+.routing-override-item span {
+  color: var(--graphite-500);
+  font-size: 0.68rem;
+}
+
+.routing-summary strong,
+.routing-road-card strong,
+.routing-override-item strong {
+  overflow: hidden;
+  color: var(--graphite-900);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.routing-road-card {
+  padding: 0.85rem;
+  border: 1px solid #bbd3d6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #f1f8f8;
+}
+
+.routing-road-card > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.routing-road-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.routing-road-actions label {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--graphite-500);
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.routing-road-actions select {
+  min-height: 36px;
+  padding: 0 0.55rem;
+  border: 1px solid #cbd7d9;
+  border-radius: 8px;
+  color: var(--graphite-900);
+  background: #fff;
+  font: inherit;
+}
+
+.routing-road-actions .button--danger {
+  border-color: #d9a7a4;
+  color: #8e302d;
+  background: #fff5f4;
+}
+
+.routing-road-actions .button--danger:hover:not(:disabled) {
+  background: #fde9e7;
+}
+
+.routing-map-hint,
+.routing-state {
+  margin: 0;
+  color: var(--graphite-500);
+  font-size: 0.72rem;
+}
+
+.routing-overrides {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.routing-overrides .panel-heading {
+  padding: 0.75rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+
+.routing-override-list {
+  display: grid;
+}
+
+.routing-override-item {
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.routing-override-item:last-child {
+  border-bottom: 0;
+}
+
+.routing-override-item > div {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+}
+
+@media (max-width: 980px) {
+  .routing-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .routing-summary > div {
+    border-bottom: 1px solid var(--line);
+  }
+}
+
 @media (max-width: 720px) {
   .city-map-heading {
     flex-direction: column;
@@ -273,5 +434,23 @@
 
   .address-search-results {
     width: calc(100% - 2.4rem);
+  }
+
+  .routing-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .routing-summary > div {
+    border-right: 0;
+  }
+
+  .routing-road-card,
+  .routing-override-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .routing-road-actions {
+    justify-content: flex-start;
   }
 }

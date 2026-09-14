@@ -171,3 +171,6 @@ export function OptimizationResultMap({
     </div>
   )
 }
+
+// eslint-disable-next-line react-refresh/only-export-components
+export { routeColor } from './optimization-result-palette'

@@ -256,10 +256,7 @@ class OptimizationResultService:
                 if stop.lateness_minutes <= ZERO:
                     on_time_count += 1
                 delivery = delivery_model_by_id[stop.delivery_id]
-                if (
-                    delivery.priority is DeliveryPriority.CRITICAL
-                    and stop.lateness_minutes > ZERO
-                ):
+                if delivery.priority is DeliveryPriority.CRITICAL and stop.lateness_minutes > ZERO:
                     critical_delays += 1
 
         total_cost = sum((breakdown.total_brl for _row, breakdown in route_rows), ZERO)
@@ -268,16 +265,10 @@ class OptimizationResultService:
             (row.duration_minutes for row, _breakdown in route_rows),
             default=ZERO,
         )
-        avg_weight = self._average(
-            [row.weight_utilization_pct for row, _breakdown in route_rows]
-        )
-        avg_volume = self._average(
-            [row.volume_utilization_pct for row, _breakdown in route_rows]
-        )
+        avg_weight = self._average([row.weight_utilization_pct for row, _breakdown in route_rows])
+        avg_volume = self._average([row.volume_utilization_pct for row, _breakdown in route_rows])
         on_time = (
-            HUNDRED
-            if total_stops == 0
-            else Decimal(on_time_count) / Decimal(total_stops) * HUNDRED
+            HUNDRED if total_stops == 0 else Decimal(on_time_count) / Decimal(total_stops) * HUNDRED
         )
 
         run = OptimizationRunModel(
@@ -336,9 +327,7 @@ class OptimizationResultService:
                         sequence=sequence,
                         planned_arrival_at=stop.arrival_at if stop is not None else None,
                         planned_departure_at=stop.departure_at if stop is not None else None,
-                        lateness_minutes=(
-                            stop.lateness_minutes if stop is not None else ZERO
-                        ),
+                        lateness_minutes=(stop.lateness_minutes if stop is not None else ZERO),
                     )
                 )
 
@@ -462,9 +451,7 @@ class OptimizationResultService:
             issues,
         )
         required_primary_role = (
-            WorkerRole.MOTORCYCLE_COURIER
-            if vehicle.type is VehicleType.MOTO
-            else WorkerRole.DRIVER
+            WorkerRole.MOTORCYCLE_COURIER if vehicle.type is VehicleType.MOTO else WorkerRole.DRIVER
         )
         if vehicle.cost.driver_included:
             if primary is not None:
@@ -533,9 +520,7 @@ class OptimizationResultService:
             if team_row is None:
                 raise OptimizationResultNotFoundError(route.id)
             team_row.primary_role = (
-                assignment.primary_role.value
-                if assignment.primary_role is not None
-                else None
+                assignment.primary_role.value if assignment.primary_role is not None else None
             )
             team_row.primary_worker_id = assignment.primary_worker_id
             team_row.helper_worker_id = assignment.helper_worker_id
@@ -670,9 +655,7 @@ class OptimizationResultService:
     ) -> RouteTeamView:
         return RouteTeamView(
             primary_role=(
-                assignment.primary_role.value
-                if assignment.primary_role is not None
-                else None
+                assignment.primary_role.value if assignment.primary_role is not None else None
             ),
             primary_worker=(
                 WorkerResultView(id=primary.id, name=primary.name, role=primary.role.value)

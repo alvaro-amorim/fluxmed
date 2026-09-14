@@ -3,6 +3,7 @@ import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   createWorker,
   deactivateWorker,
+  getWorkerAvailability,
   listWorkers,
   setWorkerAvailability,
 } from '../../services/resources'
@@ -84,8 +85,34 @@ export function WorkforcePage() {
   }, [])
 
   useEffect(() => {
-    setAvailability({})
-  }, [availabilityDate])
+    const activeWorkers = workers.filter((worker) => worker.active)
+    if (activeWorkers.length === 0) {
+      setAvailability({})
+      return
+    }
+
+    let active = true
+    void Promise.all(
+      activeWorkers.map((worker) => getWorkerAvailability(worker.id, availabilityDate)),
+    )
+      .then((results) => {
+        if (!active) return
+        setAvailability(
+          Object.fromEntries(results.map((item) => [item.worker_id, item.available])),
+        )
+      })
+      .catch((requestError: unknown) => {
+        if (!active) return
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : 'Falha ao carregar disponibilidade da equipe.',
+        )
+      })
+    return () => {
+      active = false
+    }
+  }, [availabilityDate, workers])
 
   const summary = useMemo(() => {
     const active = workers.filter((worker) => worker.active)
@@ -214,12 +241,17 @@ export function WorkforcePage() {
               Pagamento
               <select
                 value={form.compensation_model}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const compensationModel = event.target.value as CompensationModel
                   setForm({
                     ...form,
-                    compensation_model: event.target.value as CompensationModel,
+                    compensation_model: compensationModel,
+                    compensation_value_brl:
+                      compensationModel === 'INCLUDED_IN_VEHICLE_CONTRACT'
+                        ? '0'
+                        : form.compensation_value_brl,
                   })
-                }
+                }}
               >
                 {Object.entries(compensationLabels).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>

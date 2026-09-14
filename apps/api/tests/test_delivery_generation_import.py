@@ -26,9 +26,7 @@ def _context(index: int, facility_type: FacilityType | None = None) -> AddressCo
         active=True,
     )
     building_type = (
-        BuildingType.HOSPITAL
-        if facility_type is FacilityType.HOSPITAL
-        else BuildingType.HOUSE
+        BuildingType.HOSPITAL if facility_type is FacilityType.HOSPITAL else BuildingType.HOUSE
     )
     building = BuildingModel(
         id=building_id,
@@ -59,10 +57,7 @@ def _context(index: int, facility_type: FacilityType | None = None) -> AddressCo
 
 
 def test_scenario_generation_is_deterministic_for_same_seed() -> None:
-    pool = [
-        _context(index, FacilityType.HOSPITAL if index < 2 else None)
-        for index in range(12)
-    ]
+    pool = [_context(index, FacilityType.HOSPITAL if index < 2 else None) for index in range(12)]
 
     first = generate_scenario(
         address_pool=pool,

@@ -319,15 +319,21 @@ class OptimizationResultService:
             )
             stops_by_delivery = {stop.delivery_id: stop for stop in decoded_route.stops}
             for sequence, delivery_id in enumerate(decoded_route.delivery_ids, start=1):
-                stop = stops_by_delivery.get(delivery_id)
+                route_stop = stops_by_delivery.get(delivery_id)
                 self._session.add(
                     RouteStopModel(
                         route_id=route_row.id,
                         delivery_id=delivery_id,
                         sequence=sequence,
-                        planned_arrival_at=stop.arrival_at if stop is not None else None,
-                        planned_departure_at=stop.departure_at if stop is not None else None,
-                        lateness_minutes=(stop.lateness_minutes if stop is not None else ZERO),
+                        planned_arrival_at=(
+                            route_stop.arrival_at if route_stop is not None else None
+                        ),
+                        planned_departure_at=(
+                            route_stop.departure_at if route_stop is not None else None
+                        ),
+                        lateness_minutes=(
+                            route_stop.lateness_minutes if route_stop is not None else ZERO
+                        ),
                     )
                 )
 

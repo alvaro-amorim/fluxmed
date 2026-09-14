@@ -13,10 +13,7 @@ from fluxmed.optimization.models import (
     ValidationResult,
 )
 
-_REFRIGERATION_MESSAGE = (
-    "Refrigerated delivery is assigned to a non-refrigerated "
-    "vehicle."
-)
+_REFRIGERATION_MESSAGE = "Refrigerated delivery is assigned to a non-refrigerated vehicle."
 
 
 class FitnessEvaluator:

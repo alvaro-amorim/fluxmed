@@ -47,9 +47,12 @@ class ResourceRepository:
             query = query.where(VehicleModel.refrigerated.is_(refrigerated))
         if q:
             query = query.where(func.lower(VehicleModel.plate).contains(q.lower().strip()))
-        return list(self._session.scalars(query.order_by(VehicleModel.active.desc(), VehicleModel.plate)))
+        ordered = query.order_by(VehicleModel.active.desc(), VehicleModel.plate)
+        return list(self._session.scalars(ordered))
 
-    def get_owned_cost_profile(self, vehicle_id: uuid.UUID) -> OwnedVehicleCostProfileModel | None:
+    def get_owned_cost_profile(
+        self, vehicle_id: uuid.UUID
+    ) -> OwnedVehicleCostProfileModel | None:
         return self._session.scalar(
             select(OwnedVehicleCostProfileModel).where(
                 OwnedVehicleCostProfileModel.vehicle_id == vehicle_id
@@ -123,9 +126,12 @@ class ResourceRepository:
             query = query.where(WorkerModel.role == role)
         if q:
             query = query.where(func.lower(WorkerModel.name).contains(q.lower().strip()))
-        return list(self._session.scalars(query.order_by(WorkerModel.active.desc(), WorkerModel.name)))
+        ordered = query.order_by(WorkerModel.active.desc(), WorkerModel.name)
+        return list(self._session.scalars(ordered))
 
-    def get_availability(self, worker_id: uuid.UUID, target_date: date) -> WorkerAvailabilityModel | None:
+    def get_availability(
+        self, worker_id: uuid.UUID, target_date: date
+    ) -> WorkerAvailabilityModel | None:
         return self._session.scalar(
             select(WorkerAvailabilityModel).where(
                 WorkerAvailabilityModel.worker_id == worker_id,

@@ -56,7 +56,6 @@ def test_trace_events_are_ordered_and_running_jobs_recover_as_interrupted() -> N
 
     user_id: uuid.UUID
     operation_id: uuid.UUID
-    run_id: uuid.UUID
     with session_scope() as session:
         user = UserModel(
             email=f"trace-{uuid.uuid4().hex}@example.test",
@@ -83,11 +82,20 @@ def test_trace_events_are_ordered_and_running_jobs_recover_as_interrupted() -> N
         run = _run(operation, status=OptimizationRunStatus.RUNNING)
         session.add(run)
         session.flush()
-        run_id = run.id
         trace = OptimizationTraceService(session)
         trace.append_event(run.id, "optimization_started", payload={"random_seed": 42})
-        trace.append_event(run.id, "generation_snapshot", generation=0, payload={"cost_brl": "100"})
-        trace.append_event(run.id, "best_solution_updated", generation=1, payload={"cost_brl": "90"})
+        trace.append_event(
+            run.id,
+            "generation_snapshot",
+            generation=0,
+            payload={"cost_brl": "100"},
+        )
+        trace.append_event(
+            run.id,
+            "best_solution_updated",
+            generation=1,
+            payload={"cost_brl": "90"},
+        )
 
         events = trace.events(run.id)
         assert [event.sequence for event in events] == [1, 2, 3]
@@ -145,7 +153,12 @@ def test_trace_api_replays_persisted_events_and_resumes_from_last_event_id() -> 
         run_id = run.id
         trace = OptimizationTraceService(session)
         trace.append_event(run.id, "optimization_started", payload={"random_seed": 42})
-        trace.append_event(run.id, "generation_snapshot", generation=0, payload={"cost_brl": "100"})
+        trace.append_event(
+            run.id,
+            "generation_snapshot",
+            generation=0,
+            payload={"cost_brl": "100"},
+        )
         trace.append_event(
             run.id,
             "optimization_completed",

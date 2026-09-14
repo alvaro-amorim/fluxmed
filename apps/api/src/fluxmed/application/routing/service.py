@@ -189,20 +189,14 @@ class RoutingService:
             district_slug=destination_node.district_slug,
             override_level=traffic_overrides.get(destination_edge.id),
         )
-        destination_access_m = destination_edge.length_m * max(
-            0.0, destination.position_on_segment
-        )
+        destination_access_m = destination_edge.length_m * max(0.0, destination.position_on_segment)
         total_seconds = (
-            origin_access_seconds
-            + core.travel_time_seconds
-            + destination_access_seconds
+            origin_access_seconds + core.travel_time_seconds + destination_access_seconds
         )
         total_distance = origin_access_m + core.distance_m + destination_access_m
         geometry = self._preview_geometry(city, destination, core.geometry)
 
-        edge_ids = tuple(
-            dict.fromkeys((depot_edge.id, *core.edge_ids, destination_edge.id))
-        )
+        edge_ids = tuple(dict.fromkeys((depot_edge.id, *core.edge_ids, destination_edge.id)))
         result = RoutePreview(
             operation_id=operation.id,
             destination_address_id=destination.id,
@@ -319,9 +313,7 @@ class RoutingService:
             )
         )
         closures = {
-            item.road_segment_id
-            for item in rows
-            if item.override_type is RoadOverrideType.CLOSURE
+            item.road_segment_id for item in rows if item.override_type is RoadOverrideType.CLOSURE
         }
         traffic = {
             item.road_segment_id: item.traffic_level

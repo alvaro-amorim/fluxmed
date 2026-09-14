@@ -83,7 +83,11 @@ def _worker(value: int, role: WorkerRole, hourly: str) -> WorkerView:
     )
 
 
-def _route(vehicle_id: uuid.UUID, duration: str, delivery_ids: tuple[uuid.UUID, ...]) -> DecodedRoute:
+def _route(
+    vehicle_id: uuid.UUID,
+    duration: str,
+    delivery_ids: tuple[uuid.UUID, ...],
+) -> DecodedRoute:
     return DecodedRoute(
         vehicle_id=vehicle_id,
         delivery_ids=delivery_ids,

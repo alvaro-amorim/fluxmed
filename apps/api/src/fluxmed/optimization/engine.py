@@ -1,4 +1,5 @@
 import random
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -12,6 +13,7 @@ from fluxmed.optimization.models import (
     BaselineResult,
     EvaluatedIndividual,
     OptimizationDelivery,
+    OptimizationProgress,
     OptimizationResult,
     OptimizationVehicle,
     TravelMatrix,
@@ -23,6 +25,13 @@ from fluxmed.optimization.operators import (
     tournament_select,
 )
 from fluxmed.optimization.repair import repair_chromosome
+
+ProgressCallback = Callable[[OptimizationProgress], None]
+CancelCheck = Callable[[], bool]
+
+
+class OptimizationCancelled(RuntimeError):
+    """Raised when a caller requests cooperative GA cancellation."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,11 +85,14 @@ class GeneticOptimizer:
         random_seed: int,
         operation_start_at: datetime | None = None,
         operation_end_at: datetime | None = None,
+        on_progress: ProgressCallback | None = None,
+        should_cancel: CancelCheck | None = None,
     ) -> OptimizationResult:
         if not deliveries:
             raise ValueError("Genetic optimizer requires at least one delivery.")
         if not vehicles:
             raise ValueError("Genetic optimizer requires at least one vehicle.")
+        self._raise_if_cancelled(should_cancel)
 
         rng = random.Random(random_seed)
         decoder = RouteDecoder(
@@ -91,6 +103,7 @@ class GeneticOptimizer:
             operation_end_at=operation_end_at,
         )
         baselines = self._baselines(deliveries, travel_matrix, decoder)
+        self._raise_if_cancelled(should_cancel)
         population = self._initial_population(deliveries, baselines, rng)
         evaluated = [self._evaluate(chromosome, decoder, rng) for chromosome in population]
         best = min(evaluated, key=lambda item: item.fitness.sort_key())
@@ -100,8 +113,18 @@ class GeneticOptimizer:
         effective_mutation_rate = self.config.mutation_rate
         immigrants_added = 0
         diversity_ratio = self._diversity_ratio(evaluated)
+        self._emit_progress(
+            on_progress,
+            generation=0,
+            best=best,
+            improved=True,
+            diversity_ratio=diversity_ratio,
+            effective_mutation_rate=effective_mutation_rate,
+            immigrants_added=immigrants_added,
+        )
 
         for generation in range(1, self.config.max_generations + 1):
+            self._raise_if_cancelled(should_cancel)
             generations_completed = generation
             evaluated.sort(key=lambda item: item.fitness.sort_key())
             diversity_ratio = self._diversity_ratio(evaluated)
@@ -147,11 +170,24 @@ class GeneticOptimizer:
 
             evaluated = [self._evaluate(chromosome, decoder, rng) for chromosome in next_population]
             generation_best = min(evaluated, key=lambda item: item.fitness.sort_key())
-            if generation_best.fitness.sort_key() < best.fitness.sort_key():
+            improved = generation_best.fitness.sort_key() < best.fitness.sort_key()
+            if improved:
                 best = generation_best
                 stagnant = 0
             else:
                 stagnant += 1
+
+            diversity_ratio = self._diversity_ratio(evaluated)
+            self._emit_progress(
+                on_progress,
+                generation=generation,
+                best=best,
+                improved=improved,
+                diversity_ratio=diversity_ratio,
+                effective_mutation_rate=effective_mutation_rate,
+                immigrants_added=immigrants_added,
+            )
+            self._raise_if_cancelled(should_cancel)
 
             if stagnant >= self.config.stagnation_generations:
                 stop_reason = "EARLY_STOPPING"
@@ -248,3 +284,33 @@ class GeneticOptimizer:
             return 0.0
         unique = len({item.chromosome for item in evaluated})
         return unique / len(evaluated)
+
+    @staticmethod
+    def _raise_if_cancelled(should_cancel: CancelCheck | None) -> None:
+        if should_cancel is not None and should_cancel():
+            raise OptimizationCancelled("Optimization cancelled by request.")
+
+    @staticmethod
+    def _emit_progress(
+        callback: ProgressCallback | None,
+        *,
+        generation: int,
+        best: EvaluatedIndividual,
+        improved: bool,
+        diversity_ratio: float,
+        effective_mutation_rate: float,
+        immigrants_added: int,
+    ) -> None:
+        if callback is None:
+            return
+        callback(
+            OptimizationProgress(
+                generation=generation,
+                best=best,
+                improved=improved,
+                diversity_ratio=diversity_ratio,
+                effective_mutation_rate=effective_mutation_rate,
+                immigrants_added=immigrants_added,
+                pruning_counts=dict(best.solution.pruning_counts),
+            )
+        )

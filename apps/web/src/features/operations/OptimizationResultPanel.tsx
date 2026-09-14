@@ -5,13 +5,20 @@ import {
   applyRouteTeam,
   approveOptimizationResult,
   getLatestOptimizationResult,
+  getLatestOptimizationRun,
   optimizeOperation,
   simulateRouteTeam,
 } from '../../services/optimization'
 import { getOperationResources } from '../../services/resources'
 import type { OperationStatus } from '../../types/operations'
-import type { OptimizationResult, ResultRoute, TeamSimulation } from '../../types/optimization'
+import type {
+  OptimizationResult,
+  OptimizationRunStatus,
+  ResultRoute,
+  TeamSimulation,
+} from '../../types/optimization'
 import type { OperationResources, Worker } from '../../types/resources'
+import { OptimizationLivePanel } from './OptimizationLivePanel'
 import { OptimizationResultMap, routeColor } from './OptimizationResultMap'
 import './optimization-result.css'
 
@@ -287,6 +294,8 @@ export function OptimizationResultPanel({
   const [result, setResult] = useState<OptimizationResult | null>(null)
   const [resources, setResources] = useState<OperationResources | null>(null)
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
+  const [activeRunId, setActiveRunId] = useState<string | null>(null)
+  const [replayRunId, setReplayRunId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [optimizing, setOptimizing] = useState(false)
   const [approving, setApproving] = useState(false)
@@ -306,15 +315,34 @@ export function OptimizationResultPanel({
     }
   }, [operationId])
 
+  const loadActiveRun = useCallback(async () => {
+    try {
+      const latest = await getLatestOptimizationRun(operationId)
+      setActiveRunId(latest.status === 'QUEUED' || latest.status === 'RUNNING' ? latest.id : null)
+    } catch (requestError) {
+      if (!(requestError instanceof ApiClientError && requestError.status === 404)) throw requestError
+      setActiveRunId(null)
+    }
+  }, [operationId])
+
   const refresh = useCallback(async () => {
     await Promise.all([loadResult(), onOperationChanged()])
   }, [loadResult, onOperationChanged])
 
+  const handleTerminal = useCallback(
+    async (runStatus: OptimizationRunStatus) => {
+      if (runStatus === 'COMPLETED') await loadResult()
+      await onOperationChanged()
+      setActiveRunId(null)
+    },
+    [loadResult, onOperationChanged],
+  )
+
   useEffect(() => {
     let active = true
     setLoading(true)
-    Promise.all([loadResult(), getOperationResources(operationId)])
-      .then(([, operationResources]) => {
+    Promise.all([loadResult(), loadActiveRun(), getOperationResources(operationId)])
+      .then(([, , operationResources]) => {
         if (active) setResources(operationResources)
       })
       .catch((requestError: unknown) => {
@@ -332,7 +360,7 @@ export function OptimizationResultPanel({
     return () => {
       active = false
     }
-  }, [loadResult, operationId])
+  }, [loadActiveRun, loadResult, operationId])
 
   const selectedRoute = useMemo(
     () => result?.routes.find((route) => route.id === selectedRouteId) ?? result?.routes[0] ?? null,
@@ -342,9 +370,11 @@ export function OptimizationResultPanel({
   async function optimize() {
     setOptimizing(true)
     setError(null)
+    setReplayRunId(null)
     try {
-      await optimizeOperation(operationId)
-      await refresh()
+      const accepted = await optimizeOperation(operationId)
+      setActiveRunId(accepted.optimization_run_id)
+      await onOperationChanged()
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -376,7 +406,7 @@ export function OptimizationResultPanel({
     return <section className="result-empty-state">Carregando resultado operacional…</section>
   }
 
-  if (!result) {
+  if (!result && !activeRunId) {
     return (
       <section className="result-empty-state">
         <p className="eyebrow eyebrow--dark">Resultado</p>
@@ -391,7 +421,7 @@ export function OptimizationResultPanel({
           disabled={optimizing || operationStatus === 'DISPATCHED'}
           onClick={() => void optimize()}
         >
-          {optimizing ? 'Otimizando…' : 'Otimizar rotas'}
+          {optimizing ? 'Iniciando…' : 'Otimizar rotas'}
         </button>
         {error ? <p className="form-error">{error}</p> : null}
       </section>
@@ -399,89 +429,112 @@ export function OptimizationResultPanel({
   }
 
   return (
-    <section className="optimization-result" aria-label="Resultado da otimização">
-      <header className="result-heading">
-        <div>
-          <p className="eyebrow eyebrow--dark">Resultado · revisão {result.revision_number}</p>
-          <h2>Plano operacional validado</h2>
-          <p>
-            GA concluído em {result.generations_completed} gerações · {result.stop_reason} · seed{' '}
-            {result.random_seed}
-          </p>
-        </div>
-        <div className="result-actions">
-          <button
-            className="button button--secondary"
-            type="button"
-            disabled={optimizing || operationStatus === 'DISPATCHED'}
-            onClick={() => void optimize()}
-          >
-            {optimizing ? 'Reotimizando…' : 'Reotimizar'}
-          </button>
-          {operationStatus === 'OPTIMIZED' ? (
-            <button
-              className="button button--primary"
-              type="button"
-              disabled={approving || !result.validated}
-              onClick={() => void approve()}
-            >
-              {approving ? 'Aprovando…' : 'Aprovar plano'}
-            </button>
-          ) : null}
-        </div>
-      </header>
-
-      {operationStatus === 'OUTDATED' ? (
-        <div className="result-warning">
-          <strong>Este plano está desatualizado.</strong>
-          <span>Reotimize antes de aprovar ou despachar.</span>
-        </div>
+    <>
+      {activeRunId ? (
+        <OptimizationLivePanel runId={activeRunId} onTerminal={handleTerminal} />
       ) : null}
-      {operationStatus === 'APPROVED' ? (
-        <div className="result-approved">
-          <strong>Plano aprovado</strong>
-          <span>A revisão atual está pronta para a etapa de dispatch.</span>
-        </div>
+      {replayRunId ? (
+        <OptimizationLivePanel
+          runId={replayRunId}
+          mode="replay"
+          onClose={() => setReplayRunId(null)}
+        />
       ) : null}
-      {error ? <p className="form-error">{error}</p> : null}
 
-      <div className="result-kpis">
-        <article><span>Entregas</span><strong>{result.delivery_count}</strong></article>
-        <article><span>Veículos usados</span><strong>{result.vehicles_used}</strong></article>
-        <article><span>Custo total</span><strong>{money(result.total_cost_brl)}</strong></article>
-        <article><span>Distância</span><strong>{decimal(result.distance_km, ' km')}</strong></article>
-        <article><span>Makespan</span><strong>{minutes(result.makespan_minutes)}</strong></article>
-        <article><span>Atrasos críticos</span><strong>{result.critical_delays}</strong></article>
-        <article><span>No prazo</span><strong>{decimal(result.on_time_percentage, '%')}</strong></article>
-      </div>
-
-      <div className="result-workspace">
-        <div className="result-map-column">
-          <OptimizationResultMap
-            routes={result.routes}
-            selectedRouteId={selectedRoute?.id ?? null}
-            onSelectRoute={setSelectedRouteId}
-          />
-          <div className="route-legend">
-            {result.routes.map((route, index) => (
+      {result ? (
+        <section className="optimization-result" aria-label="Resultado da otimização">
+          <header className="result-heading">
+            <div>
+              <p className="eyebrow eyebrow--dark">Resultado · revisão {result.revision_number}</p>
+              <h2>Plano operacional validado</h2>
+              <p>
+                GA concluído em {result.generations_completed} gerações · {result.stop_reason} · seed{' '}
+                {result.random_seed}
+              </p>
+            </div>
+            <div className="result-actions">
               <button
-                key={route.id}
+                className="button button--ghost"
                 type="button"
-                className={selectedRoute?.id === route.id ? 'route-legend__item is-active' : 'route-legend__item'}
-                onClick={() => setSelectedRouteId(route.id)}
+                disabled={Boolean(activeRunId)}
+                onClick={() => setReplayRunId(result.run_id)}
               >
-                <i style={{ background: routeColor(index) }} />
-                <span>{route.vehicle.plate}</span>
-                <small>{route.route_code} · {route.delivery_count} entregas</small>
-                <strong>{money(route.cost.total_brl)}</strong>
+                Reproduzir otimização
               </button>
-            ))}
+              <button
+                className="button button--secondary"
+                type="button"
+                disabled={optimizing || Boolean(activeRunId) || operationStatus === 'DISPATCHED'}
+                onClick={() => void optimize()}
+              >
+                {optimizing ? 'Iniciando…' : activeRunId ? 'Otimizando…' : 'Reotimizar'}
+              </button>
+              {operationStatus === 'OPTIMIZED' && !activeRunId ? (
+                <button
+                  className="button button--primary"
+                  type="button"
+                  disabled={approving || !result.validated}
+                  onClick={() => void approve()}
+                >
+                  {approving ? 'Aprovando…' : 'Aprovar plano'}
+                </button>
+              ) : null}
+            </div>
+          </header>
+
+          {operationStatus === 'OUTDATED' ? (
+            <div className="result-warning">
+              <strong>Este plano está desatualizado.</strong>
+              <span>Reotimize antes de aprovar ou despachar.</span>
+            </div>
+          ) : null}
+          {operationStatus === 'APPROVED' ? (
+            <div className="result-approved">
+              <strong>Plano aprovado</strong>
+              <span>A revisão atual está pronta para a etapa de dispatch.</span>
+            </div>
+          ) : null}
+          {error ? <p className="form-error live-error">{error}</p> : null}
+
+          <div className="result-kpis">
+            <article><span>Entregas</span><strong>{result.delivery_count}</strong></article>
+            <article><span>Veículos usados</span><strong>{result.vehicles_used}</strong></article>
+            <article><span>Custo total</span><strong>{money(result.total_cost_brl)}</strong></article>
+            <article><span>Distância</span><strong>{decimal(result.distance_km, ' km')}</strong></article>
+            <article><span>Makespan</span><strong>{minutes(result.makespan_minutes)}</strong></article>
+            <article><span>Atrasos críticos</span><strong>{result.critical_delays}</strong></article>
+            <article><span>No prazo</span><strong>{decimal(result.on_time_percentage, '%')}</strong></article>
           </div>
-        </div>
-        {selectedRoute ? (
-          <RouteInspector route={selectedRoute} resources={resources} onTeamApplied={refresh} />
-        ) : null}
-      </div>
-    </section>
+
+          <div className="result-workspace">
+            <div className="result-map-column">
+              <OptimizationResultMap
+                routes={result.routes}
+                selectedRouteId={selectedRoute?.id ?? null}
+                onSelectRoute={setSelectedRouteId}
+              />
+              <div className="route-legend">
+                {result.routes.map((route, index) => (
+                  <button
+                    key={route.id}
+                    type="button"
+                    className={selectedRoute?.id === route.id ? 'route-legend__item is-active' : 'route-legend__item'}
+                    onClick={() => setSelectedRouteId(route.id)}
+                  >
+                    <i style={{ background: routeColor(index) }} />
+                    <span>{route.vehicle.plate}</span>
+                    <small>{route.route_code} · {route.delivery_count} entregas</small>
+                    <strong>{money(route.cost.total_brl)}</strong>
+                  </button>
+                ))}
+              </div>
+            </div>
+            {selectedRoute ? (
+              <RouteInspector route={selectedRoute} resources={resources} onTeamApplied={refresh} />
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+    </>
   )
 }

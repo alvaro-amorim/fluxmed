@@ -133,6 +133,28 @@ class TrafficMode(StrEnum):
     CUSTOM = "CUSTOM"
 
 
+class TrafficLevel(StrEnum):
+    FREE = "FREE"
+    LIGHT = "LIGHT"
+    MODERATE = "MODERATE"
+    HEAVY = "HEAVY"
+    VERY_HEAVY = "VERY_HEAVY"
+
+
+class RoadOverrideType(StrEnum):
+    CLOSURE = "CLOSURE"
+    TRAFFIC = "TRAFFIC"
+
+
+class RoadOverrideDirectionScope(StrEnum):
+    SEGMENT_DIRECTION = "SEGMENT_DIRECTION"
+
+
+class RoutingAlgorithm(StrEnum):
+    DIJKSTRA = "DIJKSTRA"
+    ASTAR = "ASTAR"
+
+
 class CitySourceType(StrEnum):
     SYNTHETIC = "SYNTHETIC"
 

@@ -28,6 +28,7 @@ from fluxmed.infrastructure.models.resource import (
     WorkerAvailabilityModel,
     WorkerModel,
 )
+from fluxmed.infrastructure.models.road_override import RoadOverrideModel
 from fluxmed.infrastructure.models.user import UserModel
 
 __all__ = [
@@ -47,6 +48,7 @@ __all__ = [
     "OperationVehicleSelectionModel",
     "OperationWorkerSelectionModel",
     "OwnedVehicleCostProfileModel",
+    "RoadOverrideModel",
     "RoadSegmentModel",
     "StreetModel",
     "UserModel",

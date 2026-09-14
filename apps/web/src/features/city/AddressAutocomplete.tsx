@@ -6,9 +6,16 @@ import type { AddressMatch, AddressSearchResult } from '../../types/city'
 interface AddressAutocompleteProps {
   cityId: string
   onSelect?: (address: AddressMatch) => void
+  label?: string
+  placeholder?: string
 }
 
-export function AddressAutocomplete({ cityId, onSelect }: AddressAutocompleteProps) {
+export function AddressAutocomplete({
+  cityId,
+  onSelect,
+  label = 'Explorar endereço válido',
+  placeholder = 'Ex.: Rua das Acácias, 593',
+}: AddressAutocompleteProps) {
   const listId = useId()
   const [query, setQuery] = useState('')
   const [result, setResult] = useState<AddressSearchResult | null>(null)
@@ -59,7 +66,7 @@ export function AddressAutocomplete({ cityId, onSelect }: AddressAutocompletePro
 
   return (
     <div className="address-search">
-      <label htmlFor={`${listId}-input`}>Explorar endereço válido</label>
+      <label htmlFor={`${listId}-input`}>{label}</label>
       <div className="address-search-input-wrap">
         <input
           id={`${listId}-input`}
@@ -68,7 +75,7 @@ export function AddressAutocomplete({ cityId, onSelect }: AddressAutocompletePro
           aria-controls={listId}
           aria-expanded={Boolean(result?.matches.length)}
           autoComplete="off"
-          placeholder="Ex.: Rua das Acácias, 593"
+          placeholder={placeholder}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
@@ -90,7 +97,9 @@ export function AddressAutocomplete({ cityId, onSelect }: AddressAutocompletePro
               aria-selected="false"
               onClick={() => choose(address)}
             >
-              <strong>{address.street_name}, {address.house_number}</strong>
+              <strong>
+                {address.street_name}, {address.house_number}
+              </strong>
               <span>{address.district_name}</span>
             </button>
           ))}

@@ -303,6 +303,10 @@ class CityService:
                     geometry_json=geometry_json,
                     properties={
                         "feature_type": "road",
+                        "road_segment_id": str(segment.id),
+                        "street_id": str(segment.street_id),
+                        "from_intersection_id": str(segment.from_intersection_id),
+                        "to_intersection_id": str(segment.to_intersection_id),
                         "street_name": street_name,
                         "road_class": segment.road_class.value,
                         "speed_limit_kmh": segment.speed_limit_kmh,

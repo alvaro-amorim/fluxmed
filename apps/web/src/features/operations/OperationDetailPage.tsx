@@ -1,10 +1,10 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { SantaAuroraMap } from '../city/SantaAuroraMap'
-import { OperationResourcesPanel } from '../resources/OperationResourcesPanel'
 import { getOperation, updateOperation } from '../../services/operations'
 import type { Operation, TrafficMode } from '../../types/operations'
+import { SantaAuroraMap } from '../city/SantaAuroraMap'
+import { OperationResourcesPanel } from '../resources/OperationResourcesPanel'
 import {
   formatOperationDate,
   formatOperationTime,
@@ -170,17 +170,22 @@ export function OperationDetailPage() {
 
         <article className="operation-stage-card">
           <p className="eyebrow eyebrow--dark">Fluxo da V1</p>
-          <strong>Operação criada e persistida</strong>
+          <strong>Operação pronta para roteamento</strong>
           <ol>
             <li className="stage-complete">Configuração da operação</li>
             <li className="stage-complete">Entregas e endereços</li>
             <li className="stage-complete">Frota e equipe</li>
-            <li>Preflight e otimização</li>
+            <li>Roteamento e otimização</li>
           </ol>
         </article>
       </section>
 
-      <SantaAuroraMap />
+      <SantaAuroraMap
+        operationId={operationId}
+        departureTime={operation.operation_start_time}
+        trafficMode={operation.traffic_mode}
+        immutable={immutable}
+      />
 
       {operationId ? (
         <OperationResourcesPanel operationId={operationId} immutable={immutable} />

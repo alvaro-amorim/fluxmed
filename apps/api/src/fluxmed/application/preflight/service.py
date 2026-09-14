@@ -148,7 +148,10 @@ class PreflightValidator:
                 blocking.append(
                     PreflightIssue(
                         code="ADDRESS_NOT_FOUND",
-                        message=f"O endereço da entrega {delivery.delivery_code} não está roteável.",
+                        message=(
+                            f"O endereço da entrega {delivery.delivery_code} "
+                            "não está roteável."
+                        ),
                         related_delivery_ids=related,
                     )
                 )
@@ -221,7 +224,7 @@ class PreflightValidator:
                     PreflightIssue(
                         code="TEAM_INFEASIBLE",
                         message=(
-                            f"Não há equipe selecionada capaz de atender a entrega "
+                            "Não há equipe selecionada capaz de atender a entrega "
                             f"{delivery.delivery_code} com os veículos elegíveis."
                         ),
                         related_delivery_ids=related,
@@ -239,8 +242,8 @@ class PreflightValidator:
                 PreflightIssue(
                     code="LOW_REFRIGERATION_REDUNDANCY",
                     message=(
-                        "Existe apenas um veículo refrigerado selecionado; qualquer indisponibilidade "
-                        "pode inviabilizar entregas refrigeradas."
+                        "Existe apenas um veículo refrigerado selecionado; "
+                        "qualquer indisponibilidade pode inviabilizar entregas refrigeradas."
                     ),
                     related_delivery_ids=tuple(item.id for item in refrigerated_deliveries),
                 )
@@ -278,7 +281,10 @@ class PreflightValidator:
         delivery: PreflightDelivery,
         worker_roles: set[WorkerRole],
     ) -> bool:
-        if delivery.handling_requirement is HandlingRequirement.TWO_PERSON and vehicle.type is VehicleType.MOTO:
+        if (
+            delivery.handling_requirement is HandlingRequirement.TWO_PERSON
+            and vehicle.type is VehicleType.MOTO
+        ):
             return False
 
         if vehicle.type is VehicleType.MOTO:
@@ -294,11 +300,11 @@ class PreflightValidator:
             delivery.handling_requirement is HandlingRequirement.TWO_PERSON
             or vehicle.helper_policy is HelperPolicy.REQUIRED
         )
-        if helper_required and not (
-            vehicle.helper_included or WorkerRole.HELPER in worker_roles
-        ):
-            return False
-        return True
+        return (
+            not helper_required
+            or vehicle.helper_included
+            or WorkerRole.HELPER in worker_roles
+        )
 
     @staticmethod
     def _window_minutes(operation: PreflightOperation) -> int:
@@ -418,7 +424,9 @@ class PreflightService:
                 .where(AddressModel.id == delivery.destination_address_id)
             )
             if distance_m is not None:
-                minimum_roundtrip_km = (Decimal(str(distance_m)) * Decimal("2")) / Decimal("1000")
+                minimum_roundtrip_km = (Decimal(str(distance_m)) * Decimal("2")) / Decimal(
+                    "1000"
+                )
 
         return PreflightDelivery(
             id=delivery.id,

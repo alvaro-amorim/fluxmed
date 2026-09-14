@@ -178,7 +178,9 @@ def test_result_endpoints_return_persisted_plan_and_approve_it() -> None:
         with session_scope() as session:
             operation = session.get(OperationModel, operation_id)
             revision = session.scalar(
-                pytest.importorskip("sqlalchemy").select(OperationRevisionModel).where(
+                pytest.importorskip("sqlalchemy")
+                .select(OperationRevisionModel)
+                .where(
                     OperationRevisionModel.operation_id == operation_id,
                     OperationRevisionModel.revision_number == 1,
                 )

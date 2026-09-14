@@ -1,3 +1,6 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from fluxmed.api.errors import ApiError, api_error_handler
@@ -10,11 +13,22 @@ from fluxmed.api.v1.optimization import router as optimization_router
 from fluxmed.api.v1.preflight import router as preflight_router
 from fluxmed.api.v1.resources import router as resources_router
 from fluxmed.api.v1.routing import router as routing_router
+from fluxmed.application.optimization.trace import OptimizationTraceService
+from fluxmed.infrastructure.database import session_scope
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    with session_scope() as session:
+        OptimizationTraceService(session).recover_interrupted_runs()
+    yield
+
 
 app = FastAPI(
     title="FluxMed API",
     description="Backend API for FluxMed route planning.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_exception_handler(ApiError, api_error_handler)

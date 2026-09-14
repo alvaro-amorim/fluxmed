@@ -189,8 +189,7 @@ class RoutingMatrixBuilder:
         for segment, street_name, geometry_json in edge_rows:
             geometry = json.loads(geometry_json)
             coordinates = tuple(
-                (float(point[0]), float(point[1]))
-                for point in geometry.get("coordinates", [])
+                (float(point[0]), float(point[1])) for point in geometry.get("coordinates", [])
             )
             edges.append(
                 GraphEdge(
@@ -233,9 +232,7 @@ class RoutingMatrixBuilder:
             )
         )
         closures = {
-            item.road_segment_id
-            for item in rows
-            if item.override_type is RoadOverrideType.CLOSURE
+            item.road_segment_id for item in rows if item.override_type is RoadOverrideType.CLOSURE
         }
         traffic = {
             item.road_segment_id: item.traffic_level

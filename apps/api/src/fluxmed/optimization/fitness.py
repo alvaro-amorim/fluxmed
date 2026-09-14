@@ -146,15 +146,16 @@ class SolutionValidator:
                         vehicle_id=route.vehicle_id,
                     )
                 )
-            if context is not None:
-                if route.return_at is None or route.return_at > context.operation_end_at:
-                    issues.append(
-                        ValidationIssue(
-                            code="END_OF_SHIFT_EXCEEDED",
-                            message="Route does not return before the operation ends.",
-                            vehicle_id=route.vehicle_id,
-                        )
+            if context is not None and (
+                route.return_at is None or route.return_at > context.operation_end_at
+            ):
+                issues.append(
+                    ValidationIssue(
+                        code="END_OF_SHIFT_EXCEEDED",
+                        message="Route does not return before the operation ends.",
+                        vehicle_id=route.vehicle_id,
                     )
+                )
 
             route_deliveries = [
                 delivery_by_id[delivery_id]
@@ -169,7 +170,10 @@ class SolutionValidator:
                     issues.append(
                         ValidationIssue(
                             code="REFRIGERATION_INCOMPATIBLE",
-                            message="Refrigerated delivery is assigned to a non-refrigerated vehicle.",
+                            message=(
+                                "Refrigerated delivery is assigned to a "
+                                "non-refrigerated vehicle."
+                            ),
                             delivery_id=delivery.id,
                             vehicle_id=vehicle.id,
                         )

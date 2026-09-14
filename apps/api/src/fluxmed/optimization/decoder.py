@@ -139,10 +139,7 @@ class RouteDecoder:
             return "CAPACITY_EXCEEDED"
         if next_volume > vehicle.max_volume_m3:
             return "VOLUME_EXCEEDED"
-        if (
-            delivery.temperature_class is TemperatureClass.REFRIGERATED
-            and not vehicle.refrigerated
-        ):
+        if delivery.temperature_class is TemperatureClass.REFRIGERATED and not vehicle.refrigerated:
             return "REFRIGERATION_INCOMPATIBLE"
         helper_required = (
             delivery.handling_requirement is HandlingRequirement.TWO_PERSON

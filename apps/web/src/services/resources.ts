@@ -106,3 +106,11 @@ export function updateOperationResources(
     body: JSON.stringify(payload),
   })
 }
+
+export function generateDemoOperationResources(
+  operationId: string,
+): Promise<OperationResources> {
+  return apiRequest<OperationResources>(`/api/v1/operations/${operationId}/resources/demo`, {
+    method: 'POST',
+  })
+}

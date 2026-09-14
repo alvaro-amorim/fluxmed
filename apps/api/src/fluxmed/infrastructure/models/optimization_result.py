@@ -9,6 +9,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    Text,
     UniqueConstraint,
     func,
 )
@@ -43,10 +44,37 @@ class OptimizationRunModel(Base):
     average_weight_utilization_pct: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
     average_volume_utilization_pct: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
     pruning_counts: Mapped[dict[str, int]] = mapped_column(JSONB, nullable=False, default=dict)
+    previous_operation_status: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-    completed_at: Mapped[datetime] = mapped_column(
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cancel_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class OptimizationTraceEventModel(Base):
+    __tablename__ = "optimization_trace_events"
+    __table_args__ = (
+        UniqueConstraint(
+            "optimization_run_id",
+            "sequence",
+            name="uq_optimization_trace_run_sequence",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    optimization_run_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("optimization_runs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    event_type: Mapped[str] = mapped_column(String(48), nullable=False, index=True)
+    generation: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    elapsed_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    payload: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 

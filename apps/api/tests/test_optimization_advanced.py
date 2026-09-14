@@ -1,6 +1,6 @@
 import random
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from fluxmed.domain.enums import (
@@ -98,7 +98,7 @@ def test_range_constraint_can_make_delivery_unassigned() -> None:
 
 
 def test_hard_time_window_is_not_accepted() -> None:
-    start = datetime(2026, 9, 14, 8, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 9, 14, 8, 0, tzinfo=UTC)
     delivery = OptimizationDelivery(
         id=_id(1),
         weight_kg=Decimal("10"),
@@ -125,7 +125,7 @@ def test_hard_time_window_is_not_accepted() -> None:
 
 
 def test_soft_window_lateness_enters_service_penalty() -> None:
-    start = datetime(2026, 9, 14, 8, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 9, 14, 8, 0, tzinfo=UTC)
     delivery = OptimizationDelivery(
         id=_id(1),
         weight_kg=Decimal("10"),

@@ -71,7 +71,9 @@ class TeamAssignmentSolver:
         for route in routes:
             vehicle = vehicle_by_id.get(route.vehicle_id)
             if vehicle is None:
-                raise TeamAssignmentError(f"Veículo {route.vehicle_id} não está nos recursos selecionados.")
+                raise TeamAssignmentError(
+                    f"Veículo {route.vehicle_id} não está nos recursos selecionados."
+                )
             duration_hours = route.total_duration_minutes / Decimal("60")
             if vehicle.cost.driver_included:
                 primary_included.add(vehicle.id)
@@ -168,7 +170,10 @@ class TeamAssignmentSolver:
             )
 
         ordered_requirements = sorted(requirements, key=lambda item: str(item.vehicle_id))
-        ordered_candidates = sorted(candidates, key=lambda item: (item.compensation_value_brl, str(item.id)))
+        ordered_candidates = sorted(
+            candidates,
+            key=lambda item: (item.compensation_value_brl, str(item.id)),
+        )
         states: dict[int, tuple[Decimal, tuple[int, ...]]] = {0: (ZERO, ())}
         for requirement in ordered_requirements:
             next_states: dict[int, tuple[Decimal, tuple[int, ...]]] = {}

@@ -88,8 +88,7 @@ class TeamAssignmentSolver:
                 )
 
             helper_required = vehicle.helper_policy is HelperPolicy.REQUIRED or any(
-                delivery_by_id[delivery_id].handling_requirement
-                is HandlingRequirement.TWO_PERSON
+                delivery_by_id[delivery_id].handling_requirement is HandlingRequirement.TWO_PERSON
                 for delivery_id in route.delivery_ids
             )
             if not helper_required:

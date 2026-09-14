@@ -44,15 +44,7 @@ class RoutingMatrixBuilder:
             raise OptimizationRoutingError("Santa Aurora ainda não foi gerada.")
         graph = self._graph(city.id)
         depot = self._depot_address(city.id)
-        addresses: dict[uuid.UUID | None, AddressModel] = {None: depot}
-        for delivery_id, address_id in delivery_addresses.items():
-            address = self._session.get(AddressModel, address_id)
-            if address is None or not address.active or address.city_id != city.id:
-                raise OptimizationRoutingError(
-                    f"A entrega {delivery_id} possui endereço não roteável."
-                )
-            addresses[delivery_id] = address
-
+        addresses = self._delivery_addresses(city.id, depot, delivery_addresses)
         closed_edges, traffic_overrides = self._effective_overrides(operation.id)
         departure_at = datetime.combine(operation.operation_date, operation.operation_start_time)
         metrics: dict[tuple[uuid.UUID | None, uuid.UUID | None], TravelMetric] = {}
@@ -76,6 +68,55 @@ class RoutingMatrixBuilder:
                 )
         return TravelMatrix(metrics)
 
+    def build_route_geometry(
+        self,
+        *,
+        operation: OperationModel,
+        delivery_addresses: dict[uuid.UUID, uuid.UUID],
+        delivery_ids: tuple[uuid.UUID, ...],
+    ) -> dict[str, object]:
+        city = self._session.scalar(select(CityModel).where(CityModel.name == CITY_NAME))
+        if city is None:
+            raise OptimizationRoutingError("Santa Aurora ainda não foi gerada.")
+        graph = self._graph(city.id)
+        depot = self._depot_address(city.id)
+        addresses = self._delivery_addresses(city.id, depot, delivery_addresses)
+        closed_edges, traffic_overrides = self._effective_overrides(operation.id)
+        departure_at = datetime.combine(operation.operation_date, operation.operation_start_time)
+        sequence: list[uuid.UUID | None] = [None, *delivery_ids, None]
+        coordinates: list[list[float]] = []
+        for origin_key, destination_key in zip(sequence, sequence[1:], strict=False):
+            origin = addresses[origin_key]
+            destination = addresses[destination_key]
+            _distance, travel_seconds, leg_coordinates = self._travel_with_geometry(
+                graph=graph,
+                origin=origin,
+                destination=destination,
+                departure_at=departure_at,
+                traffic_mode=operation.traffic_mode,
+                closed_edges=closed_edges,
+                traffic_overrides=traffic_overrides,
+            )
+            self._append_coordinates(coordinates, leg_coordinates)
+            departure_at += timedelta(seconds=travel_seconds)
+        return {"type": "LineString", "coordinates": coordinates}
+
+    def _delivery_addresses(
+        self,
+        city_id: uuid.UUID,
+        depot: AddressModel,
+        delivery_addresses: dict[uuid.UUID, uuid.UUID],
+    ) -> dict[uuid.UUID | None, AddressModel]:
+        addresses: dict[uuid.UUID | None, AddressModel] = {None: depot}
+        for delivery_id, address_id in delivery_addresses.items():
+            address = self._session.get(AddressModel, address_id)
+            if address is None or not address.active or address.city_id != city_id:
+                raise OptimizationRoutingError(
+                    f"A entrega {delivery_id} possui endereço não roteável."
+                )
+            addresses[delivery_id] = address
+        return addresses
+
     def _travel(
         self,
         *,
@@ -87,8 +128,30 @@ class RoutingMatrixBuilder:
         closed_edges: set[uuid.UUID],
         traffic_overrides: dict[uuid.UUID, TrafficLevel],
     ) -> tuple[float, float]:
+        distance_m, travel_seconds, _coordinates = self._travel_with_geometry(
+            graph=graph,
+            origin=origin,
+            destination=destination,
+            departure_at=departure_at,
+            traffic_mode=traffic_mode,
+            closed_edges=closed_edges,
+            traffic_overrides=traffic_overrides,
+        )
+        return distance_m, travel_seconds
+
+    def _travel_with_geometry(
+        self,
+        *,
+        graph: DirectedGraph,
+        origin: AddressModel,
+        destination: AddressModel,
+        departure_at: datetime,
+        traffic_mode: TrafficMode,
+        closed_edges: set[uuid.UUID],
+        traffic_overrides: dict[uuid.UUID, TrafficLevel],
+    ) -> tuple[float, float, list[list[float]]]:
         if origin.id == destination.id:
-            return 0.0, 0.0
+            return 0.0, 0.0, []
         origin_edge = graph.edge(origin.road_segment_id)
         destination_edge = graph.edge(destination.road_segment_id)
         if origin_edge.id in closed_edges or destination_edge.id in closed_edges:
@@ -133,7 +196,31 @@ class RoutingMatrixBuilder:
             + core.distance_m
             + destination_edge.length_m * destination_fraction
         )
-        return distance_m, origin_seconds + core.travel_time_seconds + destination_seconds
+        edge_ids = (origin_edge.id, *core.edge_ids, destination_edge.id)
+        coordinates: list[list[float]] = []
+        for edge_id in dict.fromkeys(edge_ids):
+            edge = graph.edge(edge_id)
+            self._append_coordinates(
+                coordinates,
+                [[longitude, latitude] for longitude, latitude in edge.coordinates],
+            )
+        return (
+            distance_m,
+            origin_seconds + core.travel_time_seconds + destination_seconds,
+            coordinates,
+        )
+
+    @staticmethod
+    def _append_coordinates(
+        target: list[list[float]],
+        source: list[list[float]],
+    ) -> None:
+        if not source:
+            return
+        if target and target[-1] == source[0]:
+            target.extend(source[1:])
+        else:
+            target.extend(source)
 
     @staticmethod
     def _access_seconds(

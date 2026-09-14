@@ -6,7 +6,12 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from fluxmed.application.optimization.results import (
+    OptimizationResultService,
+    OptimizationResultView,
+)
 from fluxmed.application.optimization.routing_matrix import RoutingMatrixBuilder
+from fluxmed.application.optimization.team_assignment import TeamAssignmentError
 from fluxmed.application.preflight import PreflightService
 from fluxmed.application.resources import ResourceService, VehicleView
 from fluxmed.domain.enums import OperationStatus, VehicleOwnershipType, WorkerRole
@@ -41,8 +46,10 @@ class OptimizationValidationMismatchError(RuntimeError):
 class OperationOptimizationView:
     operation_id: uuid.UUID
     random_seed: int
+    run_id: uuid.UUID
     result: OptimizationResult
     validation: ValidationResult
+    persisted_result: OptimizationResultView
 
 
 class OptimizationService:
@@ -61,6 +68,7 @@ class OptimizationService:
         operation_id: uuid.UUID,
         *,
         random_seed: int | None = None,
+        actor_user_id: uuid.UUID | None = None,
     ) -> OperationOptimizationView:
         operation = self._session.get(OperationModel, operation_id)
         if operation is None:
@@ -115,7 +123,8 @@ class OptimizationService:
         if not deliveries or not vehicles:
             raise OptimizationInputError("Otimização exige entregas e veículos selecionados.")
 
-        matrix = RoutingMatrixBuilder(self._session).build(
+        matrix_builder = RoutingMatrixBuilder(self._session)
+        matrix = matrix_builder.build(
             operation=operation,
             delivery_addresses={
                 delivery.id: delivery.destination_address_id for delivery in delivery_models
@@ -151,11 +160,27 @@ class OptimizationService:
                 f"NO_FEASIBLE_SOLUTION_FOUND: {issue_codes or 'sem solução válida'}."
             )
 
+        try:
+            persisted = OptimizationResultService(self._session).persist(
+                operation=operation,
+                algorithm_result=result,
+                validation=validation,
+                deliveries=deliveries,
+                delivery_models=delivery_models,
+                vehicles=selected_vehicle_views,
+                workers=selected_workers,
+                actor_user_id=actor_user_id or operation.created_by_user_id,
+            )
+        except TeamAssignmentError as exc:
+            raise OptimizationInputError(f"TEAM_INFEASIBLE: {exc}") from exc
+
         return OperationOptimizationView(
             operation_id=operation.id,
             random_seed=seed,
+            run_id=persisted.run_id,
             result=result,
             validation=validation,
+            persisted_result=persisted,
         )
 
     @staticmethod

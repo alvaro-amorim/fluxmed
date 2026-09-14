@@ -161,22 +161,23 @@ def test_operation_runs_ga_and_returns_valid_multi_vehicle_plan() -> None:
             )
             vehicles.append(vehicle)
 
-        worker = WorkerModel(
-            name="Motorista Teste",
-            role=WorkerRole.DRIVER,
-            engagement_type=WorkerEngagementType.EMPLOYEE,
-            compensation_model=CompensationModel.HOURLY,
-            compensation_value_brl=Decimal("25"),
-            active=True,
-        )
-        session.add(worker)
-        session.flush()
-        session.add(
-            OperationWorkerSelectionModel(
-                operation_id=operation.id,
-                worker_id=worker.id,
+        for index in range(2):
+            worker = WorkerModel(
+                name=f"Motorista Teste {index + 1}",
+                role=WorkerRole.DRIVER,
+                engagement_type=WorkerEngagementType.EMPLOYEE,
+                compensation_model=CompensationModel.HOURLY,
+                compensation_value_brl=Decimal("25") + Decimal(index),
+                active=True,
             )
-        )
+            session.add(worker)
+            session.flush()
+            session.add(
+                OperationWorkerSelectionModel(
+                    operation_id=operation.id,
+                    worker_id=worker.id,
+                )
+            )
         session.flush()
 
         result = OptimizationService(

@@ -1,10 +1,11 @@
-import { type FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { getOperation, updateOperation } from '../../services/operations'
 import type { Operation, TrafficMode } from '../../types/operations'
 import { SantaAuroraMap } from '../city/SantaAuroraMap'
 import { OperationResourcesPanel } from '../resources/OperationResourcesPanel'
+import { OptimizationResultPanel } from './OptimizationResultPanel'
 import {
   formatOperationDate,
   formatOperationTime,
@@ -12,29 +13,34 @@ import {
   trafficModeLabel,
 } from './operations-format'
 
+type OperationSection = 'overview' | 'planning' | 'result'
+
 export function OperationDetailPage() {
   const { operationId } = useParams<{ operationId: string }>()
   const [operation, setOperation] = useState<Operation | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [activeSection, setActiveSection] = useState<OperationSection>('overview')
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [trafficMode, setTrafficMode] = useState<TrafficMode>('AUTOMATIC')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
+  const loadOperation = useCallback(async () => {
     if (!operationId) return
+    const result = await getOperation(operationId)
+    setOperation(result)
+    setStartTime(formatOperationTime(result.operation_start_time))
+    setEndTime(formatOperationTime(result.operation_end_time))
+    setTrafficMode(result.traffic_mode)
+    setError(null)
+  }, [operationId])
+
+  useEffect(() => {
     let active = true
-    void getOperation(operationId)
-      .then((result) => {
-        if (!active) return
-        setOperation(result)
-        setStartTime(formatOperationTime(result.operation_start_time))
-        setEndTime(formatOperationTime(result.operation_end_time))
-        setTrafficMode(result.traffic_mode)
-        setError(null)
-      })
+    setLoading(true)
+    void loadOperation()
       .catch((requestError: unknown) => {
         if (active) {
           setError(requestError instanceof Error ? requestError.message : 'Falha ao abrir operação.')
@@ -46,7 +52,7 @@ export function OperationDetailPage() {
     return () => {
       active = false
     }
-  }, [operationId])
+  }, [loadOperation])
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -85,7 +91,7 @@ export function OperationDetailPage() {
     )
   }
 
-  if (!operation) {
+  if (!operation || !operationId) {
     return (
       <main className="content-page">
         <p className="form-error">{error ?? 'Operação não encontrada.'}</p>
@@ -97,6 +103,7 @@ export function OperationDetailPage() {
   }
 
   const immutable = operation.status === 'DISPATCHED'
+  const hasResult = ['OPTIMIZED', 'OUTDATED', 'APPROVED', 'DISPATCHED'].includes(operation.status)
 
   return (
     <main className="content-page operation-detail-page">
@@ -124,119 +131,165 @@ export function OperationDetailPage() {
         </div>
       </header>
 
-      <section className="operation-detail-grid">
-        <article className="operation-overview-card">
-          <div className="panel-heading">
-            <div>
-              <strong>Visão geral</strong>
-              <span>Dados persistidos da operação.</span>
-            </div>
-            <span
-              className={`operation-status operation-status--${operation.status.toLowerCase()}`}
-            >
-              {operationStatusLabel(operation.status)}
-            </span>
-          </div>
-          <dl className="operation-details-list">
-            <div>
-              <dt>Data</dt>
-              <dd>{formatOperationDate(operation.operation_date)}</dd>
-            </div>
-            <div>
-              <dt>Saída</dt>
-              <dd>{formatOperationTime(operation.operation_start_time)}</dd>
-            </div>
-            <div>
-              <dt>Encerramento</dt>
-              <dd>{formatOperationTime(operation.operation_end_time)}</dd>
-            </div>
-            <div>
-              <dt>Trânsito</dt>
-              <dd>{trafficModeLabel(operation.traffic_mode)}</dd>
-            </div>
-            <div>
-              <dt>Cidade</dt>
-              <dd>{operation.city_name}</dd>
-            </div>
-            <div>
-              <dt>Revisão atual</dt>
-              <dd>{operation.current_revision_number || 'Ainda não otimizada'}</dd>
-            </div>
-          </dl>
-          {immutable ? (
-            <p className="immutable-note">Esta operação foi despachada e seu snapshot é imutável.</p>
+      <nav className="operation-section-nav" aria-label="Seções da operação">
+        <button
+          className={activeSection === 'overview' ? 'is-active' : ''}
+          type="button"
+          onClick={() => setActiveSection('overview')}
+        >
+          Visão geral
+        </button>
+        <button
+          className={activeSection === 'planning' ? 'is-active' : ''}
+          type="button"
+          onClick={() => setActiveSection('planning')}
+        >
+          Planejamento
+        </button>
+        <button
+          className={activeSection === 'result' ? 'is-active' : ''}
+          type="button"
+          onClick={() => setActiveSection('result')}
+        >
+          Resultado {hasResult ? '●' : ''}
+        </button>
+      </nav>
+
+      {activeSection === 'overview' ? (
+        <>
+          <section className="operation-detail-grid">
+            <article className="operation-overview-card">
+              <div className="panel-heading">
+                <div>
+                  <strong>Visão geral</strong>
+                  <span>Dados persistidos da operação.</span>
+                </div>
+                <span
+                  className={`operation-status operation-status--${operation.status.toLowerCase()}`}
+                >
+                  {operationStatusLabel(operation.status)}
+                </span>
+              </div>
+              <dl className="operation-details-list">
+                <div>
+                  <dt>Data</dt>
+                  <dd>{formatOperationDate(operation.operation_date)}</dd>
+                </div>
+                <div>
+                  <dt>Saída</dt>
+                  <dd>{formatOperationTime(operation.operation_start_time)}</dd>
+                </div>
+                <div>
+                  <dt>Encerramento</dt>
+                  <dd>{formatOperationTime(operation.operation_end_time)}</dd>
+                </div>
+                <div>
+                  <dt>Trânsito</dt>
+                  <dd>{trafficModeLabel(operation.traffic_mode)}</dd>
+                </div>
+                <div>
+                  <dt>Cidade</dt>
+                  <dd>{operation.city_name}</dd>
+                </div>
+                <div>
+                  <dt>Revisão atual</dt>
+                  <dd>{operation.current_revision_number || 'Ainda não otimizada'}</dd>
+                </div>
+              </dl>
+              {immutable ? (
+                <p className="immutable-note">
+                  Esta operação foi despachada e seu snapshot é imutável.
+                </p>
+              ) : null}
+            </article>
+
+            <article className="operation-stage-card">
+              <p className="eyebrow eyebrow--dark">Fluxo da V1</p>
+              <strong>{hasResult ? 'Plano operacional disponível' : 'Operação pronta para otimizar'}</strong>
+              <ol>
+                <li className="stage-complete">Configuração da operação</li>
+                <li className="stage-complete">Entregas e endereços</li>
+                <li className="stage-complete">Frota e equipe</li>
+                <li className={hasResult ? 'stage-complete' : ''}>Roteamento e otimização</li>
+              </ol>
+              <button
+                className="button button--primary"
+                type="button"
+                onClick={() => setActiveSection(hasResult ? 'result' : 'planning')}
+              >
+                {hasResult ? 'Abrir resultado' : 'Abrir planejamento'}
+              </button>
+            </article>
+          </section>
+
+          {editing ? (
+            <form className="operation-edit-card" onSubmit={(event) => void save(event)}>
+              <div className="panel-heading">
+                <div>
+                  <strong>Editar configuração</strong>
+                  <span>Alterações relevantes serão revalidadas pelo backend.</span>
+                </div>
+              </div>
+              <div className="operation-edit-fields">
+                <label>
+                  Horário de saída
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(event) => setStartTime(event.target.value)}
+                  />
+                </label>
+                <label>
+                  Encerramento máximo
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(event) => setEndTime(event.target.value)}
+                  />
+                </label>
+                <label>
+                  Modo de trânsito
+                  <select
+                    value={trafficMode}
+                    onChange={(event) => setTrafficMode(event.target.value as TrafficMode)}
+                  >
+                    <option value="AUTOMATIC">Automático</option>
+                    <option value="FREE">Livre</option>
+                    <option value="CUSTOM">Personalizado</option>
+                  </select>
+                </label>
+              </div>
+              {error ? <p className="form-error">{error}</p> : null}
+              <div className="form-actions">
+                <button className="button button--primary" type="submit" disabled={saving}>
+                  {saving ? 'Salvando…' : 'Salvar alterações'}
+                </button>
+              </div>
+            </form>
+          ) : error ? (
+            <p className="form-error detail-error">{error}</p>
           ) : null}
-        </article>
-
-        <article className="operation-stage-card">
-          <p className="eyebrow eyebrow--dark">Fluxo da V1</p>
-          <strong>Operação pronta para roteamento</strong>
-          <ol>
-            <li className="stage-complete">Configuração da operação</li>
-            <li className="stage-complete">Entregas e endereços</li>
-            <li className="stage-complete">Frota e equipe</li>
-            <li>Roteamento e otimização</li>
-          </ol>
-        </article>
-      </section>
-
-      <SantaAuroraMap
-        operationId={operationId}
-        departureTime={operation.operation_start_time}
-        trafficMode={operation.traffic_mode}
-        immutable={immutable}
-      />
-
-      {operationId ? (
-        <OperationResourcesPanel operationId={operationId} immutable={immutable} />
+        </>
       ) : null}
 
-      {editing ? (
-        <form className="operation-edit-card" onSubmit={(event) => void save(event)}>
-          <div className="panel-heading">
-            <div>
-              <strong>Editar configuração</strong>
-              <span>Alterações relevantes serão revalidadas pelo backend.</span>
-            </div>
-          </div>
-          <div className="operation-edit-fields">
-            <label>
-              Horário de saída
-              <input
-                type="time"
-                value={startTime}
-                onChange={(event) => setStartTime(event.target.value)}
-              />
-            </label>
-            <label>
-              Encerramento máximo
-              <input
-                type="time"
-                value={endTime}
-                onChange={(event) => setEndTime(event.target.value)}
-              />
-            </label>
-            <label>
-              Modo de trânsito
-              <select
-                value={trafficMode}
-                onChange={(event) => setTrafficMode(event.target.value as TrafficMode)}
-              >
-                <option value="AUTOMATIC">Automático</option>
-                <option value="FREE">Livre</option>
-                <option value="CUSTOM">Personalizado</option>
-              </select>
-            </label>
-          </div>
-          {error ? <p className="form-error">{error}</p> : null}
-          <div className="form-actions">
-            <button className="button button--primary" type="submit" disabled={saving}>
-              {saving ? 'Salvando…' : 'Salvar alterações'}
-            </button>
-          </div>
-        </form>
-      ) : error ? (
-        <p className="form-error detail-error">{error}</p>
+      {activeSection === 'planning' ? (
+        <>
+          <SantaAuroraMap
+            operationId={operationId}
+            departureTime={operation.operation_start_time}
+            trafficMode={operation.traffic_mode}
+            immutable={immutable}
+          />
+          <OperationResourcesPanel operationId={operationId} immutable={immutable} />
+        </>
+      ) : null}
+
+      {activeSection === 'result' ? (
+        <OptimizationResultPanel
+          operationId={operationId}
+          operationStatus={operation.status}
+          onOperationChanged={loadOperation}
+        />
       ) : null}
     </main>
   )

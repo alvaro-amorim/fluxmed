@@ -85,7 +85,7 @@ class RoutingMatrixBuilder:
         departure_at = datetime.combine(operation.operation_date, operation.operation_start_time)
         sequence: list[uuid.UUID | None] = [None, *delivery_ids, None]
         coordinates: list[list[float]] = []
-        for origin_key, destination_key in zip(sequence, sequence[1:], strict=True):
+        for origin_key, destination_key in zip(sequence, sequence[1:]):
             origin = addresses[origin_key]
             destination = addresses[destination_key]
             _distance, travel_seconds, leg_coordinates = self._travel_with_geometry(

@@ -21,8 +21,10 @@ afterEach(() => {
 
 describe('routing api client', () => {
   it('requests a real route preview with the selected destination', async () => {
-    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
-      response({
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      void input
+      void init
+      return response({
         operation_id: 'operation-1',
         destination_address_id: 'address-1',
         algorithm: 'ASTAR',
@@ -35,8 +37,8 @@ describe('routing api client', () => {
         edge_ids: ['segment-1'],
         geometry: { type: 'LineString', coordinates: [[-46.62, -22.4], [-46.61, -22.39]] },
         cache_hit: false,
-      }),
-    )
+      })
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     const result = await previewOperationRoute('operation-1', 'address-1', {

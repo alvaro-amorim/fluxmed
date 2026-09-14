@@ -13,6 +13,11 @@ from fluxmed.optimization.models import (
     ValidationResult,
 )
 
+_REFRIGERATION_MESSAGE = (
+    "Refrigerated delivery is assigned to a non-refrigerated "
+    "vehicle."
+)
+
 
 class FitnessEvaluator:
     def evaluate(self, solution: DecodedSolution) -> FitnessVector:
@@ -170,10 +175,7 @@ class SolutionValidator:
                     issues.append(
                         ValidationIssue(
                             code="REFRIGERATION_INCOMPATIBLE",
-                            message=(
-                                "Refrigerated delivery is assigned to a "
-                                "non-refrigerated vehicle."
-                            ),
+                            message=_REFRIGERATION_MESSAGE,
                             delivery_id=delivery.id,
                             vehicle_id=vehicle.id,
                         )

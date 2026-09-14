@@ -102,11 +102,7 @@ class ServiceTimeEstimator:
         volume_minutes = min(8, math.ceil(float(total_volume_m3) / 1.5) * 2)
         solo = max(5, base + package_minutes + weight_minutes + volume_minutes)
         with_helper = max(5, math.ceil(solo * 0.72))
-        selected = (
-            with_helper
-            if handling_requirement is HandlingRequirement.TWO_PERSON
-            else solo
-        )
+        selected = with_helper if handling_requirement is HandlingRequirement.TWO_PERSON else solo
         return ServiceTimeEstimate(
             solo_minutes=solo,
             with_helper_minutes=with_helper,

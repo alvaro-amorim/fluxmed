@@ -18,6 +18,7 @@ from fluxmed.domain.enums import (
     DeliveryPriority,
     HandlingRequirement,
     OperationStatus,
+    OptimizationRunStatus,
     RevisionStatus,
     VehicleType,
     WorkerRole,
@@ -102,6 +103,8 @@ class RouteStopView:
     recipient_name: str
     address_label: str
     priority: str
+    longitude: float
+    latitude: float
     planned_arrival_at: datetime | None
     planned_departure_at: datetime | None
     time_window_start: datetime | None
@@ -177,6 +180,7 @@ class OptimizationResultService:
         vehicles: list[VehicleView],
         workers: list[WorkerView],
         actor_user_id: uuid.UUID,
+        run_id: uuid.UUID | None = None,
     ) -> OptimizationResultView:
         if not validation.valid:
             raise OptimizationApprovalError("Somente uma solução validada pode ser persistida.")
@@ -271,27 +275,51 @@ class OptimizationResultService:
             HUNDRED if total_stops == 0 else Decimal(on_time_count) / Decimal(total_stops) * HUNDRED
         )
 
-        run = OptimizationRunModel(
-            operation_id=operation.id,
-            operation_revision_id=revision.id,
-            status="COMPLETED",
-            random_seed=algorithm_result.random_seed,
-            generations_completed=algorithm_result.generations_completed,
-            stop_reason=algorithm_result.stop_reason,
-            validated=True,
-            delivery_count=len(deliveries),
-            vehicles_used=len(route_rows),
-            total_cost_brl=total_cost,
-            distance_km=total_distance,
-            makespan_minutes=makespan,
-            critical_delays=critical_delays,
-            on_time_percentage=on_time,
-            average_weight_utilization_pct=avg_weight,
-            average_volume_utilization_pct=avg_volume,
-            pruning_counts=algorithm_result.pruning_counts,
-            completed_at=datetime.now(UTC),
-        )
-        self._session.add(run)
+        if run_id is None:
+            run = OptimizationRunModel(
+                operation_id=operation.id,
+                operation_revision_id=revision.id,
+                status=OptimizationRunStatus.COMPLETED.value,
+                random_seed=algorithm_result.random_seed,
+                generations_completed=algorithm_result.generations_completed,
+                stop_reason=algorithm_result.stop_reason,
+                validated=True,
+                delivery_count=len(deliveries),
+                vehicles_used=len(route_rows),
+                total_cost_brl=total_cost,
+                distance_km=total_distance,
+                makespan_minutes=makespan,
+                critical_delays=critical_delays,
+                on_time_percentage=on_time,
+                average_weight_utilization_pct=avg_weight,
+                average_volume_utilization_pct=avg_volume,
+                pruning_counts=algorithm_result.pruning_counts,
+                completed_at=datetime.now(UTC),
+            )
+            self._session.add(run)
+        else:
+            run = self._session.get(OptimizationRunModel, run_id)
+            if run is None or run.operation_id != operation.id:
+                raise OptimizationResultNotFoundError(run_id)
+            run.operation_revision_id = revision.id
+            run.status = OptimizationRunStatus.COMPLETED.value
+            run.random_seed = algorithm_result.random_seed
+            run.generations_completed = algorithm_result.generations_completed
+            run.stop_reason = algorithm_result.stop_reason
+            run.validated = True
+            run.delivery_count = len(deliveries)
+            run.vehicles_used = len(route_rows)
+            run.total_cost_brl = total_cost
+            run.distance_km = total_distance
+            run.makespan_minutes = makespan
+            run.critical_delays = critical_delays
+            run.on_time_percentage = on_time
+            run.average_weight_utilization_pct = avg_weight
+            run.average_volume_utilization_pct = avg_volume
+            run.pruning_counts = algorithm_result.pruning_counts
+            run.error_code = None
+            run.error_message = None
+            run.completed_at = datetime.now(UTC)
         self._session.flush()
 
         for route_row, _breakdown in route_rows:
@@ -345,7 +373,11 @@ class OptimizationResultService:
     def latest_for_operation(self, operation_id: uuid.UUID) -> OptimizationResultView:
         run_id = self._session.scalar(
             select(OptimizationRunModel.id)
-            .where(OptimizationRunModel.operation_id == operation_id)
+            .where(
+                OptimizationRunModel.operation_id == operation_id,
+                OptimizationRunModel.status == OptimizationRunStatus.COMPLETED.value,
+                OptimizationRunModel.validated.is_(True),
+            )
             .order_by(OptimizationRunModel.created_at.desc())
             .limit(1)
         )
@@ -355,7 +387,11 @@ class OptimizationResultService:
 
     def get_result(self, run_id: uuid.UUID) -> OptimizationResultView:
         run = self._session.get(OptimizationRunModel, run_id)
-        if run is None:
+        if (
+            run is None
+            or run.status != OptimizationRunStatus.COMPLETED.value
+            or run.operation_revision_id is None
+        ):
             raise OptimizationResultNotFoundError(run_id)
         revision = self._session.get(OperationRevisionModel, run.operation_revision_id)
         if revision is None:
@@ -399,10 +435,14 @@ class OptimizationResultService:
         run = self._session.get(OptimizationRunModel, run_id)
         if run is None:
             raise OptimizationResultNotFoundError(run_id)
-        if not run.validated or run.status != "COMPLETED":
+        if not run.validated or run.status != OptimizationRunStatus.COMPLETED.value:
             raise OptimizationApprovalError("O resultado precisa estar concluído e validado.")
         operation = self._session.get(OperationModel, run.operation_id)
-        revision = self._session.get(OperationRevisionModel, run.operation_revision_id)
+        revision = (
+            self._session.get(OperationRevisionModel, run.operation_revision_id)
+            if run.operation_revision_id is not None
+            else None
+        )
         if operation is None or revision is None:
             raise OptimizationResultNotFoundError(run.operation_id)
         if operation.current_revision_number != revision.revision_number:
@@ -604,12 +644,18 @@ class OptimizationResultService:
         if delivery is None:
             raise OptimizationResultNotFoundError(stop.delivery_id)
         address_row = self._session.execute(
-            select(AddressModel, StreetModel.name, DistrictModel.name)
+            select(
+                AddressModel,
+                StreetModel.name,
+                DistrictModel.name,
+                func.ST_X(AddressModel.location),
+                func.ST_Y(AddressModel.location),
+            )
             .join(StreetModel, StreetModel.id == AddressModel.street_id)
             .join(DistrictModel, DistrictModel.id == AddressModel.district_id)
             .where(AddressModel.id == delivery.destination_address_id)
         ).one()
-        address, street_name, district_name = address_row
+        address, street_name, district_name, longitude, latitude = address_row
         return RouteStopView(
             id=stop.id,
             sequence=stop.sequence,
@@ -618,6 +664,8 @@ class OptimizationResultService:
             recipient_name=delivery.recipient_name,
             address_label=f"{street_name}, {address.house_number} — {district_name}",
             priority=delivery.priority.value,
+            longitude=float(longitude),
+            latitude=float(latitude),
             planned_arrival_at=stop.planned_arrival_at,
             planned_departure_at=stop.planned_departure_at,
             time_window_start=delivery.time_window_start,

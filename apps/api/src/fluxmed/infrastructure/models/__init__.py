@@ -15,6 +15,7 @@ from fluxmed.infrastructure.models.city import (
     RoadSegmentModel,
     StreetModel,
 )
+from fluxmed.infrastructure.models.delivery import DeliveryImportModel, DeliveryModel
 from fluxmed.infrastructure.models.operation import OperationModel
 from fluxmed.infrastructure.models.operation_revision import OperationRevisionModel
 from fluxmed.infrastructure.models.user import UserModel
@@ -24,6 +25,8 @@ __all__ = [
     "AuthSessionModel",
     "BuildingModel",
     "CityModel",
+    "DeliveryImportModel",
+    "DeliveryModel",
     "DistrictModel",
     "FacilityModel",
     "IntersectionModel",

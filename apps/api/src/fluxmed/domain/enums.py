@@ -36,6 +36,12 @@ class TimeWindowPolicy(StrEnum):
     SOFT = "SOFT"
 
 
+class ServiceTimeSource(StrEnum):
+    ESTIMATED = "ESTIMATED"
+    MANUAL = "MANUAL"
+    IMPORTED = "IMPORTED"
+
+
 class TemperatureClass(StrEnum):
     AMBIENT = "AMBIENT"
     REFRIGERATED = "REFRIGERATED"
@@ -44,6 +50,25 @@ class TemperatureClass(StrEnum):
 class HandlingRequirement(StrEnum):
     STANDARD = "STANDARD"
     TWO_PERSON = "TWO_PERSON"
+
+
+class DeliveryStatus(StrEnum):
+    PENDING = "PENDING"
+    PLANNED = "PLANNED"
+    LOADED = "LOADED"
+    DISPATCHED = "DISPATCHED"
+    IN_TRANSIT = "IN_TRANSIT"
+    DELIVERED = "DELIVERED"
+    FAILED = "FAILED"
+
+
+class CargoProfile(StrEnum):
+    MEDICATION_SMALL = "MEDICATION_SMALL"
+    REFRIGERATED_MEDICATION = "REFRIGERATED_MEDICATION"
+    LAB_MATERIAL = "LAB_MATERIAL"
+    HOSPITAL_SUPPLIES = "HOSPITAL_SUPPLIES"
+    BULK_CONSUMABLES = "BULK_CONSUMABLES"
+    MEDICAL_EQUIPMENT = "MEDICAL_EQUIPMENT"
 
 
 class VehicleType(StrEnum):

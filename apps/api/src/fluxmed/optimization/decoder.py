@@ -3,12 +3,12 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from fluxmed.optimization.models import (
+    ZERO,
     DecodedRoute,
     DecodedSolution,
     OptimizationDelivery,
     OptimizationVehicle,
     TravelMatrix,
-    ZERO,
 )
 
 

@@ -2,6 +2,7 @@ import json
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -20,7 +21,7 @@ from fluxmed.infrastructure.models.operation import OperationModel
 from fluxmed.infrastructure.models.road_override import RoadOverrideModel
 from fluxmed.optimization import TravelMatrix, TravelMetric
 from fluxmed.routing import DirectedGraph, GraphEdge, GraphNode, NoRouteFoundError, RoutingEngine
-from fluxmed.routing.traffic import TrafficModel
+from fluxmed.routing.traffic import TrafficModel, time_bucket
 
 CITY_NAME = "Santa Aurora"
 
@@ -54,7 +55,11 @@ class RoutingMatrixBuilder:
             addresses[delivery_id] = address
 
         closed_edges, traffic_overrides = self._effective_overrides(operation.id)
-        departure_at = datetime.combine(operation.operation_date, operation.operation_start_time)
+        departure_at = datetime.combine(
+            operation.operation_date,
+            operation.operation_start_time,
+            tzinfo=ZoneInfo(city.timezone),
+        )
         metrics: dict[tuple[uuid.UUID | None, uuid.UUID | None], TravelMetric] = {}
         keys = list(addresses)
         for origin in keys:
@@ -74,7 +79,48 @@ class RoutingMatrixBuilder:
                     distance_km=Decimal(str(distance_m)) / Decimal("1000"),
                     travel_minutes=Decimal(str(travel_seconds)) / Decimal("60"),
                 )
-        return TravelMatrix(metrics)
+
+        timed_cache: dict[tuple[uuid.UUID | None, uuid.UUID | None, str], TravelMetric] = {}
+
+        def resolve_timed(
+            origin: uuid.UUID | None,
+            destination: uuid.UUID | None,
+            requested_departure: datetime,
+        ) -> TravelMetric:
+            bucket = time_bucket(requested_departure)
+            cache_key = (origin, destination, bucket.label)
+            cached = timed_cache.get(cache_key)
+            if cached is not None:
+                return cached
+            try:
+                origin_address = addresses[origin]
+                destination_address = addresses[destination]
+            except KeyError as exc:
+                raise KeyError(f"Unknown optimization location: {exc.args[0]}") from exc
+
+            bucket_departure = requested_departure.replace(
+                hour=bucket.start_minute // 60,
+                minute=bucket.start_minute % 60,
+                second=0,
+                microsecond=0,
+            )
+            distance_m, travel_seconds = self._travel(
+                graph=graph,
+                origin=origin_address,
+                destination=destination_address,
+                departure_at=bucket_departure,
+                traffic_mode=operation.traffic_mode,
+                closed_edges=closed_edges,
+                traffic_overrides=traffic_overrides,
+            )
+            metric = TravelMetric(
+                distance_km=Decimal(str(distance_m)) / Decimal("1000"),
+                travel_minutes=Decimal(str(travel_seconds)) / Decimal("60"),
+            )
+            timed_cache[cache_key] = metric
+            return metric
+
+        return TravelMatrix(metrics, timed_provider=resolve_timed)
 
     def _travel(
         self,

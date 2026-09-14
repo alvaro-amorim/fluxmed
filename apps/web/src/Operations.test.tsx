@@ -148,7 +148,7 @@ describe('operations flow', () => {
     expect(await screen.findByRole('heading', { name: 'Nova operação' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Salvar e continuar' }))
 
-    expect(await screen.findByText('Gerar cenário')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Gerar cenário' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Gerar cenário' }))
     expect(await screen.findByText(/1 entregas geradas/)).toBeInTheDocument()
 

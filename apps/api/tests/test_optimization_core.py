@@ -183,6 +183,5 @@ def test_genetic_optimizer_is_deterministic_and_never_worse_than_seed_baselines(
     assert first.best.fitness.sort_key() == second.best.fitness.sort_key()
     assert first.best.fitness.feasible is True
     assert all(
-        first.best.fitness.sort_key() <= baseline.fitness.sort_key()
-        for baseline in first.baselines
+        first.best.fitness.sort_key() <= baseline.fitness.sort_key() for baseline in first.baselines
     )

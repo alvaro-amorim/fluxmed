@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { SantaAuroraMap } from '../city/SantaAuroraMap'
+import { OperationResourcesPanel } from '../resources/OperationResourcesPanel'
 import { getOperation, updateOperation } from '../../services/operations'
 import type { Operation, TrafficMode } from '../../types/operations'
 import {
@@ -172,14 +173,18 @@ export function OperationDetailPage() {
           <strong>Operação criada e persistida</strong>
           <ol>
             <li className="stage-complete">Configuração da operação</li>
-            <li>Entregas e endereços</li>
-            <li>Frota e equipe</li>
+            <li className="stage-complete">Entregas e endereços</li>
+            <li className="stage-complete">Frota e equipe</li>
             <li>Preflight e otimização</li>
           </ol>
         </article>
       </section>
 
       <SantaAuroraMap />
+
+      {operationId ? (
+        <OperationResourcesPanel operationId={operationId} immutable={immutable} />
+      ) : null}
 
       {editing ? (
         <form className="operation-edit-card" onSubmit={(event) => void save(event)}>

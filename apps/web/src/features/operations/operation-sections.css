@@ -1,0 +1,31 @@
+.operation-section-nav {
+  display: inline-flex;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  padding: 0.35rem;
+  border: 1px solid #dce5e6;
+  border-radius: 12px;
+  background: #f4f8f8;
+}
+
+.operation-section-nav button {
+  padding: 0.65rem 0.9rem;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #5b7074;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.operation-section-nav button:hover {
+  background: #e9f1f2;
+  color: #234e55;
+}
+
+.operation-section-nav button.is-active {
+  background: #ffffff;
+  color: #125d66;
+  box-shadow: 0 2px 8px rgba(22, 63, 70, 0.1);
+}

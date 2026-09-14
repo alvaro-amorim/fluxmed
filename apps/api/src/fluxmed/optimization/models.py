@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 LocationKey = uuid.UUID | None
+FitnessKey = tuple[int, int, Decimal, Decimal, Decimal, Decimal, Decimal, Decimal, int]
 ZERO = Decimal("0")
 
 
@@ -76,7 +77,7 @@ class FitnessVector:
     distance_km: Decimal
     vehicles_used: int
 
-    def sort_key(self) -> tuple[object, ...]:
+    def sort_key(self) -> FitnessKey:
         return (
             0 if self.feasible else 1,
             self.hard_violations,

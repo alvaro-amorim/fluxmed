@@ -252,9 +252,7 @@ class DeliveryService:
         }
         unknown = set(changes) - editable
         if unknown:
-            raise DeliveryValidationError(
-                f"Campos não editáveis: {', '.join(sorted(unknown))}."
-            )
+            raise DeliveryValidationError(f"Campos não editáveis: {', '.join(sorted(unknown))}.")
 
         required_fields = {
             "invoice_number",
@@ -271,9 +269,7 @@ class DeliveryService:
             "handling_requirement",
         }
         null_required = sorted(
-            field
-            for field in required_fields
-            if field in changes and changes[field] is None
+            field for field in required_fields if field in changes and changes[field] is None
         )
         if null_required:
             raise DeliveryValidationError(
@@ -286,12 +282,8 @@ class DeliveryService:
         )
         context = self._require_address(address_value)
         package_count = int(str(changes.get("package_count", model.package_count)))
-        total_weight_kg = Decimal(
-            str(changes.get("total_weight_kg", model.total_weight_kg))
-        )
-        total_volume_m3 = Decimal(
-            str(changes.get("total_volume_m3", model.total_volume_m3))
-        )
+        total_weight_kg = Decimal(str(changes.get("total_weight_kg", model.total_weight_kg)))
+        total_volume_m3 = Decimal(str(changes.get("total_volume_m3", model.total_volume_m3)))
         time_window_start = changes.get("time_window_start", model.time_window_start)
         time_window_end = changes.get("time_window_end", model.time_window_end)
         handling_value = changes.get(
@@ -305,8 +297,7 @@ class DeliveryService:
         )
 
         reset_service_time = (
-            "service_time_minutes" in changes
-            and changes["service_time_minutes"] is None
+            "service_time_minutes" in changes and changes["service_time_minutes"] is None
         )
         if reset_service_time:
             estimate = self._estimator.estimate(
@@ -366,11 +357,7 @@ class DeliveryService:
         random_seed: int | None,
     ) -> ScenarioResult:
         operation = self._require_mutable_operation(operation_id)
-        seed = (
-            random_seed
-            if random_seed is not None
-            else secrets.randbelow(2_000_000_000)
-        )
+        seed = random_seed if random_seed is not None else secrets.randbelow(2_000_000_000)
         batch = generate_scenario(
             address_pool=self._deliveries.scenario_address_pool(),
             operation_date=operation.operation_date,
@@ -415,12 +402,9 @@ class DeliveryService:
         self._session.flush()
         summary = ScenarioSummary(
             generated_count=len(created),
-            critical_count=sum(
-                item.priority is DeliveryPriority.CRITICAL for item in created
-            ),
+            critical_count=sum(item.priority is DeliveryPriority.CRITICAL for item in created),
             refrigerated_count=sum(
-                item.temperature_class is TemperatureClass.REFRIGERATED
-                for item in created
+                item.temperature_class is TemperatureClass.REFRIGERATED for item in created
             ),
             hard_window_count=sum(
                 item.time_window_policy is TimeWindowPolicy.HARD for item in created
@@ -485,9 +469,7 @@ class DeliveryService:
                 continue
             normalized = row.get("normalized")
             if not isinstance(normalized, dict):
-                raise DeliveryImportValidationError(
-                    "Linha normalizada inválida na importação."
-                )
+                raise DeliveryImportValidationError("Linha normalizada inválida na importação.")
             self._create_imported_delivery(model.operation_id, normalized)
 
         model.status = "CONFIRMED"
@@ -518,39 +500,23 @@ class DeliveryService:
             invoice_series=str(normalized["invoice_series"]),
             issuer_document=str(normalized["issuer_document"]),
             issuer_name=self._optional_text(normalized.get("issuer_name")),
-            external_reference=self._optional_text(
-                normalized.get("external_reference")
-            ),
+            external_reference=self._optional_text(normalized.get("external_reference")),
             recipient_name=str(normalized["recipient_name"]),
             destination_address_id=address_id,
             package_count=int(str(normalized["package_count"])),
             total_weight_kg=Decimal(str(normalized["total_weight_kg"])),
             total_volume_m3=Decimal(str(normalized["total_volume_m3"])),
             priority=DeliveryPriority(str(normalized["priority"])),
-            time_window_start=self._optional_datetime(
-                normalized.get("time_window_start")
-            ),
-            time_window_end=self._optional_datetime(
-                normalized.get("time_window_end")
-            ),
-            time_window_policy=TimeWindowPolicy(
-                str(normalized["time_window_policy"])
-            ),
-            temperature_class=TemperatureClass(
-                str(normalized["temperature_class"])
-            ),
-            handling_requirement=HandlingRequirement(
-                str(normalized["handling_requirement"])
-            ),
-            service_time_minutes=(
-                int(str(service_raw)) if service_raw is not None else None
-            ),
+            time_window_start=self._optional_datetime(normalized.get("time_window_start")),
+            time_window_end=self._optional_datetime(normalized.get("time_window_end")),
+            time_window_policy=TimeWindowPolicy(str(normalized["time_window_policy"])),
+            temperature_class=TemperatureClass(str(normalized["temperature_class"])),
+            handling_requirement=HandlingRequirement(str(normalized["handling_requirement"])),
+            service_time_minutes=(int(str(service_raw)) if service_raw is not None else None),
             notes=self._optional_text(normalized.get("notes")),
         )
         source = (
-            ServiceTimeSource.IMPORTED
-            if service_raw is not None
-            else ServiceTimeSource.ESTIMATED
+            ServiceTimeSource.IMPORTED if service_raw is not None else ServiceTimeSource.ESTIMATED
         )
         return self._create_model(
             operation_id=operation_id,
@@ -599,9 +565,7 @@ class DeliveryService:
             service_time_minutes=service_time_minutes,
         )
         model = DeliveryModel(
-            delivery_code=self._deliveries.next_delivery_code(
-                payload.invoice_number
-            ),
+            delivery_code=self._deliveries.next_delivery_code(payload.invoice_number),
             operation_id=operation_id,
             invoice_number=payload.invoice_number.strip(),
             invoice_series=payload.invoice_series.strip(),
@@ -663,9 +627,7 @@ class DeliveryService:
     def _require_address(self, address_id: object) -> AddressContext:
         try:
             parsed_id = (
-                address_id
-                if isinstance(address_id, uuid.UUID)
-                else uuid.UUID(str(address_id))
+                address_id if isinstance(address_id, uuid.UUID) else uuid.UUID(str(address_id))
             )
         except (TypeError, ValueError) as exc:
             raise DeliveryAddressNotFoundError(address_id) from exc

@@ -1,11 +1,14 @@
 import uuid
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from decimal import Decimal
 
+from fluxmed.domain.enums import DeliveryPriority, HandlingRequirement, TemperatureClass
 from fluxmed.optimization.models import (
     ZERO,
     DecodedRoute,
     DecodedSolution,
+    DecodedStop,
     OptimizationDelivery,
     OptimizationVehicle,
     TravelMatrix,
@@ -33,18 +36,23 @@ class RouteDecoder:
         deliveries: list[OptimizationDelivery],
         vehicles: list[OptimizationVehicle],
         travel_matrix: TravelMatrix,
+        operation_start_at: datetime | None = None,
+        operation_end_at: datetime | None = None,
     ) -> None:
         self._deliveries = {delivery.id: delivery for delivery in deliveries}
         self._vehicles = tuple(vehicles)
         self._travel_matrix = travel_matrix
+        self._operation_start_at = operation_start_at
+        self._operation_end_at = operation_end_at
 
     def decode(self, chromosome: tuple[uuid.UUID, ...]) -> DecodedSolution:
         states = [_RouteState(vehicle=vehicle, delivery_ids=[]) for vehicle in self._vehicles]
         unassigned: list[uuid.UUID] = []
+        pruning_counts: dict[str, int] = {}
 
         for delivery_id in chromosome:
             delivery = self._deliveries[delivery_id]
-            candidate = self._best_vehicle(states, delivery)
+            candidate = self._best_vehicle(states, delivery, pruning_counts)
             if candidate is None:
                 unassigned.append(delivery_id)
                 continue
@@ -53,19 +61,33 @@ class RouteDecoder:
             candidate.volume_m3 += delivery.volume_m3
 
         routes = tuple(self._finalize_route(state) for state in states if state.delivery_ids)
-        return DecodedSolution(routes=routes, unassigned_delivery_ids=tuple(unassigned))
+        return DecodedSolution(
+            routes=routes,
+            unassigned_delivery_ids=tuple(unassigned),
+            pruning_counts=pruning_counts,
+        )
 
     def _best_vehicle(
         self,
         states: list[_RouteState],
         delivery: OptimizationDelivery,
+        pruning_counts: dict[str, int],
     ) -> _RouteState | None:
         feasible: list[tuple[tuple[object, ...], _RouteState]] = []
         for state in states:
             vehicle = state.vehicle
-            next_weight = state.weight_kg + delivery.weight_kg
-            next_volume = state.volume_m3 + delivery.volume_m3
-            if next_weight > vehicle.max_payload_kg or next_volume > vehicle.max_volume_m3:
+            reason = self._eligibility_failure(state, delivery)
+            if reason is not None:
+                pruning_counts[reason] = pruning_counts.get(reason, 0) + 1
+                continue
+
+            prospective = self._prospective_route(state, delivery)
+            if prospective.distance_km > vehicle.max_range_km:
+                pruning_counts["RANGE_IMPOSSIBLE"] = pruning_counts.get("RANGE_IMPOSSIBLE", 0) + 1
+                continue
+            if prospective.hard_violations:
+                for violation in prospective.hard_violations:
+                    pruning_counts[violation] = pruning_counts.get(violation, 0) + 1
                 continue
 
             current = state.current_location
@@ -80,9 +102,13 @@ class RouteDecoder:
             marginal_distance = (
                 to_delivery.distance_km + delivery_return.distance_km - direct_return.distance_km
             )
-            remaining_weight = vehicle.max_payload_kg - next_weight
-            remaining_volume = vehicle.max_volume_m3 - next_volume
+            remaining_weight = vehicle.max_payload_kg - (state.weight_kg + delivery.weight_kg)
+            remaining_volume = vehicle.max_volume_m3 - (state.volume_m3 + delivery.volume_m3)
+            critical_bias = 0 if delivery.priority is DeliveryPriority.CRITICAL else 1
             rank = (
+                critical_bias,
+                prospective.soft_lateness_minutes,
+                prospective.critical_risk,
                 marginal_minutes,
                 marginal_distance,
                 remaining_weight,
@@ -96,22 +122,104 @@ class RouteDecoder:
         feasible.sort(key=lambda item: item[0])
         return feasible[0][1]
 
+    def _eligibility_failure(
+        self,
+        state: _RouteState,
+        delivery: OptimizationDelivery,
+    ) -> str | None:
+        vehicle = state.vehicle
+        next_weight = state.weight_kg + delivery.weight_kg
+        next_volume = state.volume_m3 + delivery.volume_m3
+        if next_weight > vehicle.max_payload_kg:
+            return "CAPACITY_EXCEEDED"
+        if next_volume > vehicle.max_volume_m3:
+            return "VOLUME_EXCEEDED"
+        if (
+            delivery.temperature_class is TemperatureClass.REFRIGERATED
+            and not vehicle.refrigerated
+        ):
+            return "REFRIGERATION_INCOMPATIBLE"
+        if (
+            delivery.handling_requirement is HandlingRequirement.TWO_PERSON
+            and not vehicle.helper_available
+        ):
+            return "TEAM_INFEASIBLE"
+        return None
+
+    def _prospective_route(
+        self,
+        state: _RouteState,
+        delivery: OptimizationDelivery,
+    ) -> DecodedRoute:
+        candidate = _RouteState(
+            vehicle=state.vehicle,
+            delivery_ids=[*state.delivery_ids, delivery.id],
+            weight_kg=state.weight_kg + delivery.weight_kg,
+            volume_m3=state.volume_m3 + delivery.volume_m3,
+        )
+        return self._finalize_route(candidate)
+
     def _finalize_route(self, state: _RouteState) -> DecodedRoute:
         distance_km = ZERO
         travel_minutes = ZERO
         service_minutes = 0
         current: uuid.UUID | None = None
+        current_at = self._operation_start_at
+        stops: list[DecodedStop] = []
+        hard_violations: list[str] = []
+        soft_lateness = ZERO
+        critical_risk = ZERO
 
         for delivery_id in state.delivery_ids:
+            delivery = self._deliveries[delivery_id]
             metric = self._travel_matrix.metric(current, delivery_id)
             distance_km += metric.distance_km
             travel_minutes += metric.travel_minutes
-            service_minutes += self._deliveries[delivery_id].service_minutes
+            service_minutes += delivery.service_minutes
+
+            if current_at is not None:
+                arrival_at = current_at + timedelta(minutes=float(metric.travel_minutes))
+                service_start_at = arrival_at
+                if delivery.time_window_start is not None and service_start_at < delivery.time_window_start:
+                    service_start_at = delivery.time_window_start
+                lateness = ZERO
+                if delivery.time_window_end is not None and service_start_at > delivery.time_window_end:
+                    lateness = Decimal(
+                        str((service_start_at - delivery.time_window_end).total_seconds() / 60)
+                    )
+                    if delivery.time_window_policy.value == "HARD":
+                        hard_violations.append("HARD_TIME_WINDOW_IMPOSSIBLE")
+                    else:
+                        soft_lateness += lateness
+                if delivery.priority is DeliveryPriority.CRITICAL:
+                    if delivery.time_window_end is not None:
+                        slack_minutes = Decimal(
+                            str((delivery.time_window_end - service_start_at).total_seconds() / 60)
+                        )
+                        if slack_minutes < Decimal("30"):
+                            critical_risk += max(ZERO, Decimal("30") - slack_minutes)
+                    critical_risk += lateness * Decimal("3")
+                departure_at = service_start_at + timedelta(minutes=delivery.service_minutes)
+                stops.append(
+                    DecodedStop(
+                        delivery_id=delivery.id,
+                        arrival_at=arrival_at,
+                        service_start_at=service_start_at,
+                        departure_at=departure_at,
+                        lateness_minutes=lateness,
+                    )
+                )
+                current_at = departure_at
             current = delivery_id
 
         return_metric = self._travel_matrix.metric(current, None)
         distance_km += return_metric.distance_km
         travel_minutes += return_metric.travel_minutes
+        if current_at is not None:
+            current_at = current_at + timedelta(minutes=float(return_metric.travel_minutes))
+            if self._operation_end_at is not None and current_at > self._operation_end_at:
+                hard_violations.append("END_OF_SHIFT_IMPOSSIBLE")
+
         total_duration = travel_minutes + Decimal(service_minutes)
         vehicle = state.vehicle
         total_cost = (
@@ -119,6 +227,9 @@ class RouteDecoder:
             + distance_km * vehicle.cost_per_km_brl
             + (total_duration / Decimal("60")) * vehicle.cost_per_hour_brl
         )
+        if distance_km > vehicle.max_range_km:
+            hard_violations.append("RANGE_IMPOSSIBLE")
+
         return DecodedRoute(
             vehicle_id=vehicle.id,
             delivery_ids=tuple(state.delivery_ids),
@@ -129,4 +240,8 @@ class RouteDecoder:
             service_minutes=service_minutes,
             total_duration_minutes=total_duration,
             total_cost_brl=total_cost,
+            stops=tuple(stops),
+            hard_violations=tuple(dict.fromkeys(hard_violations)),
+            soft_lateness_minutes=soft_lateness,
+            critical_risk=critical_risk,
         )

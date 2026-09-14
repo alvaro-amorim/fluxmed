@@ -12,6 +12,7 @@ from fluxmed.domain.enums import (
     CompensationModel,
     DeliveryPriority,
     DeliveryStatus,
+    FacilityType,
     HandlingRequirement,
     HelperPolicy,
     ServiceTimeSource,
@@ -57,7 +58,10 @@ def test_operation_runs_ga_and_returns_valid_multi_vehicle_plan() -> None:
         )
         depot_address_id = session.scalar(
             select(FacilityModel.address_id)
-            .where(FacilityModel.city_id == city.id)
+            .where(
+                FacilityModel.city_id == city.id,
+                FacilityModel.facility_type == FacilityType.DEPOT,
+            )
             .limit(1)
         )
         assert depot_address_id is not None

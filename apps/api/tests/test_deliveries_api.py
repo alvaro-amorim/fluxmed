@@ -150,9 +150,7 @@ def test_delivery_endpoints_use_real_addresses_and_confirm_import() -> None:
             assert preview_body["summary"]["error_rows"] == 0
             assert preview_body["summary"]["valid_rows"] == 1
 
-            confirmed = client.post(
-                f"/api/v1/delivery-imports/{preview_body['id']}/confirm"
-            )
+            confirmed = client.post(f"/api/v1/delivery-imports/{preview_body['id']}/confirm")
             assert confirmed.status_code == 200
             assert confirmed.json()["status"] == "CONFIRMED"
 
@@ -164,11 +162,7 @@ def test_delivery_endpoints_use_real_addresses_and_confirm_import() -> None:
             assert deliveries.json()["total"] == 5
     finally:
         with session_scope() as session:
-            session.execute(
-                delete(OperationModel).where(OperationModel.id == operation_id)
-            )
-            session.execute(
-                delete(AuthSessionModel).where(AuthSessionModel.user_id == user_id)
-            )
+            session.execute(delete(OperationModel).where(OperationModel.id == operation_id))
+            session.execute(delete(AuthSessionModel).where(AuthSessionModel.user_id == user_id))
             session.execute(delete(UserModel).where(UserModel.id == user_id))
             session.execute(delete(CityModel).where(CityModel.id == city_id))

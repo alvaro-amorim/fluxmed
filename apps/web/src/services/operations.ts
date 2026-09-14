@@ -4,6 +4,7 @@ import type {
   OperationCreateInput,
   OperationListResponse,
   OperationUpdateInput,
+  PreflightResponse,
 } from '../types/operations'
 
 export function listOperations(): Promise<OperationListResponse> {
@@ -28,5 +29,11 @@ export function updateOperation(
   return apiRequest<Operation>(`/api/v1/operations/${operationId}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
+  })
+}
+
+export function validateOperation(operationId: string): Promise<PreflightResponse> {
+  return apiRequest<PreflightResponse>(`/api/v1/operations/${operationId}/validate`, {
+    method: 'POST',
   })
 }

@@ -83,10 +83,48 @@ class VehicleOwnershipType(StrEnum):
     AGGREGATED = "AGGREGATED"
 
 
+class VehicleStatus(StrEnum):
+    AVAILABLE = "AVAILABLE"
+    UNAVAILABLE = "UNAVAILABLE"
+    MAINTENANCE = "MAINTENANCE"
+    INACTIVE = "INACTIVE"
+
+
+class HelperPolicy(StrEnum):
+    FORBIDDEN = "FORBIDDEN"
+    OPTIONAL = "OPTIONAL"
+    REQUIRED = "REQUIRED"
+
+
+class FuelType(StrEnum):
+    GASOLINE = "GASOLINE"
+    ETHANOL = "ETHANOL"
+    DIESEL = "DIESEL"
+    FLEX = "FLEX"
+    OTHER = "OTHER"
+
+
+class AggregatedPricingModel(StrEnum):
+    PER_ROUTE = "PER_ROUTE"
+
+
 class WorkerRole(StrEnum):
     DRIVER = "DRIVER"
     HELPER = "HELPER"
     MOTORCYCLE_COURIER = "MOTORCYCLE_COURIER"
+
+
+class WorkerEngagementType(StrEnum):
+    EMPLOYEE = "EMPLOYEE"
+    DAY_WORKER = "DAY_WORKER"
+    AGGREGATED = "AGGREGATED"
+
+
+class CompensationModel(StrEnum):
+    HOURLY = "HOURLY"
+    DAILY = "DAILY"
+    PER_ROUTE = "PER_ROUTE"
+    INCLUDED_IN_VEHICLE_CONTRACT = "INCLUDED_IN_VEHICLE_CONTRACT"
 
 
 class TrafficMode(StrEnum):

@@ -111,7 +111,7 @@ class DeliveryRepository:
             .offset((page - 1) * page_size)
             .limit(page_size)
         )
-        return list(self._session.execute(statement).all()), total
+        return list(self._session.execute(statement).tuples().all()), total
 
     def address_context(self, address_id: uuid.UUID) -> AddressContext | None:
         row = self._session.execute(

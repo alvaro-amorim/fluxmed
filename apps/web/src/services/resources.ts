@@ -30,6 +30,7 @@ export function updateVehicle(
     max_volume_m3: payload.max_volume_m3,
     max_range_km: payload.max_range_km,
     refrigerated: payload.refrigerated,
+    status: payload.status,
     helper_policy: payload.helper_policy,
     fuel_type: payload.fuel_type,
     fuel_efficiency_km_per_l: payload.fuel_efficiency_km_per_l,

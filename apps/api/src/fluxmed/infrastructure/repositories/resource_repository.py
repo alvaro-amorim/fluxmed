@@ -50,9 +50,7 @@ class ResourceRepository:
         ordered = query.order_by(VehicleModel.active.desc(), VehicleModel.plate)
         return list(self._session.scalars(ordered))
 
-    def get_owned_cost_profile(
-        self, vehicle_id: uuid.UUID
-    ) -> OwnedVehicleCostProfileModel | None:
+    def get_owned_cost_profile(self, vehicle_id: uuid.UUID) -> OwnedVehicleCostProfileModel | None:
         return self._session.scalar(
             select(OwnedVehicleCostProfileModel).where(
                 OwnedVehicleCostProfileModel.vehicle_id == vehicle_id

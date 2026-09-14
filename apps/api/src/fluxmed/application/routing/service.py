@@ -4,7 +4,6 @@ from collections import OrderedDict
 from dataclasses import dataclass, replace
 from datetime import datetime, time, timedelta
 from threading import RLock
-from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -178,7 +177,9 @@ class RoutingService:
                 traffic_overrides=traffic_overrides,
             )
         except NoRouteFoundError as exc:
-            raise RoutingUnavailableError("Não existe caminho viário para o destino selecionado.") from exc
+            raise RoutingUnavailableError(
+                "Não existe caminho viário para o destino selecionado."
+            ) from exc
 
         destination_access_seconds = self._access_seconds(
             edge=destination_edge,
@@ -191,7 +192,11 @@ class RoutingService:
         destination_access_m = destination_edge.length_m * max(
             0.0, destination.position_on_segment
         )
-        total_seconds = origin_access_seconds + core.travel_time_seconds + destination_access_seconds
+        total_seconds = (
+            origin_access_seconds
+            + core.travel_time_seconds
+            + destination_access_seconds
+        )
         total_distance = origin_access_m + core.distance_m + destination_access_m
         geometry = self._preview_geometry(city, destination, core.geometry)
 

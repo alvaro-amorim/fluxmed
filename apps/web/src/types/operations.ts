@@ -40,3 +40,29 @@ export interface OperationCreateInput {
 }
 
 export type OperationUpdateInput = Partial<OperationCreateInput>
+
+export interface PreflightIssue {
+  code: string
+  message: string
+  related_delivery_ids: string[]
+}
+
+export interface PreflightSummary {
+  delivery_count: number
+  vehicle_count: number
+  worker_count: number
+  critical_count: number
+  refrigerated_count: number
+  hard_window_count: number
+  two_person_count: number
+  total_weight_kg: string
+  total_volume_m3: string
+  operation_window_minutes: number
+}
+
+export interface PreflightResponse {
+  status: 'VALID' | 'INVALID'
+  blocking_errors: PreflightIssue[]
+  warnings: PreflightIssue[]
+  summary: PreflightSummary
+}

@@ -67,9 +67,7 @@ class VehicleModel(Base):
     fuel_type: Mapped[FuelType | None] = mapped_column(
         SAEnum(FuelType, name="fuel_type"), nullable=True
     )
-    fuel_efficiency_km_per_l: Mapped[Decimal | None] = mapped_column(
-        Numeric(10, 3), nullable=True
-    )
+    fuel_efficiency_km_per_l: Mapped[Decimal | None] = mapped_column(Numeric(10, 3), nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -138,9 +136,7 @@ class VehicleMaintenanceItemModel(Base):
 
 class AggregatedVehicleContractModel(Base):
     __tablename__ = "aggregated_vehicle_contracts"
-    __table_args__ = (
-        CheckConstraint("price_brl >= 0", name="nonnegative_aggregated_price"),
-    )
+    __table_args__ = (CheckConstraint("price_brl >= 0", name="nonnegative_aggregated_price"),)
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     vehicle_id: Mapped[uuid.UUID] = mapped_column(

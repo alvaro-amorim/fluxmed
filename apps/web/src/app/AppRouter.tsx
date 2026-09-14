@@ -4,10 +4,13 @@ import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
 import { DeliveriesPage } from '../features/deliveries/DeliveriesPage'
 import '../features/deliveries/deliveries.css'
+import { FleetPage } from '../features/fleet/FleetPage'
 import { NewOperationPage } from '../features/operations/NewOperationPage'
 import { OperationDetailPage } from '../features/operations/OperationDetailPage'
 import { OperationsPage } from '../features/operations/OperationsPage'
 import '../features/operations/operations.css'
+import '../features/resources/resources.css'
+import { WorkforcePage } from '../features/workforce/WorkforcePage'
 import { PlaceholderPage } from '../pages/PlaceholderPage'
 import { AppShell } from './AppShell'
 
@@ -22,26 +25,8 @@ export function AppRouter() {
           <Route path="/operations/new" element={<NewOperationPage />} />
           <Route path="/operations/:operationId" element={<OperationDetailPage />} />
           <Route path="/deliveries" element={<DeliveriesPage />} />
-          <Route
-            path="/fleet"
-            element={
-              <PlaceholderPage
-                title="Frota"
-                description="Veículos, capacidades, autonomia, refrigeração e custos."
-                phase="Planejado"
-              />
-            }
-          />
-          <Route
-            path="/workforce"
-            element={
-              <PlaceholderPage
-                title="Equipe"
-                description="Motoristas, ajudantes, disponibilidade e custos de equipe."
-                phase="Planejado"
-              />
-            }
-          />
+          <Route path="/fleet" element={<FleetPage />} />
+          <Route path="/workforce" element={<WorkforcePage />} />
           <Route
             path="/reports"
             element={

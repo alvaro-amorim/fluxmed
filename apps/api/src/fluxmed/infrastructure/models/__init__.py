@@ -18,10 +18,21 @@ from fluxmed.infrastructure.models.city import (
 from fluxmed.infrastructure.models.delivery import DeliveryImportModel, DeliveryModel
 from fluxmed.infrastructure.models.operation import OperationModel
 from fluxmed.infrastructure.models.operation_revision import OperationRevisionModel
+from fluxmed.infrastructure.models.resource import (
+    AggregatedVehicleContractModel,
+    OperationVehicleSelectionModel,
+    OperationWorkerSelectionModel,
+    OwnedVehicleCostProfileModel,
+    VehicleMaintenanceItemModel,
+    VehicleModel,
+    WorkerAvailabilityModel,
+    WorkerModel,
+)
 from fluxmed.infrastructure.models.user import UserModel
 
 __all__ = [
     "AddressModel",
+    "AggregatedVehicleContractModel",
     "AuthSessionModel",
     "BuildingModel",
     "CityModel",
@@ -33,7 +44,14 @@ __all__ = [
     "LotModel",
     "OperationModel",
     "OperationRevisionModel",
+    "OperationVehicleSelectionModel",
+    "OperationWorkerSelectionModel",
+    "OwnedVehicleCostProfileModel",
     "RoadSegmentModel",
     "StreetModel",
     "UserModel",
+    "VehicleMaintenanceItemModel",
+    "VehicleModel",
+    "WorkerAvailabilityModel",
+    "WorkerModel",
 ]

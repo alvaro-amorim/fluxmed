@@ -91,7 +91,7 @@ export function OperationDetailPage() {
     )
   }
 
-  if (!operation) {
+  if (!operation || !operationId) {
     return (
       <main className="content-page">
         <p className="form-error">{error ?? 'Operação não encontrada.'}</p>

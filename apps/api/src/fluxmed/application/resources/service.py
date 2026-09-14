@@ -416,8 +416,9 @@ class ResourceService:
                 raise ResourceSelectionError(f"Worker {worker.name} está inativo.")
             availability = self.get_worker_availability(worker_id, operation.operation_date)
             if not availability.available:
+                date_label = operation.operation_date.isoformat()
                 raise ResourceSelectionError(
-                    f"Worker {worker.name} está indisponível em {operation.operation_date.isoformat()}."
+                    f"Worker {worker.name} está indisponível em {date_label}."
                 )
         self._resources.replace_operation_selection(
             operation.id,

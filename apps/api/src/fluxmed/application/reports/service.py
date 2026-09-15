@@ -3,7 +3,6 @@ import io
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from decimal import Decimal
 from typing import Any
 
 from openpyxl import Workbook
@@ -86,12 +85,16 @@ class ReportService:
         if operation is None:
             raise ReportNotFoundError(operation_id)
         if operation.status is OperationStatus.OUTDATED:
-            raise ReportInputError("O plano está desatualizado. Reotimize antes de gerar relatórios.")
+            raise ReportInputError(
+                "O plano está desatualizado. Reotimize antes de gerar relatórios."
+            )
 
         try:
             result = OptimizationResultService(self._session).latest_for_operation(operation_id)
         except OptimizationResultNotFoundError as exc:
-            raise ReportInputError("A operação ainda não possui um plano otimizado válido.") from exc
+            raise ReportInputError(
+                "A operação ainda não possui um plano otimizado válido."
+            ) from exc
 
         snapshot = self._build_snapshot(operation, result)
         report = ReportModel(
@@ -452,7 +455,14 @@ class ReportService:
         team_sheet = workbook.create_sheet("Equipe")
         ReportService._append_table(
             team_sheet,
-            ["Rota", "Veículo", "Função principal", "Profissional", "Ajudante", "Custo (R$)"],
+            [
+                "Rota",
+                "Veículo",
+                "Função principal",
+                "Profissional",
+                "Ajudante",
+                "Custo (R$)",
+            ],
             [
                 [
                     route["route_code"],
@@ -525,11 +535,24 @@ class ReportService:
             ["Operação", operation["operation_code"], "Data", operation["operation_date"]],
             ["Cidade", operation["city_name"], "Revisão", operation["revision_number"]],
             ["Entregas", metrics["delivery_count"], "Veículos", metrics["vehicles_used"]],
-            ["Custo total", f"R$ {metrics['total_cost_brl']}", "Distância", f"{metrics['distance_km']} km"],
-            ["Makespan", f"{metrics['makespan_minutes']} min", "No prazo", f"{metrics['on_time_percentage']}%"],
+            [
+                "Custo total",
+                f"R$ {metrics['total_cost_brl']}",
+                "Distância",
+                f"{metrics['distance_km']} km",
+            ],
+            [
+                "Makespan",
+                f"{metrics['makespan_minutes']} min",
+                "No prazo",
+                f"{metrics['on_time_percentage']}%",
+            ],
             ["Atrasos críticos", metrics["critical_delays"], "Status", operation["status"]],
         ]
-        summary_table = Table(summary_rows, colWidths=[30 * mm, 50 * mm, 30 * mm, 50 * mm])
+        summary_table = Table(
+            summary_rows,
+            colWidths=[30 * mm, 50 * mm, 30 * mm, 50 * mm],
+        )
         summary_table.setStyle(
             TableStyle(
                 [
@@ -565,7 +588,8 @@ class ReportService:
         for route in data["routes"]:
             story.append(
                 Paragraph(
-                    f"{route['route_code']} · {route['vehicle']['plate']}", styles["Heading3"]
+                    f"{route['route_code']} · {route['vehicle']['plate']}",
+                    styles["Heading3"],
                 )
             )
             team = route["team"]
@@ -588,7 +612,11 @@ class ReportService:
                         ReportService._display_time(stop["planned_arrival_at"]),
                     ]
                 )
-            stops_table = Table(stops, repeatRows=1, colWidths=[10 * mm, 36 * mm, 65 * mm, 25 * mm, 28 * mm])
+            stops_table = Table(
+                stops,
+                repeatRows=1,
+                colWidths=[10 * mm, 36 * mm, 65 * mm, 25 * mm, 28 * mm],
+            )
             stops_table.setStyle(ReportService._pdf_table_style())
             story.extend([stops_table, Spacer(1, 6 * mm)])
 

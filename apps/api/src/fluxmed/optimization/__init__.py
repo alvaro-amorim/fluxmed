@@ -3,7 +3,11 @@ from fluxmed.optimization.baselines import (
     nearest_neighbor_chromosome,
 )
 from fluxmed.optimization.decoder import RouteDecoder
-from fluxmed.optimization.engine import GeneticOptimizer, GeneticOptimizerConfig
+from fluxmed.optimization.engine import (
+    GeneticOptimizer,
+    GeneticOptimizerConfig,
+    OptimizationCancelled,
+)
 from fluxmed.optimization.fitness import FitnessEvaluator, SolutionValidator
 from fluxmed.optimization.models import (
     BaselineResult,
@@ -13,6 +17,7 @@ from fluxmed.optimization.models import (
     EvaluatedIndividual,
     FitnessVector,
     OptimizationDelivery,
+    OptimizationProgress,
     OptimizationResult,
     OptimizationVehicle,
     TravelMatrix,
@@ -39,7 +44,9 @@ __all__ = [
     "FitnessVector",
     "GeneticOptimizer",
     "GeneticOptimizerConfig",
+    "OptimizationCancelled",
     "OptimizationDelivery",
+    "OptimizationProgress",
     "OptimizationResult",
     "OptimizationVehicle",
     "RouteDecoder",

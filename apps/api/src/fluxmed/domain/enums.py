@@ -24,6 +24,15 @@ class RevisionStatus(StrEnum):
     DISPATCHED = "DISPATCHED"
 
 
+class OptimizationRunStatus(StrEnum):
+    QUEUED = "QUEUED"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    INTERRUPTED = "INTERRUPTED"
+
+
 class DeliveryPriority(StrEnum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"

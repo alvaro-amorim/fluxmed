@@ -1,7 +1,9 @@
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -15,12 +17,15 @@ from fluxmed.application.optimization.team_assignment import TeamAssignmentError
 from fluxmed.application.preflight import PreflightService
 from fluxmed.application.resources import ResourceService, VehicleView
 from fluxmed.domain.enums import OperationStatus, VehicleOwnershipType, WorkerRole
+from fluxmed.infrastructure.models.city import AddressModel, CityModel
 from fluxmed.infrastructure.models.delivery import DeliveryModel
 from fluxmed.infrastructure.models.operation import OperationModel
+from fluxmed.infrastructure.models.optimization_result import OptimizationRunModel
 from fluxmed.optimization import (
     GeneticOptimizer,
     GeneticOptimizerConfig,
     OptimizationDelivery,
+    OptimizationProgress,
     OptimizationResult,
     OptimizationVehicle,
     SolutionValidator,
@@ -63,20 +68,33 @@ class OptimizationService:
         self._optimizer = GeneticOptimizer(config)
         self._validator = SolutionValidator()
 
+    @property
+    def config(self) -> GeneticOptimizerConfig:
+        return self._optimizer.config
+
     def optimize_operation(
         self,
         operation_id: uuid.UUID,
         *,
         random_seed: int | None = None,
         actor_user_id: uuid.UUID | None = None,
+        run_id: uuid.UUID | None = None,
+        on_progress: Callable[[OptimizationProgress], None] | None = None,
+        should_cancel: Callable[[], bool] | None = None,
     ) -> OperationOptimizationView:
         operation = self._session.get(OperationModel, operation_id)
         if operation is None:
             raise OptimizationOperationNotFoundError(operation_id)
         if operation.status is OperationStatus.DISPATCHED:
             raise OptimizationInputError("Operação despachada não pode ser reotimizada.")
-        if operation.status is OperationStatus.OPTIMIZING:
+        if operation.status is OperationStatus.OPTIMIZING and run_id is None:
             raise OptimizationInputError("Já existe uma otimização em andamento.")
+        if run_id is not None:
+            queued_run = self._session.get(OptimizationRunModel, run_id)
+            if queued_run is None or queued_run.operation_id != operation.id:
+                raise OptimizationInputError(
+                    "Execução de otimização não pertence à operação informada."
+                )
 
         preflight = PreflightService(self._session).validate_operation(operation_id)
         if not preflight.is_valid:
@@ -130,6 +148,7 @@ class OptimizationService:
                 delivery.id: delivery.destination_address_id for delivery in delivery_models
             },
         )
+        operation_timezone = self._operation_timezone(delivery_models)
         seed = random_seed if random_seed is not None else operation.id.int % 2_147_483_647
         result = self._optimizer.optimize(
             deliveries=deliveries,
@@ -139,11 +158,15 @@ class OptimizationService:
             operation_start_at=datetime.combine(
                 operation.operation_date,
                 operation.operation_start_time,
+                tzinfo=operation_timezone,
             ),
             operation_end_at=datetime.combine(
                 operation.operation_date,
                 operation.operation_end_time,
+                tzinfo=operation_timezone,
             ),
+            on_progress=on_progress,
+            should_cancel=should_cancel,
         )
         validation = self._validator.validate(
             solution=result.best.solution,
@@ -170,6 +193,7 @@ class OptimizationService:
                 vehicles=selected_vehicle_views,
                 workers=selected_workers,
                 actor_user_id=actor_user_id or operation.created_by_user_id,
+                run_id=run_id,
             )
         except TeamAssignmentError as exc:
             raise OptimizationInputError(f"TEAM_INFEASIBLE: {exc}") from exc
@@ -182,6 +206,29 @@ class OptimizationService:
             validation=validation,
             persisted_result=persisted,
         )
+
+    def _operation_timezone(self, deliveries: list[DeliveryModel]) -> ZoneInfo:
+        address_ids = {delivery.destination_address_id for delivery in deliveries}
+        timezone_names = set(
+            self._session.scalars(
+                select(CityModel.timezone)
+                .join(AddressModel, AddressModel.city_id == CityModel.id)
+                .where(AddressModel.id.in_(address_ids))
+            )
+        )
+        if not timezone_names:
+            raise OptimizationInputError("Não foi possível determinar o fuso horário da operação.")
+        if len(timezone_names) != 1:
+            raise OptimizationInputError(
+                "Uma operação não pode combinar entregas de cidades com fusos horários diferentes."
+            )
+        timezone_name = next(iter(timezone_names))
+        try:
+            return ZoneInfo(timezone_name)
+        except ZoneInfoNotFoundError as exc:
+            raise OptimizationInputError(
+                f"Fuso horário da cidade não reconhecido: {timezone_name}."
+            ) from exc
 
     @staticmethod
     def _vehicle_input(

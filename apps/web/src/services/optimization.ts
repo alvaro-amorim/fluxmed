@@ -1,6 +1,8 @@
-import { apiRequest } from './api'
+import { apiRequest, apiUrl } from './api'
 import type {
   OptimizationResult,
+  OptimizationRun,
+  OptimizationTraceEvent,
   OptimizeAccepted,
   ResultRoute,
   TeamSimulation,
@@ -11,6 +13,61 @@ export function optimizeOperation(operationId: string, randomSeed?: number): Pro
     method: 'POST',
     body: JSON.stringify({ random_seed: randomSeed }),
   })
+}
+
+export function getLatestOptimizationRun(operationId: string): Promise<OptimizationRun> {
+  return apiRequest<OptimizationRun>(
+    `/api/v1/operations/${operationId}/optimization-runs/latest-run`,
+  )
+}
+
+export function getOptimizationRun(runId: string): Promise<OptimizationRun> {
+  return apiRequest<OptimizationRun>(`/api/v1/optimization-runs/${runId}`)
+}
+
+export function getOptimizationTrace(runId: string): Promise<OptimizationTraceEvent[]> {
+  return apiRequest<OptimizationTraceEvent[]>(`/api/v1/optimization-runs/${runId}/trace`)
+}
+
+export function cancelOptimizationRun(runId: string): Promise<OptimizationRun> {
+  return apiRequest<OptimizationRun>(`/api/v1/optimization-runs/${runId}/cancel`, {
+    method: 'POST',
+  })
+}
+
+const TRACE_EVENT_TYPES = [
+  'optimization_started',
+  'generation_snapshot',
+  'best_solution_updated',
+  'route_assignment_change',
+  'pruning_summary',
+  'final_comparison',
+  'optimization_completed',
+  'optimization_failed',
+  'optimization_cancelled',
+] as const
+
+export function subscribeOptimizationEvents(
+  runId: string,
+  afterSequence: number,
+  onEvent: (event: OptimizationTraceEvent) => void,
+  onConnectionError?: () => void,
+): () => void {
+  const query = afterSequence > 0 ? `?after=${afterSequence}` : ''
+  const source = new EventSource(apiUrl(`/api/v1/optimization-runs/${runId}/events${query}`), {
+    withCredentials: true,
+  })
+  const handler = (raw: Event) => {
+    const message = raw as MessageEvent<string>
+    try {
+      onEvent(JSON.parse(message.data) as OptimizationTraceEvent)
+    } catch {
+      // Ignore malformed frames; persisted replay remains the source of truth.
+    }
+  }
+  TRACE_EVENT_TYPES.forEach((eventType) => source.addEventListener(eventType, handler))
+  source.onerror = () => onConnectionError?.()
+  return () => source.close()
 }
 
 export function getLatestOptimizationResult(operationId: string): Promise<OptimizationResult> {

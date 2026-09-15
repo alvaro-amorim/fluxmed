@@ -2,6 +2,106 @@ export interface OptimizeAccepted {
   optimization_run_id: string
   status: string
   result_url: string
+  status_url: string
+  events_url: string
+}
+
+export type OptimizationRunStatus =
+  | 'QUEUED'
+  | 'RUNNING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'CANCELLED'
+  | 'INTERRUPTED'
+
+export interface OptimizationRun {
+  id: string
+  operation_id: string
+  status: OptimizationRunStatus
+  random_seed: number
+  generations_completed: number
+  stop_reason: string
+  validated: boolean
+  error_code: string | null
+  error_message: string | null
+  latest_sequence: number
+  created_at: string
+  started_at: string | null
+  completed_at: string | null
+  cancel_requested_at: string | null
+}
+
+export interface LiveDeliveryPoint {
+  delivery_id: string
+  delivery_code: string
+  longitude: number
+  latitude: number
+  sequence?: number
+}
+
+export interface LiveRoute {
+  route_code: string
+  vehicle_id: string
+  delivery_ids: string[]
+  distance_km: string
+  duration_minutes: string
+  geometry: {
+    type: 'LineString'
+    coordinates: number[][]
+  } | null
+  stops: LiveDeliveryPoint[]
+}
+
+export interface RouteAssignmentChange {
+  delivery_id: string
+  from_vehicle_id: string
+  to_vehicle_id: string
+  from_position: number
+  to_position: number
+}
+
+export interface OptimizationTracePayload {
+  status?: string
+  random_seed?: number
+  delivery_count?: number
+  population_size?: number
+  max_generations?: number
+  deliveries?: LiveDeliveryPoint[]
+  generation?: number
+  feasible?: boolean
+  hard_violations?: number
+  service_penalty?: string
+  critical_risk?: string
+  cost_brl?: string
+  makespan_minutes?: string
+  travel_minutes?: string
+  distance_km?: string
+  vehicles_used?: number
+  diversity_ratio?: number
+  mutation_rate?: number
+  immigrants_added?: number
+  pruning_counts?: Record<string, number>
+  counts?: Record<string, number>
+  routes?: LiveRoute[]
+  changes?: RouteAssignmentChange[]
+  selection_reasons?: Array<Record<string, unknown>>
+  stop_reason?: string
+  validated?: boolean
+  final?: Record<string, unknown> | boolean
+  baselines?: Array<Record<string, unknown>>
+  error_code?: string
+  message?: string
+}
+
+export interface OptimizationTraceEvent {
+  id: string
+  run_id: string
+  sequence: number
+  event_type: string
+  generation: number | null
+  elapsed_ms: number | null
+  payload: OptimizationTracePayload
+  created_at: string
 }
 
 export interface ResultWorker {
@@ -44,6 +144,8 @@ export interface ResultStop {
   recipient_name: string
   address_label: string
   priority: string
+  longitude: number
+  latitude: number
   planned_arrival_at: string | null
   planned_departure_at: string | null
   time_window_start: string | null

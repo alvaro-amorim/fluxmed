@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type {
   GeoJSONSourceSpecification,
   Map as MapLibreMap,
+  Marker as MapLibreMarker,
   StyleSpecification,
 } from 'maplibre-gl'
 
@@ -102,6 +103,9 @@ export function OptimizationResultMap({
 }: OptimizationResultMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
+  const markersRef = useRef<
+    Array<{ marker: MapLibreMarker; routeId: string; element: HTMLButtonElement }>
+  >([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -126,6 +130,24 @@ export function OptimizationResultMap({
           const routeId = event.features?.[0]?.properties?.route_id
           if (routeId) onSelectRoute(String(routeId))
         })
+        markersRef.current = routes.flatMap((route) =>
+          route.stops.map((stop) => {
+            const element = document.createElement('button')
+            element.type = 'button'
+            element.className = 'result-stop-marker'
+            element.textContent = String(stop.sequence)
+            element.title = `${route.route_code} · ${stop.delivery_code} · ${stop.recipient_name}`
+            element.setAttribute('aria-label', `Parada ${stop.sequence}: ${stop.delivery_code}`)
+            element.addEventListener('click', (event) => {
+              event.stopPropagation()
+              onSelectRoute(route.id)
+            })
+            const marker = new maplibregl.Marker({ element, anchor: 'center' })
+              .setLngLat([stop.longitude, stop.latitude])
+              .addTo(map)
+            return { marker, routeId: route.id, element }
+          }),
+        )
         mapRef.current = map
       } catch (requestError) {
         if (active) {
@@ -140,6 +162,8 @@ export function OptimizationResultMap({
     void load()
     return () => {
       active = false
+      markersRef.current.forEach(({ marker }) => marker.remove())
+      markersRef.current = []
       mapRef.current?.remove()
       mapRef.current = null
     }
@@ -147,21 +171,25 @@ export function OptimizationResultMap({
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !map.getLayer('result-routes')) return
-    map.setPaintProperty(
-      'result-routes',
-      'line-opacity',
-      selectedRouteId
-        ? ['case', ['==', ['get', 'route_id'], selectedRouteId], 1, 0.22]
-        : 0.9,
-    )
-    map.setPaintProperty(
-      'result-routes',
-      'line-width',
-      selectedRouteId
-        ? ['case', ['==', ['get', 'route_id'], selectedRouteId], 7, 3]
-        : 5,
-    )
+    if (map?.getLayer('result-routes')) {
+      map.setPaintProperty(
+        'result-routes',
+        'line-opacity',
+        selectedRouteId
+          ? ['case', ['==', ['get', 'route_id'], selectedRouteId], 1, 0.22]
+          : 0.9,
+      )
+      map.setPaintProperty(
+        'result-routes',
+        'line-width',
+        selectedRouteId
+          ? ['case', ['==', ['get', 'route_id'], selectedRouteId], 7, 3]
+          : 5,
+      )
+    }
+    markersRef.current.forEach(({ routeId, element }) => {
+      element.style.opacity = !selectedRouteId || routeId === selectedRouteId ? '1' : '0.28'
+    })
   }, [selectedRouteId])
 
   return (

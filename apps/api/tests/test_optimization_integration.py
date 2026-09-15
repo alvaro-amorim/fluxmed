@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import date, time
+from datetime import UTC, date, datetime, time
 from decimal import Decimal
 
 import pytest
@@ -101,6 +101,7 @@ def test_operation_runs_ga_and_returns_valid_multi_vehicle_plan() -> None:
 
         deliveries: list[DeliveryModel] = []
         for index, address_id in enumerate(address_ids, start=1):
+            is_timezone_regression_case = index == 1
             delivery = DeliveryModel(
                 delivery_code=f"DLV-OPT-{seed}-{index:03d}",
                 operation_id=operation.id,
@@ -113,9 +114,19 @@ def test_operation_runs_ga_and_returns_valid_multi_vehicle_plan() -> None:
                 total_weight_kg=Decimal("70"),
                 total_volume_m3=Decimal("0.25"),
                 priority=DeliveryPriority.NORMAL,
-                time_window_start=None,
-                time_window_end=None,
-                time_window_policy=TimeWindowPolicy.SOFT,
+                time_window_start=(
+                    datetime(2026, 9, 14, 17, 59, tzinfo=UTC)
+                    if is_timezone_regression_case
+                    else None
+                ),
+                time_window_end=(
+                    datetime(2026, 9, 14, 20, 34, tzinfo=UTC)
+                    if is_timezone_regression_case
+                    else None
+                ),
+                time_window_policy=(
+                    TimeWindowPolicy.HARD if is_timezone_regression_case else TimeWindowPolicy.SOFT
+                ),
                 service_time_minutes=5,
                 service_time_source=ServiceTimeSource.ESTIMATED,
                 temperature_class=TemperatureClass.AMBIENT,
@@ -197,6 +208,7 @@ def test_operation_runs_ga_and_returns_valid_multi_vehicle_plan() -> None:
         assert result.validation.valid is True
         assert result.result.best.fitness.feasible is True
         assert set(assigned) == {delivery.id for delivery in deliveries}
+        assert deliveries[0].id in assigned
         assert len(result.result.best.solution.routes) == 2
         assert all(route.returns_to_depot for route in result.result.best.solution.routes)
     finally:

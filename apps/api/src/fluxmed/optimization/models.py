@@ -131,6 +131,17 @@ class EvaluatedIndividual:
 
 
 @dataclass(frozen=True, slots=True)
+class OptimizationProgress:
+    generation: int
+    best: EvaluatedIndividual
+    improved: bool
+    diversity_ratio: float
+    effective_mutation_rate: float
+    immigrants_added: int
+    pruning_counts: dict[str, int]
+
+
+@dataclass(frozen=True, slots=True)
 class BaselineResult:
     name: str
     chromosome: tuple[uuid.UUID, ...]

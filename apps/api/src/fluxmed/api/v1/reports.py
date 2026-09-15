@@ -12,6 +12,7 @@ from fluxmed.application.reports import (
     ReportService,
     ReportView,
 )
+from fluxmed.application.reports.retry import ReportRetryService
 
 router = APIRouter(tags=["reports"])
 
@@ -97,6 +98,24 @@ def create_report(
             report_format=payload.format,
             actor_user_id=current_user.id,
         )
+    except Exception as exc:
+        _raise_report_error(exc)
+        raise
+    return _response(report)
+
+
+@router.post(
+    "/reports/{report_id}/retry",
+    response_model=ReportResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def retry_report(
+    report_id: uuid.UUID,
+    session: DbSession,
+    _current_user: CurrentUser,
+) -> ReportResponse:
+    try:
+        report = ReportRetryService(session).retry(report_id)
     except Exception as exc:
         _raise_report_error(exc)
         raise

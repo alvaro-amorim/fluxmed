@@ -52,6 +52,14 @@ export interface LiveRoute {
   stops: LiveDeliveryPoint[]
 }
 
+export interface RouteAssignmentChange {
+  delivery_id: string
+  from_vehicle_id: string
+  to_vehicle_id: string
+  from_position: number
+  to_position: number
+}
+
 export interface OptimizationTracePayload {
   status?: string
   random_seed?: number
@@ -75,6 +83,7 @@ export interface OptimizationTracePayload {
   pruning_counts?: Record<string, number>
   counts?: Record<string, number>
   routes?: LiveRoute[]
+  changes?: RouteAssignmentChange[]
   selection_reasons?: Array<Record<string, unknown>>
   stop_reason?: string
   validated?: boolean

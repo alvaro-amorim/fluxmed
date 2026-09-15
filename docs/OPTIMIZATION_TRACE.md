@@ -170,9 +170,11 @@ A experiência é aberta em overlay e oferece:
 
 Durante o run o frontend mostra:
 
+- fase operacional atual derivada do trace/lifecycle;
 - geração atual;
 - tempo decorrido;
 - melhor custo;
+- violações HARD da melhor candidata atual;
 - makespan;
 - diversidade;
 - taxa de mutação;
@@ -182,6 +184,8 @@ Durante o run o frontend mostra:
 - entregas como pontos vermelhos numerados;
 - estado de conexão/reconexão;
 - ação de cancelamento.
+
+A exibição explícita de violações HARD evita que uma solução intermediária ainda inviável seja confundida com o plano final validado.
 
 O resultado persistido também exibe as entregas numeradas sobre as rotas finais.
 
@@ -201,6 +205,7 @@ A suíte cobre:
 - recuperação de run interrompido;
 - replay do trace persistido;
 - retomada SSE a partir de `Last-Event-ID`;
-- replay frontend sem criar nova execução.
+- replay frontend sem criar nova execução;
+- navegação do replay por controles e timeline.
 
 A validação de CI executa lint, formatação, type-check, migrations, testes de backend, testes de frontend, build e jornada E2E de login demo.

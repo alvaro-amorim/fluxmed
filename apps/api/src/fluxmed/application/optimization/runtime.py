@@ -229,7 +229,7 @@ class OptimizationRunCoordinator:
                 elapsed_ms=elapsed_ms,
                 payload={"counts": result_view.result.pruning_counts, "final": True},
             )
-            final_comparison = {
+            final_comparison: dict[str, object] = {
                 "final": self._fitness_payload(result_view.result.best.fitness),
                 "baselines": [
                     {

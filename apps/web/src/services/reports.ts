@@ -13,6 +13,12 @@ export function createReport(operationId: string, format: ReportFormat): Promise
   })
 }
 
+export function retryReport(reportId: string): Promise<ReportItem> {
+  return apiRequest<ReportItem>(`/api/v1/reports/${reportId}/retry`, {
+    method: 'POST',
+  })
+}
+
 export async function downloadReport(report: ReportItem): Promise<void> {
   const response = await fetch(apiUrl(`/api/v1/reports/${report.id}/download`), {
     credentials: 'include',

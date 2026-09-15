@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -76,7 +76,7 @@ afterEach(() => {
 })
 
 describe('optimization replay', () => {
-  it('replays persisted trace events without opening a live event stream', async () => {
+  it('replays persisted trace events with navigation controls without opening a live stream', async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const path = typeof input === 'string' ? input : input.toString()
       if (path.endsWith('/optimization-runs/run-1/trace')) return response(events)
@@ -109,17 +109,28 @@ describe('optimization replay', () => {
     render(<OptimizationLivePanel runId="run-1" mode="replay" />)
 
     expect(await screen.findByText('Replay persistido')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Replay da otimização' })).toBeInTheDocument()
     expect(screen.getByText('1 / 3 eventos')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Próximo' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Linha do tempo do replay')).toBeInTheDocument()
     expect(EventSourceMock).not.toHaveBeenCalled()
 
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Reproduzir' }))
+    const user = userEvent.setup()
+    await user.selectOptions(screen.getByLabelText('Velocidade do replay'), '4')
+    await user.click(screen.getByRole('button', { name: 'Próximo' }))
+    expect(screen.getByText('2 / 3 eventos')).toBeInTheDocument()
 
-    await waitFor(
-      () => expect(screen.getByText('4')).toBeInTheDocument(),
-      { timeout: 2200 },
-    )
+    await user.click(screen.getByRole('button', { name: 'Reproduzir' }))
+
+    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument(), { timeout: 1200 })
     expect(screen.getByText(/R\$\s*150,00/)).toBeInTheDocument()
     expect(screen.getByText('3 / 3 eventos')).toBeInTheDocument()
     expect(EventSourceMock).not.toHaveBeenCalled()
+
+    fireEvent.change(screen.getByLabelText('Linha do tempo do replay'), {
+      target: { value: '1' },
+    })
+    expect(screen.getByText('1 / 3 eventos')).toBeInTheDocument()
   })
 })

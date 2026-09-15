@@ -41,7 +41,10 @@ class ReportRetryService:
         self._session.flush()
 
         try:
-            artifact, content_type, extension = ReportService._generate(retry.format, retry.snapshot)
+            artifact, content_type, extension = ReportService._generate(
+                retry.format,
+                retry.snapshot,
+            )
             retry.artifact = artifact
             retry.content_type = content_type
             retry.filename = f"fluxmed_retry_{retry.id}.{extension}"

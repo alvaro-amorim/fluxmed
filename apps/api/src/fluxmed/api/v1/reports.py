@@ -44,7 +44,17 @@ class ReportListResponse(BaseModel):
 
 def _response(view: ReportView) -> ReportResponse:
     return ReportResponse(
-        **view.__dict__,
+        id=view.id,
+        operation_id=view.operation_id,
+        optimization_run_id=view.optimization_run_id,
+        report_type=view.report_type,
+        format=view.format,
+        status=view.status,
+        filename=view.filename,
+        content_type=view.content_type,
+        error_message=view.error_message,
+        created_at=view.created_at,
+        completed_at=view.completed_at,
         download_url=(
             f"/api/v1/reports/{view.id}/download" if view.status == "COMPLETED" else None
         ),

@@ -25,6 +25,7 @@ from fluxmed.infrastructure.models.optimization_result import (
     RouteStopModel,
     RouteTeamAssignmentModel,
 )
+from fluxmed.infrastructure.models.report import ReportModel
 from fluxmed.infrastructure.models.resource import (
     AggregatedVehicleContractModel,
     OperationVehicleSelectionModel,
@@ -57,6 +58,7 @@ __all__ = [
     "OptimizationRunModel",
     "OptimizationTraceEventModel",
     "OwnedVehicleCostProfileModel",
+    "ReportModel",
     "RoadOverrideModel",
     "RoadSegmentModel",
     "RoutePlanModel",

@@ -86,6 +86,31 @@ function statusLabel(status: OptimizationRunStatus | null, replay: boolean): str
   return status ? labels[status] : 'Conectando'
 }
 
+function phaseLabel(
+  events: OptimizationTraceEvent[],
+  status: OptimizationRunStatus | null,
+): string {
+  if (status === 'COMPLETED') return 'Resultado validado e persistido'
+  if (status === 'FAILED') return 'Execução encerrada com falha'
+  if (status === 'CANCELLED') return 'Execução cancelada'
+  if (status === 'INTERRUPTED') return 'Execução interrompida'
+  if (status === 'QUEUED') return 'Aguardando worker'
+
+  const latest = events.at(-1)
+  if (!latest) return 'Conectando ao cálculo'
+  if (latest.event_type === 'optimization_started') return 'Preparando otimização'
+  if (latest.event_type === 'final_comparison') return 'Finalizando resultado'
+  if (
+    latest.event_type === 'generation_snapshot' ||
+    latest.event_type === 'best_solution_updated' ||
+    latest.event_type === 'route_assignment_change' ||
+    latest.event_type === 'pruning_summary'
+  ) {
+    return 'Executando algoritmo genético'
+  }
+  return 'Processando otimização'
+}
+
 function ConvergenceChart({ events }: { events: OptimizationTraceEvent[] }) {
   const points = events
     .filter((event) => event.event_type === 'generation_snapshot' && event.payload.cost_brl)
@@ -272,6 +297,7 @@ export function OptimizationLivePanel({
     }
     return status
   }, [mode, shownEvents, status])
+  const phase = useMemo(() => phaseLabel(shownEvents, visibleStatus), [shownEvents, visibleStatus])
 
   async function cancel() {
     const confirmed = window.confirm(
@@ -317,6 +343,7 @@ export function OptimizationLivePanel({
             {mode === 'replay' ? 'Decision Trace' : 'Algoritmo genético em execução'}
           </p>
           <h2>{statusLabel(visibleStatus, mode === 'replay')}</h2>
+          <span className="live-phase">{phase}</span>
           <p>
             {mode === 'replay'
               ? 'Reprodução dos eventos persistidos; o algoritmo não é recalculado.'
@@ -421,6 +448,10 @@ export function OptimizationLivePanel({
         <article>
           <span>Melhor custo</span>
           <strong>{formatMoney(latestSnapshot?.payload.cost_brl)}</strong>
+        </article>
+        <article>
+          <span>Violações HARD</span>
+          <strong>{latestSnapshot?.payload.hard_violations ?? '—'}</strong>
         </article>
         <article>
           <span>Makespan</span>
@@ -536,7 +567,12 @@ export function OptimizationLivePanel({
   if (mode === 'replay') {
     return (
       <div className="replay-overlay" role="presentation">
-        <div className="replay-dialog" role="dialog" aria-modal="true" aria-label="Replay da otimização">
+        <div
+          className="replay-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Replay da otimização"
+        >
           {panel}
         </div>
       </div>

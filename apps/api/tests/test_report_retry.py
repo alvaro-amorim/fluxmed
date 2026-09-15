@@ -30,11 +30,14 @@ def _failed_report() -> ReportModel:
     )
 
 
-def test_retry_reuses_exact_persisted_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
-    report = _failed_report()
-    original_snapshot = deepcopy(report.snapshot)
+def test_retry_reuses_snapshot_and_preserves_failed_history(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = _failed_report()
+    original_snapshot = deepcopy(source.snapshot)
+    actor_user_id = uuid.uuid4()
     session = MagicMock(spec=Session)
-    session.get.return_value = report
+    session.get.return_value = source
     received: list[dict[str, object]] = []
 
     def fake_generate(
@@ -47,15 +50,21 @@ def test_retry_reuses_exact_persisted_snapshot(monkeypatch: pytest.MonkeyPatch) 
 
     monkeypatch.setattr(ReportService, "_generate", staticmethod(fake_generate))
 
-    retried = ReportRetryService(session).retry(report.id)
+    retried = ReportRetryService(session).retry(source.id, actor_user_id=actor_user_id)
+    retry_model = session.add.call_args.args[0]
 
+    assert isinstance(retry_model, ReportModel)
     assert received == [original_snapshot]
-    assert report.snapshot == original_snapshot
-    assert report.optimization_run_id == retried.optimization_run_id
-    assert report.status == "COMPLETED"
-    assert report.error_message is None
-    assert report.artifact == b"%PDF-retried"
-    assert report.filename == f"fluxmed_retry_{report.id}.pdf"
+    assert retry_model.snapshot == original_snapshot
+    assert retry_model.snapshot is not source.snapshot
+    assert retry_model.optimization_run_id == source.optimization_run_id == retried.optimization_run_id
+    assert retry_model.created_by_user_id == actor_user_id
+    assert retry_model.status == "COMPLETED"
+    assert retry_model.artifact == b"%PDF-retried"
+    assert retry_model.filename == f"fluxmed_retry_{retry_model.id}.pdf"
+    assert source.status == "FAILED"
+    assert source.error_message == "falha simulada"
+    assert source.snapshot == original_snapshot
     assert session.flush.call_count == 2
 
 
@@ -66,4 +75,4 @@ def test_retry_rejects_report_that_did_not_fail() -> None:
     session.get.return_value = report
 
     with pytest.raises(ReportInputError, match="Apenas relatórios com falha"):
-        ReportRetryService(session).retry(report.id)
+        ReportRetryService(session).retry(report.id, actor_user_id=uuid.uuid4())

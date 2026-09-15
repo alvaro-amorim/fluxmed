@@ -17,7 +17,7 @@ interface OptimizationLiveMapProps {
   deliveries: LiveDeliveryPoint[]
 }
 
-function emptyRoutes(): GeoJSON.FeatureCollection<GeoJSON.LineString> {
+function emptyRoutes(): GeoJSONSourceSpecification['data'] {
   return { type: 'FeatureCollection', features: [] }
 }
 
@@ -31,7 +31,7 @@ function liveStyle(city: CityMapGeoJSON): StyleSpecification {
       },
       'live-routes': {
         type: 'geojson',
-        data: emptyRoutes() as unknown as GeoJSONSourceSpecification['data'],
+        data: emptyRoutes(),
       },
     },
     layers: [
@@ -87,7 +87,7 @@ function liveStyle(city: CityMapGeoJSON): StyleSpecification {
   } as StyleSpecification
 }
 
-function routeCollection(routes: LiveRoute[]): GeoJSON.FeatureCollection<GeoJSON.LineString> {
+function routeCollection(routes: LiveRoute[]): GeoJSONSourceSpecification['data'] {
   return {
     type: 'FeatureCollection',
     features: routes.flatMap((route, index) =>

@@ -93,16 +93,25 @@ it('generates a report and shows it in history', async () => {
   expect(screen.getByRole('button', { name: 'Baixar' })).toBeEnabled()
 })
 
-it('retries a failed report and keeps the same run history entry', async () => {
+it('retries a failed report from the same snapshot and preserves failure history', async () => {
   let retried = false
   const failedReport = {
     ...completedReport,
+    id: 'failed-report-id',
     status: 'FAILED',
     filename: null,
     content_type: null,
     error_message: 'falha simulada',
     completed_at: '2026-09-15T14:00:01Z',
     download_url: null,
+  }
+  const retriedReport = {
+    ...completedReport,
+    id: 'retry-report-id',
+    filename: 'fluxmed_retry_retry-report-id.pdf',
+    created_at: '2026-09-15T14:01:00Z',
+    completed_at: '2026-09-15T14:01:01Z',
+    download_url: '/api/v1/reports/retry-report-id/download',
   }
   vi.stubGlobal(
     'fetch',
@@ -114,11 +123,11 @@ it('retries a failed report and keeps the same run history entry', async () => {
         return response({ items: [operation], page: 1, page_size: 20, total: 1, total_pages: 1 })
       }
       if (path.endsWith('/api/v1/reports') && method === 'GET') {
-        return response({ items: [retried ? completedReport : failedReport] })
+        return response({ items: retried ? [retriedReport, failedReport] : [failedReport] })
       }
-      if (path.endsWith('/api/v1/reports/report-id/retry') && method === 'POST') {
+      if (path.endsWith('/api/v1/reports/failed-report-id/retry') && method === 'POST') {
         retried = true
-        return response(completedReport, 202)
+        return response(retriedReport, 202)
       }
       return response({}, 404)
     }),
@@ -128,12 +137,12 @@ it('retries a failed report and keeps the same run history entry', async () => {
   const user = userEvent.setup()
 
   expect(await screen.findByText('falha simulada')).toBeInTheDocument()
-  const retryButton = screen.getByRole('button', { name: 'Tentar novamente' })
-  await user.click(retryButton)
+  await user.click(screen.getByRole('button', { name: 'Tentar novamente' }))
 
   await waitFor(() => {
-    expect(screen.queryByText('falha simulada')).not.toBeInTheDocument()
+    expect(screen.getByText('fluxmed_retry_retry-report-id.pdf')).toBeInTheDocument()
   })
   expect(screen.getByRole('button', { name: 'Baixar' })).toBeEnabled()
-  expect(screen.getByText(/snapshot do run run-id-1/i)).toBeInTheDocument()
+  expect(screen.getByText('falha simulada')).toBeInTheDocument()
+  expect(screen.getAllByText(/snapshot do run run-id-1/i)).toHaveLength(2)
 })

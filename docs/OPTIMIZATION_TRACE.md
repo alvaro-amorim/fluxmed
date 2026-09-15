@@ -176,6 +176,7 @@ Durante o run o frontend mostra:
 - melhor custo;
 - violações HARD da melhor candidata atual;
 - makespan;
+- distância total da melhor candidata atual;
 - diversidade;
 - taxa de mutação;
 - total e razões de poda;

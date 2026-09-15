@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from openpyxl import load_workbook  # type: ignore[import-untyped]
+from openpyxl import load_workbook
 
 from fluxmed.domain.enums import (
     DeliveryPriority,
@@ -130,6 +130,8 @@ def _rows_from_csv(content: bytes) -> tuple[list[str], list[list[object]]]:
 def _rows_from_xlsx(content: bytes) -> tuple[list[str], list[list[object]]]:
     workbook = load_workbook(io.BytesIO(content), read_only=True, data_only=True)
     sheet = workbook.active
+    if sheet is None:
+        return [], []
     iterator = sheet.iter_rows(values_only=True)
     first = next(iterator, None)
     if first is None:

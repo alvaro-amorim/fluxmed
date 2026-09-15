@@ -458,6 +458,16 @@ export function OptimizationLivePanel({
           <strong>{formatMinutes(latestSnapshot?.payload.makespan_minutes)}</strong>
         </article>
         <article>
+          <span>Distância</span>
+          <strong>
+            {latestSnapshot?.payload.distance_km === undefined
+              ? '—'
+              : `${Number(latestSnapshot.payload.distance_km).toLocaleString('pt-BR', {
+                  maximumFractionDigits: 1,
+                })} km`}
+          </strong>
+        </article>
+        <article>
           <span>Diversidade</span>
           <strong>{formatPercent(latestSnapshot?.payload.diversity_ratio)}</strong>
         </article>

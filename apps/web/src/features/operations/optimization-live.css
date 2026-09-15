@@ -7,6 +7,29 @@
   box-shadow: 0 18px 42px rgba(20, 49, 55, 0.08);
 }
 
+.replay-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(13, 31, 35, 0.66);
+  backdrop-filter: blur(4px);
+}
+
+.replay-dialog {
+  width: min(1500px, 96vw);
+  max-height: 94vh;
+  overflow: auto;
+  border-radius: 22px;
+  box-shadow: 0 28px 90px rgba(7, 24, 28, 0.34);
+}
+
+.replay-dialog .optimization-live {
+  margin-top: 0;
+}
+
 .live-heading {
   display: flex;
   align-items: flex-start;
@@ -32,6 +55,26 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.65rem;
+}
+
+.replay-speed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 0.25rem;
+  color: #64777a;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.replay-speed select {
+  min-height: 38px;
+  padding: 0 0.55rem;
+  border: 1px solid #cfdddd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #244d54;
+  font: inherit;
 }
 
 .live-cancel {
@@ -281,9 +324,15 @@ button.result-stop-marker {
   background: #ffffff;
 }
 
-.replay-progress progress {
+.replay-progress input[type='range'] {
   width: 100%;
   accent-color: #27737c;
+  cursor: pointer;
+}
+
+.replay-progress input[type='range']:disabled {
+  cursor: default;
+  opacity: 0.5;
 }
 
 .replay-progress span {
@@ -307,6 +356,20 @@ button.result-stop-marker {
 }
 
 @media (max-width: 760px) {
+  .replay-overlay {
+    padding: 0;
+  }
+
+  .replay-dialog {
+    width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .replay-dialog .optimization-live {
+    border-radius: 0;
+  }
+
   .live-heading {
     flex-direction: column;
   }

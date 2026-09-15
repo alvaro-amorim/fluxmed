@@ -112,10 +112,10 @@ def create_report(
 def retry_report(
     report_id: uuid.UUID,
     session: DbSession,
-    _current_user: CurrentUser,
+    current_user: CurrentUser,
 ) -> ReportResponse:
     try:
-        report = ReportRetryService(session).retry(report_id)
+        report = ReportRetryService(session).retry(report_id, actor_user_id=current_user.id)
     except Exception as exc:
         _raise_report_error(exc)
         raise

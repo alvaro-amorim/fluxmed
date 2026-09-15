@@ -37,7 +37,8 @@ Relatório de leitura e apresentação com:
 - resumo das rotas;
 - veículo e equipe por rota;
 - sequência de entregas por rota;
-- custos e pontualidade.
+- custos e pontualidade;
+- conclusões determinísticas derivadas das métricas persistidas.
 
 ### XLSX
 
@@ -78,8 +79,11 @@ geração para background futuramente sem quebrar o frontend.
 
 ## Falhas e retry
 
-Falhas de renderização são persistidas como `FAILED` com `error_message`. O usuário pode tentar
-novamente gerando um novo relatório. A tentativa anterior permanece no histórico para auditoria.
+Falhas de renderização são persistidas como `FAILED` com `error_message`. O usuário pode usar
+`Tentar novamente` no histórico. O retry cria uma nova entrada de relatório, mas reutiliza uma cópia
+exata do snapshot persistido e o mesmo `optimization_run_id`; ele não consulta o estado atual da
+operação nem executa novamente o algoritmo genético. A tentativa que falhou permanece no histórico
+para auditoria.
 
 Operações `OUTDATED` não podem gerar um relatório novo; é necessário reotimizar primeiro.
 
@@ -89,6 +93,7 @@ Operações `OUTDATED` não podem gerar um relatório novo; é necessário reoti
 GET  /api/v1/reports
 GET  /api/v1/reports?operation_id={operation_id}
 POST /api/v1/operations/{operation_id}/reports
+POST /api/v1/reports/{report_id}/retry
 GET  /api/v1/reports/{report_id}
 GET  /api/v1/reports/{report_id}/download
 ```
@@ -119,6 +124,7 @@ A rota `/reports` oferece:
 - geração;
 - histórico de artefatos;
 - indicação de falha;
+- retry de falhas mantendo o snapshot original;
 - download dos arquivos concluídos.
 
 A UI explicita que o relatório é baseado em snapshot para não sugerir que arquivos antigos mudam
@@ -129,12 +135,12 @@ quando a operação é reotimizada.
 A fase pode ser encerrada quando:
 
 1. migrations passam em banco limpo;
-2. PDF é válido e baixável;
+2. PDF é válido, contém as seções operacionais e é baixável;
 3. XLSX contém as seis abas especificadas;
 4. CSV contém as entregas das rotas;
 5. histórico sobrevive a reload;
 6. snapshot de um relatório concluído não muda após alterações posteriores;
-7. falha de geração permanece visível e nova tentativa é possível;
+7. falha de geração permanece visível e retry usa exatamente o snapshot que falhou;
 8. frontend gera e baixa os três formatos;
 9. CI completo está verde;
 10. validação manual confirma arquivos reais de uma operação otimizada.

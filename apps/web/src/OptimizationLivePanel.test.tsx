@@ -38,6 +38,7 @@ const events: OptimizationTraceEvent[] = [
       generation: 0,
       cost_brl: '180.00',
       makespan_minutes: '120',
+      distance_km: '21.4',
       diversity_ratio: 0.8,
       mutation_rate: 0.22,
       pruning_counts: { CAPACITY_EXCEEDED: 2 },
@@ -55,6 +56,7 @@ const events: OptimizationTraceEvent[] = [
       generation: 4,
       cost_brl: '150.00',
       makespan_minutes: '105',
+      distance_km: '17.5',
       diversity_ratio: 0.62,
       mutation_rate: 0.25,
       pruning_counts: { CAPACITY_EXCEEDED: 3 },
@@ -125,6 +127,7 @@ describe('optimization replay', () => {
 
     await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument(), { timeout: 1200 })
     expect(screen.getByText(/R\$\s*150,00/)).toBeInTheDocument()
+    expect(screen.getByText('17,5 km')).toBeInTheDocument()
     expect(screen.getByText('3 / 3 eventos')).toBeInTheDocument()
     expect(EventSourceMock).not.toHaveBeenCalled()
 

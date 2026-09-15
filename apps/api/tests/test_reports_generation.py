@@ -1,6 +1,7 @@
 import io
 
 from openpyxl import load_workbook
+from pypdf import PdfReader
 
 from fluxmed.application.reports.service import ReportService
 
@@ -114,8 +115,15 @@ def test_xlsx_report_contains_required_sheets() -> None:
     assert workbook["Entregas"]["D2"].value == "DLV-NF001-001"
 
 
-def test_pdf_report_is_valid_document() -> None:
+def test_pdf_report_contains_operational_sections() -> None:
     content = ReportService._generate_pdf(_snapshot())
+    reader = PdfReader(io.BytesIO(content))
+    text = "\n".join(page.extract_text() or "" for page in reader.pages)
 
     assert content.startswith(b"%PDF-")
-    assert len(content) > 1000
+    assert "FluxMed" in text
+    assert "OP-20260915-001" in text
+    assert "Rotas" in text
+    assert "Motorista Demo 1" in text
+    assert "Conclusões" in text
+    assert "123.45" in text

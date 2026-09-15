@@ -25,6 +25,20 @@ Um relatório já concluído nunca consulta novamente a operação para montar o
 for reotimizada, um novo relatório deve ser gerado e passa a ter um novo snapshot e um novo
 `optimization_run_id`.
 
+## Horários e fuso operacional
+
+O snapshot preserva timestamps timezone-aware como evidência auditável. O fuso operacional da V1
+para Santa Aurora é `America/Sao_Paulo`.
+
+Regras de apresentação:
+
+- PDF exibe horários convertidos para o fuso operacional;
+- XLSX grava chegada e saída já convertidas para o fuso operacional, como células de data/hora do
+  Excel;
+- CSV preserva `chegada_planejada` no timestamp original e adiciona
+  `chegada_planejada_local` com o instante convertido para `America/Sao_Paulo`;
+- conversão de fuso nunca usa remoção simples de `tzinfo` antes da conversão.
+
 ## Formatos
 
 ### PDF
@@ -38,6 +52,7 @@ Relatório de leitura e apresentação com:
 - veículo e equipe por rota;
 - sequência de entregas por rota;
 - custos e pontualidade;
+- horários apresentados no fuso operacional;
 - conclusões determinísticas derivadas das métricas persistidas.
 
 ### XLSX
@@ -53,10 +68,14 @@ Equipe
 Custos
 ```
 
+Valores quantitativos são gravados como células numéricas reais, e não texto. Custos, distâncias,
+durações, peso, volume e percentuais recebem formatos de célula adequados para permitir fórmulas,
+ordenação, filtros e gráficos no Excel. Chegada e saída são células de data/hora locais.
+
 ### CSV
 
 Exportação tabular orientada a entregas, contendo operação, rota, veículo, sequência, entrega,
-destinatário, endereço, prioridade, chegada planejada e atraso.
+destinatário, endereço, prioridade, chegada planejada original, chegada planejada local e atraso.
 
 ## Persistência
 
@@ -135,9 +154,9 @@ quando a operação é reotimizada.
 A fase pode ser encerrada quando:
 
 1. migrations passam em banco limpo;
-2. PDF é válido, contém as seções operacionais e é baixável;
-3. XLSX contém as seis abas especificadas;
-4. CSV contém as entregas das rotas;
+2. PDF é válido, contém as seções operacionais, usa o fuso operacional e é baixável;
+3. XLSX contém as seis abas especificadas, horários locais e células quantitativas numéricas;
+4. CSV contém as entregas das rotas e distingue timestamp original de horário local;
 5. histórico sobrevive a reload;
 6. snapshot de um relatório concluído não muda após alterações posteriores;
 7. falha de geração permanece visível e retry usa exatamente o snapshot que falhou;

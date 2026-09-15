@@ -3,6 +3,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -16,6 +17,7 @@ from fluxmed.application.optimization.team_assignment import TeamAssignmentError
 from fluxmed.application.preflight import PreflightService
 from fluxmed.application.resources import ResourceService, VehicleView
 from fluxmed.domain.enums import OperationStatus, VehicleOwnershipType, WorkerRole
+from fluxmed.infrastructure.models.city import AddressModel, CityModel
 from fluxmed.infrastructure.models.delivery import DeliveryModel
 from fluxmed.infrastructure.models.operation import OperationModel
 from fluxmed.infrastructure.models.optimization_result import OptimizationRunModel
@@ -146,6 +148,7 @@ class OptimizationService:
                 delivery.id: delivery.destination_address_id for delivery in delivery_models
             },
         )
+        operation_timezone = self._operation_timezone(delivery_models)
         seed = random_seed if random_seed is not None else operation.id.int % 2_147_483_647
         result = self._optimizer.optimize(
             deliveries=deliveries,
@@ -155,10 +158,12 @@ class OptimizationService:
             operation_start_at=datetime.combine(
                 operation.operation_date,
                 operation.operation_start_time,
+                tzinfo=operation_timezone,
             ),
             operation_end_at=datetime.combine(
                 operation.operation_date,
                 operation.operation_end_time,
+                tzinfo=operation_timezone,
             ),
             on_progress=on_progress,
             should_cancel=should_cancel,
@@ -201,6 +206,29 @@ class OptimizationService:
             validation=validation,
             persisted_result=persisted,
         )
+
+    def _operation_timezone(self, deliveries: list[DeliveryModel]) -> ZoneInfo:
+        address_ids = {delivery.destination_address_id for delivery in deliveries}
+        timezone_names = set(
+            self._session.scalars(
+                select(CityModel.timezone)
+                .join(AddressModel, AddressModel.city_id == CityModel.id)
+                .where(AddressModel.id.in_(address_ids))
+            )
+        )
+        if not timezone_names:
+            raise OptimizationInputError("Não foi possível determinar o fuso horário da operação.")
+        if len(timezone_names) != 1:
+            raise OptimizationInputError(
+                "Uma operação não pode combinar entregas de cidades com fusos horários diferentes."
+            )
+        timezone_name = next(iter(timezone_names))
+        try:
+            return ZoneInfo(timezone_name)
+        except ZoneInfoNotFoundError as exc:
+            raise OptimizationInputError(
+                f"Fuso horário da cidade não reconhecido: {timezone_name}."
+            ) from exc
 
     @staticmethod
     def _vehicle_input(

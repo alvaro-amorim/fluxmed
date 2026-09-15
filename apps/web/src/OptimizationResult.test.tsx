@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { OptimizationResultPanel } from './features/operations/OptimizationResultPanel'
-import type { OptimizationResult } from './types/optimization'
+import type { OptimizationResult, OptimizationRun } from './types/optimization'
 
 vi.mock('./features/operations/OptimizationResultMap', () => ({
   OptimizationResultMap: () => <div data-testid="optimization-result-map">Mapa final</div>,
@@ -88,12 +88,54 @@ const result: OptimizationResult = {
   ],
 }
 
+const failedRun: OptimizationRun = {
+  id: 'run-failed',
+  operation_id: 'operation-1',
+  status: 'FAILED',
+  random_seed: 582914,
+  generations_completed: 73,
+  stop_reason: 'FAILED',
+  validated: false,
+  error_code: 'OPTIMIZATIONINPUTERROR',
+  error_message:
+    'NO_FEASIBLE_SOLUTION_FOUND: DELIVERY_UNASSIGNED, DELIVERY_UNASSIGNED, DELIVERY_UNASSIGNED, DELIVERY_UNASSIGNED.',
+  latest_sequence: 95,
+  created_at: '2026-09-15T12:52:39Z',
+  started_at: '2026-09-15T12:52:40Z',
+  completed_at: '2026-09-15T12:53:12Z',
+  cancel_requested_at: null,
+}
+
 function response(body: unknown, status = 200): Response {
   return {
     ok: status >= 200 && status < 300,
     status,
     json: async () => body,
   } as Response
+}
+
+function resourcesResponse() {
+  return {
+    operation_id: 'operation-1',
+    operation_date: '2026-09-14',
+    selected_vehicle_ids: ['vehicle-1'],
+    selected_worker_ids: ['driver-1'],
+    unavailable_worker_ids: [],
+    vehicles: [],
+    workers: [
+      {
+        id: 'driver-1',
+        name: 'Carlos',
+        role: 'DRIVER',
+        engagement_type: 'EMPLOYEE',
+        compensation_model: 'HOURLY',
+        compensation_value_brl: '10.00',
+        active: true,
+        created_at: '2026-09-14T10:00:00Z',
+        updated_at: '2026-09-14T10:00:00Z',
+      },
+    ],
+  }
 }
 
 afterEach(() => {
@@ -109,27 +151,7 @@ describe('optimization result', () => {
         return response(result)
       }
       if (path.endsWith('/operations/operation-1/resources')) {
-        return response({
-          operation_id: 'operation-1',
-          operation_date: '2026-09-14',
-          selected_vehicle_ids: ['vehicle-1'],
-          selected_worker_ids: ['driver-1'],
-          unavailable_worker_ids: [],
-          vehicles: [],
-          workers: [
-            {
-              id: 'driver-1',
-              name: 'Carlos',
-              role: 'DRIVER',
-              engagement_type: 'EMPLOYEE',
-              compensation_model: 'HOURLY',
-              compensation_value_brl: '10.00',
-              active: true,
-              created_at: '2026-09-14T10:00:00Z',
-              updated_at: '2026-09-14T10:00:00Z',
-            },
-          ],
-        })
+        return response(resourcesResponse())
       }
       if (path.endsWith('/optimization-runs/run-1/approve') && method === 'POST') {
         return response(result)
@@ -159,5 +181,35 @@ describe('optimization result', () => {
       expect.stringContaining('/optimization-runs/run-1/approve'),
       expect.objectContaining({ method: 'POST' }),
     )
+  })
+
+  it('keeps a failed optimization visible with its persisted reason', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const path = typeof input === 'string' ? input : input.toString()
+      if (path.endsWith('/operations/operation-1/optimization-runs/latest')) {
+        return response({}, 404)
+      }
+      if (path.endsWith('/operations/operation-1/optimization-runs/latest-run')) {
+        return response(failedRun)
+      }
+      if (path.endsWith('/operations/operation-1/resources')) {
+        return response(resourcesResponse())
+      }
+      return response({}, 404)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(
+      <OptimizationResultPanel
+        operationId="operation-1"
+        operationStatus="READY"
+        onOperationChanged={vi.fn(async () => undefined)}
+      />,
+    )
+
+    expect(await screen.findByText('A otimização não foi concluída')).toBeInTheDocument()
+    expect(screen.getByText(failedRun.error_message ?? '')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument()
+    expect(screen.queryByText('Ainda não existe um plano otimizado')).not.toBeInTheDocument()
   })
 })

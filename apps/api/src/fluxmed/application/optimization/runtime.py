@@ -145,13 +145,14 @@ class OptimizationRunCoordinator:
             session.commit()
 
             previous_best: FitnessVector | None = None
+            previous_assignments: dict[uuid.UUID, tuple[uuid.UUID, int]] = {}
             geometry_builder = RoutingMatrixBuilder(session)
 
             def should_cancel() -> bool:
                 return cancellation.is_set() or self._db_cancel_requested(session, run_id)
 
             def on_progress(progress: OptimizationProgress) -> None:
-                nonlocal previous_best
+                nonlocal previous_assignments, previous_best
                 elapsed_ms = self._elapsed_ms(started_monotonic)
                 current_run = session.get(OptimizationRunModel, run_id)
                 if current_run is not None:
@@ -165,6 +166,13 @@ class OptimizationRunCoordinator:
                     payload=self._generation_payload(progress),
                 )
                 if progress.improved:
+                    routes = self._routes_payload(
+                        progress,
+                        operation=operation,
+                        delivery_addresses=delivery_addresses,
+                        delivery_points=delivery_points,
+                        geometry_builder=geometry_builder,
+                    )
                     trace.append_event(
                         run_id,
                         "best_solution_updated",
@@ -176,15 +184,22 @@ class OptimizationRunCoordinator:
                                 previous_best,
                                 progress.best.fitness,
                             ),
-                            "routes": self._routes_payload(
-                                progress,
-                                operation=operation,
-                                delivery_addresses=delivery_addresses,
-                                delivery_points=delivery_points,
-                                geometry_builder=geometry_builder,
-                            ),
+                            "routes": routes,
                         },
                     )
+                    route_changes, current_assignments = self._route_assignment_changes(
+                        previous_assignments,
+                        progress,
+                    )
+                    if route_changes:
+                        trace.append_event(
+                            run_id,
+                            "route_assignment_change",
+                            generation=progress.generation,
+                            elapsed_ms=elapsed_ms,
+                            payload={"changes": route_changes},
+                        )
+                    previous_assignments = current_assignments
                     previous_best = progress.best.fitness
                 if progress.generation == 0 or progress.generation % 10 == 0:
                     trace.append_event(
@@ -214,6 +229,23 @@ class OptimizationRunCoordinator:
                 elapsed_ms=elapsed_ms,
                 payload={"counts": result_view.result.pruning_counts, "final": True},
             )
+            final_comparison = {
+                "final": self._fitness_payload(result_view.result.best.fitness),
+                "baselines": [
+                    {
+                        "name": baseline.name,
+                        **self._fitness_payload(baseline.fitness),
+                    }
+                    for baseline in result_view.result.baselines
+                ],
+            }
+            trace.append_event(
+                run_id,
+                "final_comparison",
+                generation=result_view.result.generations_completed,
+                elapsed_ms=elapsed_ms,
+                payload=final_comparison,
+            )
             trace.append_event(
                 run_id,
                 "optimization_completed",
@@ -223,14 +255,7 @@ class OptimizationRunCoordinator:
                     "status": OptimizationRunStatus.COMPLETED.value,
                     "validated": result_view.validation.valid,
                     "stop_reason": result_view.result.stop_reason,
-                    "final": self._fitness_payload(result_view.result.best.fitness),
-                    "baselines": [
-                        {
-                            "name": baseline.name,
-                            **self._fitness_payload(baseline.fitness),
-                        }
-                        for baseline in result_view.result.baselines
-                    ],
+                    **final_comparison,
                     "pruning_counts": result_view.result.pruning_counts,
                 },
             )
@@ -345,6 +370,39 @@ class OptimizationRunCoordinator:
                 "after": str(after),
             }
         )
+
+    @staticmethod
+    def _route_assignment_changes(
+        previous: dict[uuid.UUID, tuple[uuid.UUID, int]],
+        progress: OptimizationProgress,
+    ) -> tuple[
+        list[dict[str, object]],
+        dict[uuid.UUID, tuple[uuid.UUID, int]],
+    ]:
+        current: dict[uuid.UUID, tuple[uuid.UUID, int]] = {}
+        for route in progress.best.solution.routes:
+            for position, delivery_id in enumerate(route.delivery_ids, start=1):
+                current[delivery_id] = (route.vehicle_id, position)
+
+        if not previous:
+            return [], current
+
+        changes: list[dict[str, object]] = []
+        for delivery_id, (vehicle_id, position) in current.items():
+            old = previous.get(delivery_id)
+            if old is None or old == (vehicle_id, position):
+                continue
+            previous_vehicle_id, previous_position = old
+            changes.append(
+                {
+                    "delivery_id": str(delivery_id),
+                    "from_vehicle_id": str(previous_vehicle_id),
+                    "to_vehicle_id": str(vehicle_id),
+                    "from_position": previous_position,
+                    "to_position": position,
+                }
+            )
+        return changes, current
 
     @staticmethod
     def _routes_payload(

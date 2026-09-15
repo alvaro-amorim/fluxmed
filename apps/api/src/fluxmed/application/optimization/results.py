@@ -275,6 +275,7 @@ class OptimizationResultService:
             HUNDRED if total_stops == 0 else Decimal(on_time_count) / Decimal(total_stops) * HUNDRED
         )
 
+        run: OptimizationRunModel
         if run_id is None:
             run = OptimizationRunModel(
                 operation_id=operation.id,
@@ -298,9 +299,10 @@ class OptimizationResultService:
             )
             self._session.add(run)
         else:
-            run = self._session.get(OptimizationRunModel, run_id)
-            if run is None or run.operation_id != operation.id:
+            existing_run = self._session.get(OptimizationRunModel, run_id)
+            if existing_run is None or existing_run.operation_id != operation.id:
                 raise OptimizationResultNotFoundError(run_id)
+            run = existing_run
             run.operation_revision_id = revision.id
             run.status = OptimizationRunStatus.COMPLETED.value
             run.random_seed = algorithm_result.random_seed

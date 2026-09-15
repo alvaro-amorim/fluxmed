@@ -171,7 +171,9 @@ class RouteDecoder:
     def _align(reference: datetime, value: datetime) -> datetime:
         if reference.tzinfo is None:
             if value.tzinfo is not None:
-                raise ValueError("Cannot align a timezone-aware value to a naive operation schedule.")
+                raise ValueError(
+                    "Cannot align a timezone-aware value to a naive operation schedule."
+                )
             return value
         if value.tzinfo is None:
             return value.replace(tzinfo=reference.tzinfo)

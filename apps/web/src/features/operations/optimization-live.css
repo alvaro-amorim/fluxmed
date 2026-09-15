@@ -100,7 +100,7 @@
 
 .live-kpis {
   display: grid;
-  grid-template-columns: repeat(8, minmax(105px, 1fr));
+  grid-template-columns: repeat(9, minmax(95px, 1fr));
   gap: 0.75rem;
   padding: 1.25rem 1.5rem;
 }

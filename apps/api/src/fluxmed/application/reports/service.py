@@ -368,7 +368,7 @@ class ReportService:
         for label, value in summary_rows:
             summary.append([label, value])
         summary["A1"].font = Font(bold=True)
-        summary["B9"].number_format = 'R$ #,##0.00'
+        summary["B9"].number_format = "R$ #,##0.00"
         summary["B10"].number_format = '0.000 "km"'
         summary["B11"].number_format = '0.00 "min"'
         summary["B13"].number_format = "0.00%"
@@ -412,7 +412,7 @@ class ReportService:
         ReportService._format_column(routes_sheet, "H", '0.0000 "m³"')
         ReportService._format_column(routes_sheet, "I", "0.00%")
         ReportService._format_column(routes_sheet, "J", "0.00%")
-        ReportService._format_column(routes_sheet, "K", 'R$ #,##0.00')
+        ReportService._format_column(routes_sheet, "K", "R$ #,##0.00")
 
         deliveries_sheet = workbook.create_sheet("Entregas")
         delivery_rows: list[list[object]] = []
@@ -498,7 +498,7 @@ class ReportService:
                 for route in data["routes"]
             ],
         )
-        ReportService._format_column(team_sheet, "F", 'R$ #,##0.00')
+        ReportService._format_column(team_sheet, "F", "R$ #,##0.00")
 
         costs_sheet = workbook.create_sheet("Custos")
         ReportService._append_table(
@@ -528,7 +528,7 @@ class ReportService:
             ],
         )
         for column in "BCDEFGH":
-            ReportService._format_column(costs_sheet, column, 'R$ #,##0.00')
+            ReportService._format_column(costs_sheet, column, "R$ #,##0.00")
 
         for worksheet in workbook.worksheets:
             ReportService._autosize(worksheet)

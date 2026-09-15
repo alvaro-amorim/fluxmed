@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from openpyxl import Workbook
 from openpyxl.styles import Font
@@ -34,6 +35,8 @@ from fluxmed.infrastructure.models.report import ReportModel
 
 REPORT_TYPE = "DAILY_OPERATION"
 REPORT_FORMATS = {"PDF", "XLSX", "CSV"}
+REPORT_TIMEZONE_NAME = "America/Sao_Paulo"
+REPORT_TIMEZONE = ZoneInfo(REPORT_TIMEZONE_NAME)
 
 
 class ReportNotFoundError(LookupError):
@@ -252,6 +255,7 @@ class ReportService:
                 "status": operation.status.value,
                 "revision_number": result.revision_number,
                 "city_name": "Santa Aurora",
+                "timezone": REPORT_TIMEZONE_NAME,
             },
             "optimization": {
                 "run_id": str(result.run_id),
@@ -311,12 +315,14 @@ class ReportService:
                 "endereco",
                 "prioridade",
                 "chegada_planejada",
+                "chegada_planejada_local",
                 "atraso_minutos",
             ]
         )
         operation_code = str(data["operation"]["operation_code"])
         for route in data["routes"]:
             for stop in route["stops"]:
+                arrival = stop["planned_arrival_at"] or ""
                 writer.writerow(
                     [
                         operation_code,
@@ -327,7 +333,8 @@ class ReportService:
                         stop["recipient_name"],
                         stop["address_label"],
                         stop["priority"],
-                        stop["planned_arrival_at"] or "",
+                        arrival,
+                        ReportService._local_iso(arrival),
                         stop["lateness_minutes"],
                     ]
                 )
@@ -347,19 +354,24 @@ class ReportService:
             ("Operação", operation["operation_code"]),
             ("Data", operation["operation_date"]),
             ("Cidade", operation["city_name"]),
+            ("Fuso operacional", operation.get("timezone", REPORT_TIMEZONE_NAME)),
             ("Revisão", operation["revision_number"]),
             ("Status", operation["status"]),
             ("Entregas", metrics["delivery_count"]),
             ("Veículos usados", metrics["vehicles_used"]),
-            ("Custo total (R$)", metrics["total_cost_brl"]),
-            ("Distância (km)", metrics["distance_km"]),
-            ("Makespan (min)", metrics["makespan_minutes"]),
+            ("Custo total (R$)", ReportService._number(metrics["total_cost_brl"])),
+            ("Distância (km)", ReportService._number(metrics["distance_km"])),
+            ("Makespan (min)", ReportService._number(metrics["makespan_minutes"])),
             ("Atrasos críticos", metrics["critical_delays"]),
-            ("No prazo (%)", metrics["on_time_percentage"]),
+            ("No prazo (%)", ReportService._percent(metrics["on_time_percentage"])),
         ]
         for label, value in summary_rows:
             summary.append([label, value])
         summary["A1"].font = Font(bold=True)
+        summary["B9"].number_format = 'R$ #,##0.00'
+        summary["B10"].number_format = '0.000 "km"'
+        summary["B11"].number_format = '0.00 "min"'
+        summary["B13"].number_format = "0.00%"
 
         routes_sheet = workbook.create_sheet("Rotas")
         ReportService._append_table(
@@ -383,17 +395,24 @@ class ReportService:
                     route["vehicle"]["plate"],
                     route["vehicle"]["type"],
                     route["delivery_count"],
-                    route["distance_km"],
-                    route["duration_minutes"],
-                    route["total_weight_kg"],
-                    route["total_volume_m3"],
-                    route["weight_utilization_pct"],
-                    route["volume_utilization_pct"],
-                    route["cost"]["total_brl"],
+                    ReportService._number(route["distance_km"]),
+                    ReportService._number(route["duration_minutes"]),
+                    ReportService._number(route["total_weight_kg"]),
+                    ReportService._number(route["total_volume_m3"]),
+                    ReportService._percent(route["weight_utilization_pct"]),
+                    ReportService._percent(route["volume_utilization_pct"]),
+                    ReportService._number(route["cost"]["total_brl"]),
                 ]
                 for route in data["routes"]
             ],
         )
+        ReportService._format_column(routes_sheet, "E", '0.000 "km"')
+        ReportService._format_column(routes_sheet, "F", '0.00 "min"')
+        ReportService._format_column(routes_sheet, "G", '0.000 "kg"')
+        ReportService._format_column(routes_sheet, "H", '0.0000 "m³"')
+        ReportService._format_column(routes_sheet, "I", "0.00%")
+        ReportService._format_column(routes_sheet, "J", "0.00%")
+        ReportService._format_column(routes_sheet, "K", 'R$ #,##0.00')
 
         deliveries_sheet = workbook.create_sheet("Entregas")
         delivery_rows: list[list[object]] = []
@@ -409,10 +428,10 @@ class ReportService:
                         stop["address_label"],
                         stop["priority"],
                         stop["time_window_policy"],
-                        stop["planned_arrival_at"],
-                        stop["planned_departure_at"],
-                        stop["service_time_minutes"],
-                        stop["lateness_minutes"],
+                        ReportService._xlsx_local_datetime(stop["planned_arrival_at"]),
+                        ReportService._xlsx_local_datetime(stop["planned_departure_at"]),
+                        ReportService._number(stop["service_time_minutes"]),
+                        ReportService._number(stop["lateness_minutes"]),
                     ]
                 )
         ReportService._append_table(
@@ -426,13 +445,17 @@ class ReportService:
                 "Endereço",
                 "Prioridade",
                 "Janela",
-                "Chegada",
-                "Saída",
+                "Chegada local",
+                "Saída local",
                 "Serviço (min)",
                 "Atraso (min)",
             ],
             delivery_rows,
         )
+        ReportService._format_column(deliveries_sheet, "I", "dd/mm/yyyy hh:mm")
+        ReportService._format_column(deliveries_sheet, "J", "dd/mm/yyyy hh:mm")
+        ReportService._format_column(deliveries_sheet, "K", '0.00 "min"')
+        ReportService._format_column(deliveries_sheet, "L", '0.00 "min"')
 
         vehicles_sheet = workbook.create_sheet("Veículos")
         ReportService._append_table(
@@ -445,11 +468,12 @@ class ReportService:
                     route["vehicle"]["type"],
                     route["vehicle"]["ownership_type"],
                     route["delivery_count"],
-                    route["distance_km"],
+                    ReportService._number(route["distance_km"]),
                 ]
                 for route in data["routes"]
             ],
         )
+        ReportService._format_column(vehicles_sheet, "F", '0.000 "km"')
 
         team_sheet = workbook.create_sheet("Equipe")
         ReportService._append_table(
@@ -469,11 +493,12 @@ class ReportService:
                     route["team"]["primary_role"] or "Contrato",
                     ReportService._worker_name(route["team"]["primary_worker"]),
                     ReportService._worker_name(route["team"]["helper"]),
-                    route["team"]["team_cost_brl"],
+                    ReportService._number(route["team"]["team_cost_brl"]),
                 ]
                 for route in data["routes"]
             ],
         )
+        ReportService._format_column(team_sheet, "F", 'R$ #,##0.00')
 
         costs_sheet = workbook.create_sheet("Custos")
         ReportService._append_table(
@@ -491,17 +516,19 @@ class ReportService:
             [
                 [
                     route["route_code"],
-                    route["cost"]["fuel_brl"],
-                    route["cost"]["depreciation_brl"],
-                    route["cost"]["maintenance_brl"],
-                    route["cost"]["fixed_time_brl"],
-                    route["cost"]["team_brl"],
-                    route["cost"]["contract_brl"],
-                    route["cost"]["total_brl"],
+                    ReportService._number(route["cost"]["fuel_brl"]),
+                    ReportService._number(route["cost"]["depreciation_brl"]),
+                    ReportService._number(route["cost"]["maintenance_brl"]),
+                    ReportService._number(route["cost"]["fixed_time_brl"]),
+                    ReportService._number(route["cost"]["team_brl"]),
+                    ReportService._number(route["cost"]["contract_brl"]),
+                    ReportService._number(route["cost"]["total_brl"]),
                 ]
                 for route in data["routes"]
             ],
         )
+        for column in "BCDEFGH":
+            ReportService._format_column(costs_sheet, column, 'R$ #,##0.00')
 
         for worksheet in workbook.worksheets:
             ReportService._autosize(worksheet)
@@ -600,7 +627,7 @@ class ReportService:
                     styles["BodyText"],
                 )
             )
-            stops = [["#", "Entrega", "Destinatário", "Prioridade", "Chegada"]]
+            stops = [["#", "Entrega", "Destinatário", "Prioridade", "Chegada local"]]
             for stop in route["stops"]:
                 stops.append(
                     [
@@ -632,6 +659,7 @@ class ReportService:
                 Paragraph(conclusion, styles["BodyText"]),
                 Spacer(1, 4 * mm),
                 Paragraph(
+                    f"Horários exibidos em {REPORT_TIMEZONE_NAME}. "
                     "Relatório gerado a partir de snapshot imutável do plano otimizado.",
                     styles["Italic"],
                 ),
@@ -674,6 +702,12 @@ class ReportService:
             worksheet.column_dimensions[get_column_letter(column_index)].width = min(width + 2, 44)
 
     @staticmethod
+    def _format_column(worksheet: Any, column: str, number_format: str) -> None:
+        for cell in worksheet[column][1:]:
+            if cell.value is not None:
+                cell.number_format = number_format
+
+    @staticmethod
     def _worker_name(worker: object) -> str:
         if isinstance(worker, dict):
             name = worker.get("name")
@@ -681,13 +715,48 @@ class ReportService:
         return "Não necessário"
 
     @staticmethod
-    def _display_time(value: object) -> str:
+    def _number(value: object) -> float:
+        if value is None or value == "":
+            return 0.0
+        return float(str(value))
+
+    @staticmethod
+    def _percent(value: object) -> float:
+        return ReportService._number(value) / 100.0
+
+    @staticmethod
+    def _aware_datetime(value: object) -> datetime | None:
         if not value:
-            return "—"
+            return None
         try:
-            return datetime.fromisoformat(str(value)).strftime("%H:%M")
+            parsed = datetime.fromisoformat(str(value))
         except ValueError:
-            return str(value)
+            return None
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=REPORT_TIMEZONE)
+        return parsed
+
+    @staticmethod
+    def _local_datetime(value: object) -> datetime | None:
+        parsed = ReportService._aware_datetime(value)
+        return parsed.astimezone(REPORT_TIMEZONE) if parsed is not None else None
+
+    @staticmethod
+    def _xlsx_local_datetime(value: object) -> datetime | None:
+        localized = ReportService._local_datetime(value)
+        if localized is None:
+            return None
+        return localized.replace(tzinfo=None)
+
+    @staticmethod
+    def _local_iso(value: object) -> str:
+        localized = ReportService._local_datetime(value)
+        return localized.isoformat() if localized is not None else ""
+
+    @staticmethod
+    def _display_time(value: object) -> str:
+        localized = ReportService._local_datetime(value)
+        return localized.strftime("%H:%M") if localized is not None else "—"
 
     @staticmethod
     def _snapshot_data(snapshot: dict[str, object]) -> dict[str, Any]:

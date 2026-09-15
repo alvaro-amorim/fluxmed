@@ -267,12 +267,8 @@ class ReportService:
                 "makespan_minutes": str(result.makespan_minutes),
                 "critical_delays": result.critical_delays,
                 "on_time_percentage": str(result.on_time_percentage),
-                "average_weight_utilization_pct": str(
-                    result.average_weight_utilization_pct
-                ),
-                "average_volume_utilization_pct": str(
-                    result.average_volume_utilization_pct
-                ),
+                "average_weight_utilization_pct": str(result.average_weight_utilization_pct),
+                "average_volume_utilization_pct": str(result.average_volume_utilization_pct),
             },
             "routes": routes,
         }

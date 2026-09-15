@@ -622,8 +622,9 @@ class ReportService:
         conclusion = (
             f"Plano validado para {metrics['delivery_count']} entregas distribuídas em "
             f"{metrics['vehicles_used']} veículos, com {metrics['on_time_percentage']}% no prazo, "
-            f"{metrics['critical_delays']} atrasos críticos, {metrics['distance_km']} km de distância "
-            f"total e custo de R$ {metrics['total_cost_brl']}."
+            f"{metrics['critical_delays']} atrasos críticos, "
+            f"{metrics['distance_km']} km de distância total e "
+            f"custo de R$ {metrics['total_cost_brl']}."
         )
         story.extend(
             [

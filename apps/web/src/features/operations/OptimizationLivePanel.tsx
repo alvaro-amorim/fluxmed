@@ -28,6 +28,9 @@ const TERMINAL = new Set<OptimizationRunStatus>([
   'CANCELLED',
   'INTERRUPTED',
 ])
+const REPLAY_SPEEDS = [1, 2, 4] as const
+
+type ReplaySpeed = (typeof REPLAY_SPEEDS)[number]
 
 function eventStatus(event: OptimizationTraceEvent): OptimizationRunStatus | null {
   if (event.event_type === 'optimization_completed') return 'COMPLETED'
@@ -116,7 +119,10 @@ function ConvergenceChart({ events }: { events: OptimizationTraceEvent[] }) {
       <svg viewBox={`0 0 ${width} ${height}`} role="img">
         <polyline points={polyline} fill="none" stroke="currentColor" strokeWidth="3" />
       </svg>
-      <div><span>Geração 0</span><span>Geração {maxGeneration}</span></div>
+      <div>
+        <span>Geração 0</span>
+        <span>Geração {maxGeneration}</span>
+      </div>
     </div>
   )
 }
@@ -130,6 +136,7 @@ export function OptimizationLivePanel({
   const [events, setEvents] = useState<OptimizationTraceEvent[]>([])
   const [visibleCount, setVisibleCount] = useState(0)
   const [playing, setPlaying] = useState(false)
+  const [playbackSpeed, setPlaybackSpeed] = useState<ReplaySpeed>(1)
   const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'reconnecting'>(
     'connecting',
   )
@@ -223,13 +230,22 @@ export function OptimizationLivePanel({
         }
         return current + 1
       })
-    }, 450)
+    }, 450 / playbackSpeed)
     return () => window.clearInterval(timer)
-  }, [events.length, mode, playing, visibleCount])
+  }, [events.length, mode, playbackSpeed, playing, visibleCount])
 
   useEffect(() => {
     if (mode === 'replay' && visibleCount >= events.length && events.length > 0) setPlaying(false)
   }, [events.length, mode, visibleCount])
+
+  useEffect(() => {
+    if (mode !== 'replay' || !onClose) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [mode, onClose])
 
   const shownEvents = mode === 'replay' ? events.slice(0, visibleCount) : events
   const started = shownEvents.find((event) => event.event_type === 'optimization_started')
@@ -258,6 +274,11 @@ export function OptimizationLivePanel({
   }, [mode, shownEvents, status])
 
   async function cancel() {
+    const confirmed = window.confirm(
+      'Cancelar esta otimização? O cálculo atual será interrompido e nenhum resultado parcial será aprovado.',
+    )
+    if (!confirmed) return
+
     setCancelling(true)
     setError(null)
     try {
@@ -271,15 +292,30 @@ export function OptimizationLivePanel({
   }
 
   function restartReplay() {
+    setPlaying(false)
     setVisibleCount(Math.min(1, events.length))
-    setPlaying(events.length > 1)
   }
 
-  return (
-    <section className="optimization-live" aria-label={mode === 'replay' ? 'Replay da otimização' : 'Otimização em tempo real'}>
+  function stepReplay(delta: number) {
+    setPlaying(false)
+    setVisibleCount((current) => Math.min(events.length, Math.max(0, current + delta)))
+  }
+
+  function seekReplay(value: number) {
+    setPlaying(false)
+    setVisibleCount(Math.min(events.length, Math.max(0, value)))
+  }
+
+  const panel = (
+    <section
+      className="optimization-live"
+      aria-label={mode === 'replay' ? 'Replay da otimização' : 'Otimização em tempo real'}
+    >
       <header className="live-heading">
         <div>
-          <p className="eyebrow eyebrow--dark">{mode === 'replay' ? 'Decision Trace' : 'Algoritmo genético em execução'}</p>
+          <p className="eyebrow eyebrow--dark">
+            {mode === 'replay' ? 'Decision Trace' : 'Algoritmo genético em execução'}
+          </p>
           <h2>{statusLabel(visibleStatus, mode === 'replay')}</h2>
           <p>
             {mode === 'replay'
@@ -292,16 +328,65 @@ export function OptimizationLivePanel({
         <div className="live-actions">
           {mode === 'replay' ? (
             <>
-              <button className="button button--secondary" type="button" onClick={() => setPlaying((value) => !value)} disabled={events.length < 2}>
+              <button
+                className="button button--ghost"
+                type="button"
+                onClick={() => stepReplay(-1)}
+                disabled={visibleCount <= 0}
+              >
+                Anterior
+              </button>
+              <button
+                className="button button--secondary"
+                type="button"
+                onClick={() => setPlaying((value) => !value)}
+                disabled={events.length < 2}
+              >
                 {playing ? 'Pausar replay' : 'Reproduzir'}
               </button>
-              <button className="button button--ghost" type="button" onClick={restartReplay} disabled={events.length < 2}>
+              <button
+                className="button button--ghost"
+                type="button"
+                onClick={() => stepReplay(1)}
+                disabled={visibleCount >= events.length}
+              >
+                Próximo
+              </button>
+              <label className="replay-speed">
+                <span>Velocidade</span>
+                <select
+                  aria-label="Velocidade do replay"
+                  value={playbackSpeed}
+                  onChange={(event) => setPlaybackSpeed(Number(event.target.value) as ReplaySpeed)}
+                >
+                  {REPLAY_SPEEDS.map((speed) => (
+                    <option key={speed} value={speed}>
+                      {speed}x
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                className="button button--ghost"
+                type="button"
+                onClick={restartReplay}
+                disabled={events.length < 2}
+              >
                 Reiniciar
               </button>
-              {onClose ? <button className="button button--ghost" type="button" onClick={onClose}>Fechar</button> : null}
+              {onClose ? (
+                <button className="button button--ghost" type="button" onClick={onClose}>
+                  Fechar
+                </button>
+              ) : null}
             </>
           ) : !visibleStatus || !TERMINAL.has(visibleStatus) ? (
-            <button className="button button--ghost live-cancel" type="button" disabled={cancelling} onClick={() => void cancel()}>
+            <button
+              className="button button--ghost live-cancel"
+              type="button"
+              disabled={cancelling}
+              onClick={() => void cancel()}
+            >
               {cancelling ? 'Solicitando cancelamento…' : 'Cancelar otimização'}
             </button>
           ) : null}
@@ -311,62 +396,119 @@ export function OptimizationLivePanel({
       {error ? <p className="form-error live-error">{error}</p> : null}
       {visibleStatus === 'FAILED' || visibleStatus === 'INTERRUPTED' ? (
         <div className="result-warning">
-          <strong>{visibleStatus === 'INTERRUPTED' ? 'Execução interrompida.' : 'A otimização falhou.'}</strong>
+          <strong>
+            {visibleStatus === 'INTERRUPTED' ? 'Execução interrompida.' : 'A otimização falhou.'}
+          </strong>
           <span>{latestEvent?.payload.message ?? 'A operação pode ser executada novamente.'}</span>
         </div>
       ) : null}
       {visibleStatus === 'CANCELLED' ? (
-        <div className="result-warning"><strong>Otimização cancelada.</strong><span>Nenhum resultado parcial foi aprovado.</span></div>
+        <div className="result-warning">
+          <strong>Otimização cancelada.</strong>
+          <span>Nenhum resultado parcial foi aprovado.</span>
+        </div>
       ) : null}
 
       <div className="live-kpis">
-        <article><span>Geração</span><strong>{generation}</strong></article>
-        <article><span>Tempo</span><strong>{elapsedLabel(latestEvent?.elapsed_ms)}</strong></article>
-        <article><span>Melhor custo</span><strong>{formatMoney(latestSnapshot?.payload.cost_brl)}</strong></article>
-        <article><span>Makespan</span><strong>{formatMinutes(latestSnapshot?.payload.makespan_minutes)}</strong></article>
-        <article><span>Diversidade</span><strong>{formatPercent(latestSnapshot?.payload.diversity_ratio)}</strong></article>
-        <article><span>Mutação</span><strong>{formatPercent(latestSnapshot?.payload.mutation_rate)}</strong></article>
-        <article><span>Podas</span><strong>{pruningTotal}</strong></article>
+        <article>
+          <span>Geração</span>
+          <strong>{generation}</strong>
+        </article>
+        <article>
+          <span>Tempo</span>
+          <strong>{elapsedLabel(latestEvent?.elapsed_ms)}</strong>
+        </article>
+        <article>
+          <span>Melhor custo</span>
+          <strong>{formatMoney(latestSnapshot?.payload.cost_brl)}</strong>
+        </article>
+        <article>
+          <span>Makespan</span>
+          <strong>{formatMinutes(latestSnapshot?.payload.makespan_minutes)}</strong>
+        </article>
+        <article>
+          <span>Diversidade</span>
+          <strong>{formatPercent(latestSnapshot?.payload.diversity_ratio)}</strong>
+        </article>
+        <article>
+          <span>Mutação</span>
+          <strong>{formatPercent(latestSnapshot?.payload.mutation_rate)}</strong>
+        </article>
+        <article>
+          <span>Podas</span>
+          <strong>{pruningTotal}</strong>
+        </article>
       </div>
 
       <div className="live-workspace">
         <div>
           <OptimizationLiveMap routes={routes} deliveries={deliveries} />
           <div className="live-route-summary">
-            {routes.length ? routes.map((route) => (
-              <span key={`${route.route_code}-${route.vehicle_id}`}>
-                <strong>{route.route_code}</strong> · {route.stops.length} entregas · {Number(route.distance_km).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km
-              </span>
-            )) : <span>Aguardando a primeira melhor solução roteável…</span>}
+            {routes.length ? (
+              routes.map((route) => (
+                <span key={`${route.route_code}-${route.vehicle_id}`}>
+                  <strong>{route.route_code}</strong> · {route.stops.length} entregas ·{' '}
+                  {Number(route.distance_km).toLocaleString('pt-BR', {
+                    maximumFractionDigits: 1,
+                  })}{' '}
+                  km
+                </span>
+              ))
+            ) : (
+              <span>Aguardando a primeira melhor solução roteável…</span>
+            )}
           </div>
         </div>
         <aside className="live-inspector">
           <section>
-            <div className="live-section-title"><strong>Convergência</strong><span>custo por geração</span></div>
+            <div className="live-section-title">
+              <strong>Convergência</strong>
+              <span>custo por geração</span>
+            </div>
             <ConvergenceChart events={shownEvents} />
           </section>
           <section>
-            <div className="live-section-title"><strong>Decision Trace</strong><span>{shownEvents.length} eventos</span></div>
+            <div className="live-section-title">
+              <strong>Decision Trace</strong>
+              <span>{shownEvents.length} eventos</span>
+            </div>
             <ol className="trace-list">
-              {[...shownEvents].reverse().slice(0, 8).map((event) => (
-                <li key={event.id}>
-                  <span>#{event.sequence}</span>
-                  <div>
-                    <strong>{event.event_type.split('_').join(' ')}</strong>
-                    <small>
-                      {event.generation === null ? 'execução' : `geração ${event.generation}`} · {elapsedLabel(event.elapsed_ms)}
-                    </small>
-                  </div>
-                </li>
-              ))}
+              {[...shownEvents]
+                .reverse()
+                .slice(0, 8)
+                .map((event) => (
+                  <li key={event.id}>
+                    <span>#{event.sequence}</span>
+                    <div>
+                      <strong>{event.event_type.split('_').join(' ')}</strong>
+                      <small>
+                        {event.generation === null ? 'execução' : `geração ${event.generation}`} ·{' '}
+                        {elapsedLabel(event.elapsed_ms)}
+                      </small>
+                    </div>
+                  </li>
+                ))}
             </ol>
           </section>
           <section>
-            <div className="live-section-title"><strong>Podas</strong><span>razões estruturadas</span></div>
+            <div className="live-section-title">
+              <strong>Podas</strong>
+              <span>razões estruturadas</span>
+            </div>
             <dl className="live-pruning">
-              {Object.entries(pruning).length ? Object.entries(pruning).map(([reason, count]) => (
-                <div key={reason}><dt>{reason.split('_').join(' ')}</dt><dd>{count}</dd></div>
-              )) : <div><dt>Nenhuma poda registrada</dt><dd>0</dd></div>}
+              {Object.entries(pruning).length ? (
+                Object.entries(pruning).map(([reason, count]) => (
+                  <div key={reason}>
+                    <dt>{reason.split('_').join(' ')}</dt>
+                    <dd>{count}</dd>
+                  </div>
+                ))
+              ) : (
+                <div>
+                  <dt>Nenhuma poda registrada</dt>
+                  <dd>0</dd>
+                </div>
+              )}
             </dl>
           </section>
         </aside>
@@ -374,10 +516,32 @@ export function OptimizationLivePanel({
 
       {mode === 'replay' ? (
         <footer className="replay-progress">
-          <progress max={Math.max(events.length, 1)} value={visibleCount} />
-          <span>{visibleCount} / {events.length} eventos</span>
+          <input
+            type="range"
+            min="0"
+            max={Math.max(events.length, 1)}
+            value={visibleCount}
+            disabled={events.length === 0}
+            aria-label="Linha do tempo do replay"
+            onChange={(event) => seekReplay(Number(event.target.value))}
+          />
+          <span>
+            {visibleCount} / {events.length} eventos
+          </span>
         </footer>
       ) : null}
     </section>
   )
+
+  if (mode === 'replay') {
+    return (
+      <div className="replay-overlay" role="presentation">
+        <div className="replay-dialog" role="dialog" aria-modal="true" aria-label="Replay da otimização">
+          {panel}
+        </div>
+      </div>
+    )
+  }
+
+  return panel
 }

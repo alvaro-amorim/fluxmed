@@ -204,7 +204,6 @@ class OptimizationRunCoordinator:
                 on_progress=on_progress,
                 should_cancel=should_cancel,
             )
-            session.commit()
 
             elapsed_ms = self._elapsed_ms(started_monotonic)
             trace = OptimizationTraceService(session)

@@ -1,6 +1,7 @@
 import json
 import time
 import uuid
+from collections.abc import Iterator
 from datetime import datetime
 from decimal import Decimal
 
@@ -343,7 +344,7 @@ def stream_events(
         raise
     probe.close()
 
-    def event_stream() -> object:
+    def event_stream() -> Iterator[str]:
         nonlocal cursor
         idle_ticks = 0
         while True:

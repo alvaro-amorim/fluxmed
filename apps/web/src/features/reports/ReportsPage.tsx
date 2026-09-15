@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { listOperations } from '../../services/operations'
-import { createReport, downloadReport, listReports } from '../../services/reports'
+import { createReport, downloadReport, listReports, retryReport } from '../../services/reports'
 import type { Operation } from '../../types/operations'
 import type { ReportFormat, ReportItem } from '../../types/reports'
 import './reports.css'
@@ -39,6 +39,7 @@ export function ReportsPage() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [retryingId, setRetryingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -100,6 +101,26 @@ export function ReportsPage() {
       )
     } finally {
       setCreating(false)
+    }
+  }
+
+  async function retry(report: ReportItem) {
+    setRetryingId(report.id)
+    setError(null)
+    try {
+      const retried = await retryReport(report.id)
+      await refreshReports()
+      if (retried.status === 'FAILED') {
+        setError(retried.error_message ?? 'A nova tentativa de geração falhou.')
+      }
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Não foi possível tentar gerar o relatório novamente.',
+      )
+    } finally {
+      setRetryingId(null)
     }
   }
 
@@ -227,14 +248,25 @@ export function ReportsPage() {
                   <span className={`report-status report-status--${report.status.toLowerCase()}`}>
                     {statusLabel(report.status)}
                   </span>
-                  <button
-                    className="button button--ghost"
-                    type="button"
-                    disabled={report.status !== 'COMPLETED' || downloadingId === report.id}
-                    onClick={() => void download(report)}
-                  >
-                    {downloadingId === report.id ? 'Baixando…' : 'Baixar'}
-                  </button>
+                  {report.status === 'FAILED' ? (
+                    <button
+                      className="button button--ghost"
+                      type="button"
+                      disabled={retryingId === report.id}
+                      onClick={() => void retry(report)}
+                    >
+                      {retryingId === report.id ? 'Tentando…' : 'Tentar novamente'}
+                    </button>
+                  ) : (
+                    <button
+                      className="button button--ghost"
+                      type="button"
+                      disabled={report.status !== 'COMPLETED' || downloadingId === report.id}
+                      onClick={() => void download(report)}
+                    >
+                      {downloadingId === report.id ? 'Baixando…' : 'Baixar'}
+                    </button>
+                  )}
                 </article>
               )
             })}

@@ -13,6 +13,7 @@ import { getOperationResources } from '../../services/resources'
 import type { OperationStatus } from '../../types/operations'
 import type {
   OptimizationResult,
+  OptimizationRun,
   OptimizationRunStatus,
   ResultRoute,
   TeamSimulation,
@@ -295,6 +296,7 @@ export function OptimizationResultPanel({
   const [resources, setResources] = useState<OperationResources | null>(null)
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [activeRunId, setActiveRunId] = useState<string | null>(null)
+  const [latestRun, setLatestRun] = useState<OptimizationRun | null>(null)
   const [replayRunId, setReplayRunId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [optimizing, setOptimizing] = useState(false)
@@ -318,9 +320,11 @@ export function OptimizationResultPanel({
   const loadActiveRun = useCallback(async () => {
     try {
       const latest = await getLatestOptimizationRun(operationId)
+      setLatestRun(latest)
       setActiveRunId(latest.status === 'QUEUED' || latest.status === 'RUNNING' ? latest.id : null)
     } catch (requestError) {
       if (!(requestError instanceof ApiClientError && requestError.status === 404)) throw requestError
+      setLatestRun(null)
       setActiveRunId(null)
     }
   }, [operationId])
@@ -332,10 +336,9 @@ export function OptimizationResultPanel({
   const handleTerminal = useCallback(
     async (runStatus: OptimizationRunStatus) => {
       if (runStatus === 'COMPLETED') await loadResult()
-      await onOperationChanged()
-      setActiveRunId(null)
+      await Promise.all([onOperationChanged(), loadActiveRun()])
     },
-    [loadResult, onOperationChanged],
+    [loadActiveRun, loadResult, onOperationChanged],
   )
 
   useEffect(() => {
@@ -366,10 +369,18 @@ export function OptimizationResultPanel({
     () => result?.routes.find((route) => route.id === selectedRouteId) ?? result?.routes[0] ?? null,
     [result, selectedRouteId],
   )
+  const terminalRun =
+    latestRun &&
+    (latestRun.status === 'FAILED' ||
+      latestRun.status === 'CANCELLED' ||
+      latestRun.status === 'INTERRUPTED')
+      ? latestRun
+      : null
 
   async function optimize() {
     setOptimizing(true)
     setError(null)
+    setLatestRun(null)
     setReplayRunId(null)
     try {
       const accepted = await optimizeOperation(operationId)
@@ -410,18 +421,44 @@ export function OptimizationResultPanel({
     return (
       <section className="result-empty-state">
         <p className="eyebrow eyebrow--dark">Resultado</p>
-        <h2>Ainda não existe um plano otimizado</h2>
-        <p>
-          O FluxMed executará o algoritmo genético sobre a operação atual, alocará a equipe e
-          validará o plano antes de disponibilizar o resultado.
-        </p>
+        <h2>
+          {terminalRun?.status === 'FAILED'
+            ? 'A otimização não foi concluída'
+            : terminalRun?.status === 'INTERRUPTED'
+              ? 'A otimização foi interrompida'
+              : terminalRun?.status === 'CANCELLED'
+                ? 'A otimização foi cancelada'
+                : 'Ainda não existe um plano otimizado'}
+        </h2>
+        {terminalRun ? (
+          <div className="result-warning">
+            <strong>
+              {terminalRun.status === 'FAILED'
+                ? 'Falha registrada na última execução.'
+                : terminalRun.status === 'INTERRUPTED'
+                  ? 'A API foi interrompida durante o cálculo.'
+                  : 'Nenhum resultado parcial foi aprovado.'}
+            </strong>
+            <span>
+              {terminalRun.error_message ??
+                (terminalRun.status === 'CANCELLED'
+                  ? 'Você pode iniciar uma nova otimização quando quiser.'
+                  : 'Revise os dados operacionais ou tente novamente.')}
+            </span>
+          </div>
+        ) : (
+          <p>
+            O FluxMed executará o algoritmo genético sobre a operação atual, alocará a equipe e
+            validará o plano antes de disponibilizar o resultado.
+          </p>
+        )}
         <button
           className="button button--primary"
           type="button"
           disabled={optimizing || operationStatus === 'DISPATCHED'}
           onClick={() => void optimize()}
         >
-          {optimizing ? 'Iniciando…' : 'Otimizar rotas'}
+          {optimizing ? 'Iniciando…' : terminalRun ? 'Tentar novamente' : 'Otimizar rotas'}
         </button>
         {error ? <p className="form-error">{error}</p> : null}
       </section>

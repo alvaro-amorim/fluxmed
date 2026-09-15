@@ -57,7 +57,8 @@ def test_retry_reuses_snapshot_and_preserves_failed_history(
     assert received == [original_snapshot]
     assert retry_model.snapshot == original_snapshot
     assert retry_model.snapshot is not source.snapshot
-    assert retry_model.optimization_run_id == source.optimization_run_id == retried.optimization_run_id
+    assert retry_model.optimization_run_id == source.optimization_run_id
+    assert retry_model.optimization_run_id == retried.optimization_run_id
     assert retry_model.created_by_user_id == actor_user_id
     assert retry_model.status == "COMPLETED"
     assert retry_model.artifact == b"%PDF-retried"

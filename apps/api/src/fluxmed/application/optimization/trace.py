@@ -99,9 +99,9 @@ class OptimizationTraceService:
             raise OptimizationLifecycleError(f"Preflight inválido: {codes}.")
 
         delivery_count = self._session.scalar(
-            select(func.count()).select_from(DeliveryModel).where(
-                DeliveryModel.operation_id == operation_id
-            )
+            select(func.count())
+            .select_from(DeliveryModel)
+            .where(DeliveryModel.operation_id == operation_id)
         )
         seed = random_seed if random_seed is not None else operation.id.int % 2_147_483_647
         previous_status = operation.status.value

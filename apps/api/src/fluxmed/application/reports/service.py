@@ -338,6 +338,8 @@ class ReportService:
         data = ReportService._snapshot_data(snapshot)
         workbook = Workbook()
         summary = workbook.active
+        if summary is None:
+            raise ReportGenerationError("Não foi possível inicializar a planilha de resumo.")
         summary.title = "Resumo"
         operation = data["operation"]
         metrics = data["metrics"]
@@ -617,8 +619,16 @@ class ReportService:
             stops_table.setStyle(ReportService._pdf_table_style())
             story.extend([stops_table, Spacer(1, 6 * mm)])
 
+        conclusion = (
+            f"Plano validado para {metrics['delivery_count']} entregas distribuídas em "
+            f"{metrics['vehicles_used']} veículos, com {metrics['on_time_percentage']}% no prazo, "
+            f"{metrics['critical_delays']} atrasos críticos, {metrics['distance_km']} km de distância "
+            f"total e custo de R$ {metrics['total_cost_brl']}."
+        )
         story.extend(
             [
+                Paragraph("Conclusões", styles["Heading2"]),
+                Paragraph(conclusion, styles["BodyText"]),
                 Spacer(1, 4 * mm),
                 Paragraph(
                     "Relatório gerado a partir de snapshot imutável do plano otimizado.",

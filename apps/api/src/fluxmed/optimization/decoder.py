@@ -169,11 +169,13 @@ class RouteDecoder:
 
     @staticmethod
     def _align(reference: datetime, value: datetime) -> datetime:
-        if reference.tzinfo is None and value.tzinfo is not None:
-            return value.replace(tzinfo=None)
-        if reference.tzinfo is not None and value.tzinfo is None:
+        if reference.tzinfo is None:
+            if value.tzinfo is not None:
+                raise ValueError("Cannot align a timezone-aware value to a naive operation schedule.")
+            return value
+        if value.tzinfo is None:
             return value.replace(tzinfo=reference.tzinfo)
-        return value
+        return value.astimezone(reference.tzinfo)
 
     def _finalize_route(self, state: _RouteState) -> DecodedRoute:
         distance_km = ZERO

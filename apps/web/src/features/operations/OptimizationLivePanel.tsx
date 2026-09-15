@@ -352,7 +352,7 @@ export function OptimizationLivePanel({
                 <li key={event.id}>
                   <span>#{event.sequence}</span>
                   <div>
-                    <strong>{event.event_type.replaceAll('_', ' ')}</strong>
+                    <strong>{event.event_type.split('_').join(' ')}</strong>
                     <small>
                       {event.generation === null ? 'execução' : `geração ${event.generation}`} · {elapsedLabel(event.elapsed_ms)}
                     </small>
@@ -365,7 +365,7 @@ export function OptimizationLivePanel({
             <div className="live-section-title"><strong>Podas</strong><span>razões estruturadas</span></div>
             <dl className="live-pruning">
               {Object.entries(pruning).length ? Object.entries(pruning).map(([reason, count]) => (
-                <div key={reason}><dt>{reason.replaceAll('_', ' ')}</dt><dd>{count}</dd></div>
+                <div key={reason}><dt>{reason.split('_').join(' ')}</dt><dd>{count}</dd></div>
               )) : <div><dt>Nenhuma poda registrada</dt><dd>0</dd></div>}
             </dl>
           </section>

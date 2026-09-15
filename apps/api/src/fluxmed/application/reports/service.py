@@ -1,6 +1,7 @@
 import csv
 import io
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -643,7 +644,11 @@ class ReportService:
         )
 
     @staticmethod
-    def _append_table(worksheet: Any, headers: list[str], rows: list[list[object]]) -> None:
+    def _append_table(
+        worksheet: Any,
+        headers: Sequence[str],
+        rows: Sequence[Sequence[object]],
+    ) -> None:
         worksheet.append(headers)
         for cell in worksheet[1]:
             cell.font = Font(bold=True)
@@ -675,4 +680,4 @@ class ReportService:
 
     @staticmethod
     def _snapshot_data(snapshot: dict[str, object]) -> dict[str, Any]:
-        return snapshot  # type: ignore[return-value]
+        return snapshot

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
+from fluxmed.application.assistant.tool_selection import select_assistant_tools
 from fluxmed.application.assistant.toolbox import AssistantToolbox
 from fluxmed.llm import LLMProvider, ProviderRequest, ToolExchange
 from fluxmed.llm.config import LLMSettings
@@ -84,6 +85,12 @@ class AssistantService:
             self._session,
             context_operation_id=context.operation_id,
         )
+        selected_tools = select_assistant_tools(
+            user_message,
+            toolbox.definitions(),
+            has_route_context=context.route_id is not None,
+            has_delivery_context=context.delivery_id is not None,
+        )
         history: list[ToolExchange] = []
         call_views: list[AssistantToolCallView] = []
         input_tokens = 0
@@ -96,7 +103,7 @@ class AssistantService:
                     system_prompt=ASSISTANT_SYSTEM_PROMPT,
                     user_message=user_message,
                     context=provider_context,
-                    tools=toolbox.definitions(),
+                    tools=selected_tools,
                     history=tuple(history),
                 )
             )

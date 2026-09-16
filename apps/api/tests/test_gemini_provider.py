@@ -1,131 +1,84 @@
-import json
+from dataclasses import dataclass
 
-import httpx
-
-from fluxmed.llm import ProviderRequest, ToolDefinition, ToolExchange, ToolResult
-from fluxmed.llm.contracts import ToolCall
+from fluxmed.llm import ProviderRequest
 from fluxmed.llm.providers import GeminiProvider
 
 
-def test_gemini_provider_parses_function_call_and_uses_stateful_result() -> None:
-    requests: list[dict[str, object]] = []
+@dataclass
+class _FakeUsage:
+    total_input_tokens: int = 21
+    total_output_tokens: int = 9
 
-    def handler(request: httpx.Request) -> httpx.Response:
-        payload = json.loads(request.content)
-        requests.append(payload)
-        if len(requests) == 1:
-            return httpx.Response(
-                200,
-                json={
-                    "id": "interaction-1",
-                    "status": "requires_action",
-                    "steps": [
-                        {
-                            "type": "function_call",
-                            "id": "call-1",
-                            "name": "get_operation_summary",
-                            "arguments": {"operation_id": "operation-id"},
-                        }
-                    ],
-                    "usage": {"total_input_tokens": 12, "total_output_tokens": 4},
-                },
-            )
-        return httpx.Response(
-            200,
-            json={
-                "id": "interaction-2",
-                "status": "completed",
-                "steps": [
-                    {
-                        "type": "model_output",
-                        "content": [{"type": "text", "text": "Custo total: R$ 400,38."}],
-                    }
-                ],
-                "usage": {"total_input_tokens": 20, "total_output_tokens": 8},
-            },
-        )
 
+@dataclass
+class _FakeInteraction:
+    output_text: str = "O custo total da operação é R$ 400,38."
+    usage: _FakeUsage = _FakeUsage()
+
+
+class _FakeInteractions:
+    def __init__(self) -> None:
+        self.requests: list[dict[str, object]] = []
+
+    def create(self, **kwargs: object) -> object:
+        self.requests.append(dict(kwargs))
+        return _FakeInteraction()
+
+
+class _FakeClient:
+    def __init__(self) -> None:
+        self._interactions = _FakeInteractions()
+        self.closed = False
+
+    @property
+    def interactions(self) -> _FakeInteractions:
+        return self._interactions
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def test_gemini_provider_generates_once_from_grounded_context() -> None:
+    client = _FakeClient()
     provider = GeminiProvider(
         api_key="test-key",
         model="gemini-2.5-flash",
-        timeout_seconds=1,
-        client=httpx.Client(transport=httpx.MockTransport(handler)),
+        timeout_seconds=20,
+        client=client,
     )
-    tool = ToolDefinition(
-        name="get_operation_summary",
-        description="Resumo",
-        input_schema={
-            "type": "object",
-            "properties": {"operation_id": {"type": "string"}},
-            "required": ["operation_id"],
+    request = ProviderRequest(
+        system_prompt="system",
+        user_message="Qual o custo total da operação?",
+        context={
+            "scope": {"operation_id": "operation-id"},
+            "grounding": [
+                {
+                    "tool": "get_cost_breakdown",
+                    "status": "success",
+                    "data": {"total_cost_brl": "400.38"},
+                }
+            ],
         },
-    )
-    first = provider.generate(
-        ProviderRequest(
-            system_prompt="system",
-            user_message="Qual o custo?",
-            context={"operation_id": "operation-id"},
-            tools=(tool,),
-        )
+        tools=(),
     )
 
-    assert first.tool_calls == (
-        ToolCall(
-            id="call-1",
-            name="get_operation_summary",
-            arguments={"operation_id": "operation-id"},
-        ),
-    )
-    system_instruction = requests[0]["system_instruction"]
+    turn = provider.generate(request)
+
+    assert turn.content == "O custo total da operação é R$ 400,38."
+    assert turn.tool_calls == ()
+    assert turn.input_tokens == 21
+    assert turn.output_tokens == 9
+    assert len(client.interactions.requests) == 1
+    sent = client.interactions.requests[0]
+    assert sent["model"] == "gemini-2.5-flash"
+    assert sent["input"] == "Qual o custo total da operação?"
+    assert sent["timeout"] == 20
+    assert "tools" not in sent
+    system_instruction = sent["system_instruction"]
     assert isinstance(system_instruction, str)
-    assert system_instruction.startswith("system")
-    assert "Contexto operacional confiável fornecido pelo backend" in system_instruction
-    assert '"operation_id":"operation-id"' in system_instruction
-    assert requests[0]["input"] == "Qual o custo?"
-    assert requests[0]["model"] == "gemini-2.5-flash"
-    first_generation_config = requests[0]["generation_config"]
-    assert isinstance(first_generation_config, dict)
-    assert first_generation_config["tool_choice"] == {
-        "allowed_tools": {
-            "mode": "any",
-            "tools": ["get_operation_summary"],
-        }
-    }
-
-    call = first.tool_calls[0]
-    second = provider.generate(
-        ProviderRequest(
-            system_prompt="system",
-            user_message="Qual o custo?",
-            context={"operation_id": "operation-id"},
-            tools=(tool,),
-            history=(
-                ToolExchange(
-                    call=call,
-                    result=ToolResult(
-                        call_id=call.id,
-                        name=call.name,
-                        content={"optimization": {"total_cost_brl": "400.38"}},
-                    ),
-                ),
-            ),
-        )
-    )
-
-    assert requests[1]["previous_interaction_id"] == "interaction-1"
-    result_input = requests[1]["input"]
-    assert isinstance(result_input, list)
-    assert result_input[0]["type"] == "function_result"
-    assert result_input[0]["call_id"] == "call-1"
-    assert result_input[0]["result"] == {
-        "optimization": {"total_cost_brl": "400.38"}
-    }
-    assert not isinstance(result_input[0]["result"], list)
-    second_generation_config = requests[1]["generation_config"]
-    assert isinstance(second_generation_config, dict)
-    assert "tool_choice" not in second_generation_config
-    assert second.content == "Custo total: R$ 400,38."
-    assert second.tool_calls == ()
+    assert "backend já executou as consultas autorizadas" in system_instruction
+    assert '"total_cost_brl":"400.38"' in system_instruction
+    assert client.closed is False
 
 
 def test_gemini_provider_keeps_empty_context_out_of_system_instruction() -> None:

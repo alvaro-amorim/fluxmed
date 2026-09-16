@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from fluxmed.api.errors import ApiError, api_error_handler
+from fluxmed.api.v1.assistant import router as assistant_router
 from fluxmed.api.v1.auth import router as auth_router
 from fluxmed.api.v1.cities import router as cities_router
 from fluxmed.api.v1.deliveries import router as deliveries_router
@@ -43,6 +44,7 @@ app.include_router(preflight_router, prefix="/api/v1")
 app.include_router(routing_router, prefix="/api/v1")
 app.include_router(optimization_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
+app.include_router(assistant_router, prefix="/api/v1")
 
 
 @app.get("/health/live", tags=["health"])

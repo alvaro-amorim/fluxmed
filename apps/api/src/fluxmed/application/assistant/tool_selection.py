@@ -13,11 +13,12 @@ def select_assistant_tools(
     has_route_context: bool = False,
     has_delivery_context: bool = False,
 ) -> tuple[ToolDefinition, ...]:
-    """Select a small deterministic tool set for the current assistant request.
+    """Select a small deterministic backend grounding set for this request.
 
-    The selector never answers the question. It only reduces the provider-facing
-    tool catalogue so the LLM chooses among relevant backend tools instead of
-    receiving every available schema on every request.
+    The selector never answers the question and never calculates official
+    metrics. It chooses which approved backend tools should run before the LLM
+    so the model receives only the structured evidence relevant to the user's
+    intent.
     """
 
     normalized = _normalize(message)

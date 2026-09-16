@@ -11,6 +11,12 @@ from fluxmed.application.assistant import (
     AssistantService,
     AssistantToolLimitError,
 )
+from fluxmed.llm import (
+    LLMProviderError,
+    LLMProviderRateLimitError,
+    LLMProviderResponseError,
+    LLMProviderTimeoutError,
+)
 from fluxmed.llm.config import LLMSettings
 from fluxmed.llm.factory import LLMProviderUnavailableError, build_llm_provider
 
@@ -97,6 +103,30 @@ def assistant_message(
                 delivery_id=payload.context.delivery_id,
             ),
         )
+    except LLMProviderTimeoutError as exc:
+        raise ApiError(
+            status.HTTP_504_GATEWAY_TIMEOUT,
+            "LLM_PROVIDER_TIMEOUT",
+            "O provider de IA excedeu o tempo limite.",
+        ) from exc
+    except LLMProviderRateLimitError as exc:
+        raise ApiError(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "LLM_PROVIDER_RATE_LIMITED",
+            "O provider de IA está temporariamente limitado.",
+        ) from exc
+    except LLMProviderResponseError as exc:
+        raise ApiError(
+            status.HTTP_502_BAD_GATEWAY,
+            "LLM_INVALID_RESPONSE",
+            "O provider de IA retornou uma resposta inválida.",
+        ) from exc
+    except LLMProviderError as exc:
+        raise ApiError(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "LLM_PROVIDER_UNAVAILABLE",
+            "Assistente IA temporariamente indisponível.",
+        ) from exc
     except AssistantToolLimitError as exc:
         raise ApiError(
             status.HTTP_422_UNPROCESSABLE_ENTITY,

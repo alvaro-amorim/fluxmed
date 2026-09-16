@@ -73,6 +73,11 @@ def test_gemini_provider_generates_once_from_grounded_context() -> None:
     assert sent["model"] == "gemini-2.5-flash"
     assert sent["input"] == "Qual o custo total da operação?"
     assert sent["timeout"] == 20
+    assert sent["store"] is False
+    assert sent["generation_config"] == {
+        "thinking_level": "low",
+        "max_output_tokens": 4096,
+    }
     assert "tools" not in sent
     system_instruction = sent["system_instruction"]
     assert isinstance(system_instruction, str)

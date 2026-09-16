@@ -83,7 +83,7 @@ it('asks a factual question using the selected operation context', async () => {
   const user = userEvent.setup()
 
   expect(await screen.findByRole('heading', { name: 'Explique o plano com dados validados' })).toBeInTheDocument()
-  expect(screen.getByText(/Assistente IA · Online/i)).toBeInTheDocument()
+  expect(screen.getByText(/Assistente IA · Configurado/i)).toBeInTheDocument()
 
   await user.click(screen.getByRole('button', { name: 'Qual o custo total da operação?' }))
 

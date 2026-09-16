@@ -380,7 +380,5 @@ class MockLLMProvider:
             amount = Decimal(str(value))
         except (InvalidOperation, ValueError):
             return "valor indisponível"
-        rendered = (
-            f"{amount:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
-        )
+        rendered = f"{amount:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
         return f"R$ {rendered}"

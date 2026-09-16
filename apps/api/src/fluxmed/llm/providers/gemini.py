@@ -172,12 +172,7 @@ class GeminiProvider:
             "type": "function_result",
             "name": name,
             "call_id": call_id,
-            "result": [
-                {
-                    "type": "text",
-                    "text": json.dumps(content, ensure_ascii=False, separators=(",", ":")),
-                }
-            ],
+            "result": content,
         }
 
     @staticmethod

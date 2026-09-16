@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
 import pytest
+from google.genai import types
 
 from fluxmed.llm import (
     LLMProviderRateLimitError,
@@ -170,9 +171,11 @@ def test_gemini_provider_builds_v1beta_client_without_retrying_429(
 
     assert built is fake_client
     http_options = captured["http_options"]
-    assert getattr(http_options, "api_version") == "v1beta"
-    retry_options = getattr(http_options, "retry_options")
-    status_codes = getattr(retry_options, "http_status_codes")
+    assert isinstance(http_options, types.HttpOptions)
+    assert http_options.api_version == "v1beta"
+    retry_options = http_options.retry_options
+    assert retry_options is not None
+    status_codes = retry_options.http_status_codes or []
     assert 429 not in status_codes
 
 

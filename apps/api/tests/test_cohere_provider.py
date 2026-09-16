@@ -59,6 +59,16 @@ def test_cohere_provider_parses_strict_tool_call() -> None:
     turn = provider.generate(request)
 
     assert captured["strict_tools"] is True
+    messages = captured["messages"]
+    assert isinstance(messages, list)
+    system_message = messages[0]
+    assert isinstance(system_message, dict)
+    system_content = system_message.get("content")
+    assert isinstance(system_content, str)
+    assert system_content.startswith("system")
+    assert "Contexto operacional confiável fornecido pelo backend" in system_content
+    assert '"operation_id":"operation-id"' in system_content
+    assert messages[1] == {"role": "user", "content": "Qual o custo?"}
     assert turn.content == ""
     assert turn.input_tokens == 20
     assert turn.output_tokens == 8
@@ -125,3 +135,14 @@ def test_cohere_provider_sends_tool_result_and_returns_text() -> None:
     assert any(isinstance(message, dict) and message.get("role") == "tool" for message in messages)
     assert turn.content == "Custo total: R$ 400,38."
     assert turn.tool_calls == ()
+
+
+def test_cohere_provider_keeps_empty_context_out_of_system_instruction() -> None:
+    request = ProviderRequest(
+        system_prompt="system",
+        user_message="Olá",
+        context={},
+        tools=(),
+    )
+
+    assert CohereProvider._system_instruction(request) == "system"

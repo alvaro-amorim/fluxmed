@@ -110,11 +110,7 @@ def select_assistant_tools(
         add("get_route_details", "get_cost_breakdown", "get_team_assignment_details")
 
     available = {definition.name: definition for definition in definitions}
-    return tuple(
-        available[name]
-        for name in selected[:_MAX_SELECTED_TOOLS]
-        if name in available
-    )
+    return tuple(available[name] for name in selected[:_MAX_SELECTED_TOOLS] if name in available)
 
 
 def _normalize(value: str) -> str:

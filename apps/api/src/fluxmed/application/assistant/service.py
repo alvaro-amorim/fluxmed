@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
-from fluxmed.application.assistant.tools import AssistantToolRegistry
+from fluxmed.application.assistant.toolbox import AssistantToolbox
 from fluxmed.llm import LLMProvider, ProviderRequest, ToolExchange
 from fluxmed.llm.config import LLMSettings
 from fluxmed.llm.prompts import ASSISTANT_SYSTEM_PROMPT, ASSISTANT_SYSTEM_PROMPT_VERSION
@@ -74,7 +74,7 @@ class AssistantService:
 
         request_id = uuid.uuid4()
         started = time.perf_counter()
-        registry = AssistantToolRegistry(
+        toolbox = AssistantToolbox(
             self._session,
             context_operation_id=context.operation_id,
         )
@@ -90,7 +90,7 @@ class AssistantService:
                     system_prompt=ASSISTANT_SYSTEM_PROMPT,
                     user_message=user_message,
                     context=provider_context,
-                    tools=registry.definitions(),
+                    tools=toolbox.definitions(),
                     history=tuple(history),
                 )
             )
@@ -119,7 +119,7 @@ class AssistantService:
                 raise AssistantToolLimitError("Limite de tools excedido nesta solicitação.")
 
             for call in turn.tool_calls:
-                result = registry.execute(call)
+                result = toolbox.execute(call)
                 history.append(ToolExchange(call=call, result=result))
                 call_views.append(
                     AssistantToolCallView(

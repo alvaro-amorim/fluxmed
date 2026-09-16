@@ -28,7 +28,7 @@ function operationEligible(operation: Operation): boolean {
 
 function statusLabel(status: AssistantStatus | null): string {
   if (status === null) return 'Verificando…'
-  return status.status === 'HEALTHY' ? 'Online' : 'Temporariamente indisponível'
+  return status.status === 'HEALTHY' ? 'Configurado' : 'Temporariamente indisponível'
 }
 
 export function AssistantPage() {

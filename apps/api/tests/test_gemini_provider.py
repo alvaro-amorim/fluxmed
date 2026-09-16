@@ -83,6 +83,14 @@ def test_gemini_provider_parses_function_call_and_uses_stateful_result() -> None
     assert '"operation_id":"operation-id"' in system_instruction
     assert requests[0]["input"] == "Qual o custo?"
     assert requests[0]["model"] == "gemini-2.5-flash"
+    first_generation_config = requests[0]["generation_config"]
+    assert isinstance(first_generation_config, dict)
+    assert first_generation_config["tool_choice"] == {
+        "allowed_tools": {
+            "mode": "any",
+            "tools": ["get_operation_summary"],
+        }
+    }
 
     call = first.tool_calls[0]
     second = provider.generate(
@@ -109,6 +117,9 @@ def test_gemini_provider_parses_function_call_and_uses_stateful_result() -> None
     assert isinstance(result_input, list)
     assert result_input[0]["type"] == "function_result"
     assert result_input[0]["call_id"] == "call-1"
+    second_generation_config = requests[1]["generation_config"]
+    assert isinstance(second_generation_config, dict)
+    assert "tool_choice" not in second_generation_config
     assert second.content == "Custo total: R$ 400,38."
     assert second.tool_calls == ()
 

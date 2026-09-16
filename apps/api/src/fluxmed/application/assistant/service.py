@@ -67,12 +67,18 @@ class AssistantService:
         self._provider = provider
         self._settings = settings
 
-    def answer(self, message: str, *, context: AssistantContext) -> AssistantReply:
+    def answer(
+        self,
+        message: str,
+        *,
+        context: AssistantContext,
+        request_id: uuid.UUID | None = None,
+    ) -> AssistantReply:
         user_message = message.strip()
         if not user_message:
             raise AssistantInvalidResponseError("A mensagem do assistente não pode ser vazia.")
 
-        request_id = uuid.uuid4()
+        resolved_request_id = request_id or uuid.uuid4()
         started = time.perf_counter()
         toolbox = AssistantToolbox(
             self._session,
@@ -104,7 +110,7 @@ class AssistantService:
                 if len(final_message) > self._settings.max_output_chars:
                     final_message = final_message[: self._settings.max_output_chars].rstrip() + "…"
                 return AssistantReply(
-                    request_id=request_id,
+                    request_id=resolved_request_id,
                     message=final_message,
                     provider=self._provider.name,
                     model=self._provider.model,

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 DEFAULT_MODELS = {
     "mock": "fluxmed-mock-v1",
     "cohere": "command-a-plus-05-2026",
-    "gemini": "gemini-3.8-flash",
+    "gemini": "gemini-2.5-flash",
 }
 
 

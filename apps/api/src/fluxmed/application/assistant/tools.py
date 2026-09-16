@@ -154,12 +154,8 @@ class AssistantToolRegistry:
                 "makespan_minutes": str(result.makespan_minutes),
                 "critical_delays": result.critical_delays,
                 "on_time_percentage": str(result.on_time_percentage),
-                "average_weight_utilization_pct": str(
-                    result.average_weight_utilization_pct
-                ),
-                "average_volume_utilization_pct": str(
-                    result.average_volume_utilization_pct
-                ),
+                "average_weight_utilization_pct": str(result.average_weight_utilization_pct),
+                "average_volume_utilization_pct": str(result.average_volume_utilization_pct),
                 "routes": [
                     {
                         "route_id": str(route.id),
@@ -248,18 +244,10 @@ class AssistantToolRegistry:
                 else None
             ),
             "cost": {
-                "depreciation_per_km": self._optional_decimal(
-                    vehicle.cost.depreciation_per_km
-                ),
-                "maintenance_per_km": self._optional_decimal(
-                    vehicle.cost.maintenance_per_km
-                ),
-                "fixed_cost_per_hour": self._optional_decimal(
-                    vehicle.cost.fixed_cost_per_hour
-                ),
-                "contract_price_brl": self._optional_decimal(
-                    vehicle.cost.contract_price_brl
-                ),
+                "depreciation_per_km": self._optional_decimal(vehicle.cost.depreciation_per_km),
+                "maintenance_per_km": self._optional_decimal(vehicle.cost.maintenance_per_km),
+                "fixed_cost_per_hour": self._optional_decimal(vehicle.cost.fixed_cost_per_hour),
+                "contract_price_brl": self._optional_decimal(vehicle.cost.contract_price_brl),
                 "fuel_included": vehicle.cost.fuel_included,
                 "driver_included": vehicle.cost.driver_included,
                 "helper_included": vehicle.cost.helper_included,
@@ -396,10 +384,7 @@ class AssistantToolRegistry:
 
     def _operation_id(self, arguments: dict[str, object]) -> uuid.UUID:
         operation_id = self._uuid(arguments.get("operation_id"), "operation_id")
-        if (
-            self._context_operation_id is not None
-            and operation_id != self._context_operation_id
-        ):
+        if self._context_operation_id is not None and operation_id != self._context_operation_id:
             raise AssistantToolPermissionError(
                 "A tool tentou acessar uma operação diferente do contexto selecionado."
             )

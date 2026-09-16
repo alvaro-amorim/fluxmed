@@ -24,7 +24,7 @@ class AssistantTelemetryModel(Base):
     latency_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     input_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     output_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    tool_calls: Mapped[list[dict[str, object]]] = mapped_column(JSONB, nullable=False, default=list)
+    tool_calls: Mapped[list[dict[str, str]]] = mapped_column(JSONB, nullable=False, default=list)
     tool_failures: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     status: Mapped[str] = mapped_column(String(24), nullable=False, index=True)
     fallback_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

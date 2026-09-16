@@ -1,6 +1,5 @@
 import json
 from collections.abc import Mapping
-from typing import Any
 
 import httpx
 
@@ -12,6 +11,7 @@ from fluxmed.llm import (
     ProviderRequest,
     ProviderTurn,
     ToolCall,
+    ToolDefinition,
 )
 
 COHERE_CHAT_URL = "https://api.cohere.com/v2/chat"
@@ -76,11 +76,11 @@ class CohereProvider:
             if not isinstance(data, dict):
                 raise TypeError("Resposta Cohere não é um objeto JSON.")
             return self._turn(data)
-        except (ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
+        except (ValueError, TypeError, KeyError) as exc:
             raise LLMProviderResponseError("Resposta Cohere inválida.") from exc
 
     @staticmethod
-    def _tool(tool: Any) -> dict[str, object]:
+    def _tool(tool: ToolDefinition) -> dict[str, object]:
         return {
             "type": "function",
             "function": {
@@ -165,7 +165,9 @@ class CohereProvider:
                 arguments = function.get("arguments", "{}")
                 if not isinstance(call_id, str) or not isinstance(name, str):
                     continue
-                parsed_arguments = json.loads(arguments) if isinstance(arguments, str) else arguments
+                parsed_arguments = (
+                    json.loads(arguments) if isinstance(arguments, str) else arguments
+                )
                 if not isinstance(parsed_arguments, dict):
                     raise TypeError("argumentos de tool inválidos")
                 calls.append(

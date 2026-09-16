@@ -25,6 +25,8 @@ POST /api/v1/assistant/messages
     v
 AssistantService
     |
+    +--> seleção determinística de tools candidatas por intenção
+    |
     +--> AssistantToolbox
     |      +--> read tools
     |      +--> narrative context tools
@@ -37,6 +39,8 @@ AssistantService
 ```
 
 O frontend nunca recebe chaves dos providers e nunca chama Cohere/Gemini diretamente.
+
+A seleção de tools não responde à pergunta nem calcula métricas. Ela apenas reduz o catálogo enviado ao provider para no máximo cinco tools relevantes à intenção. O provider continua escolhendo quais dessas tools chamar, e toda execução continua validada no backend.
 
 ## 3. Ambiente local
 
@@ -65,9 +69,11 @@ Gemini:
 
 ```env
 LLM_PROVIDER=gemini
-LLM_MODEL=gemini-3.8-flash
+LLM_MODEL=gemini-2.5-flash
 GEMINI_API_KEY=...
 ```
+
+`gemini-2.5-flash` foi validado manualmente na Fase 16 com a Gemini Interactions API e function calling. Durante a mesma validação, `gemini-3.8-flash` apresentou timeouts repetidos de inferência no ambiente local mesmo em chamadas mínimas, por isso não é o default da V1.
 
 Cohere:
 
@@ -92,7 +98,23 @@ O catálogo atual oferece:
 
 Todas respeitam a operação selecionada. Uma tentativa de acessar outra operação é rejeitada antes da consulta operacional.
 
-## 5. Tools de geração
+## 5. Seleção de tools por intenção
+
+O catálogo completo não é enviado integralmente ao provider em toda mensagem. `select_assistant_tools(...)` escolhe um conjunto pequeno e determinístico de candidatas, sempre incluindo `get_operation_summary` e limitando a exposição a cinco tools.
+
+Exemplos:
+
+- custo → `get_operation_summary` + `get_cost_breakdown`;
+- explicação de veículo → `get_operation_summary` + `get_route_details` + `get_vehicle_details`;
+- instruções ao motorista → `get_operation_summary` + `generate_driver_instructions` + contexto de equipe quando relevante;
+- relatório → `get_operation_summary` + a tool narrativa correspondente;
+- remoção de ajudante → `get_operation_summary` + `simulate_helper_removal` + `get_team_assignment_details`.
+
+Isso reduz schemas e tokens enviados ao provider, melhora a latência de function calling e diminui a chance de seleção de uma tool irrelevante. O backend também rejeita uma chamada a tool que não tenha sido selecionada para aquela solicitação.
+
+A seleção é uma otimização de orquestração, não uma decisão operacional: ela não altera dados, não calcula resultados e não substitui a escolha de tool feita pelo modelo dentro do conjunto permitido.
+
+## 6. Tools de geração
 
 Estas tools não pedem que a LLM invente dados. Elas montam contexto estruturado para redação:
 
@@ -103,7 +125,7 @@ Estas tools não pedem que a LLM invente dados. Elas montam contexto estruturado
 
 As instruções de motorista enriquecem cada parada com endereço, janela, temperatura, manuseio e tempo de serviço quando esses dados existem. As janelas persistidas com timezone são convertidas para o fuso operacional `America/Sao_Paulo` antes de serem apresentadas ao modelo para redação das instruções, evitando expor horários UTC como se fossem horários locais.
 
-## 6. Simulações seguras
+## 7. Simulações seguras
 
 A Fase 16 expõe inicialmente duas simulações apoiadas pelo validador oficial de equipe:
 
@@ -121,7 +143,7 @@ Invariantes:
 
 Simulações adicionais descritas no `LLM_SPEC.md` continuam sendo extensões possíveis, mas não devem ser expostas até existir um validador backend completo para cada tipo de alteração.
 
-## 7. Guardrails
+## 8. Guardrails
 
 O prompt de sistema versionado exige:
 
@@ -135,12 +157,13 @@ O prompt de sistema versionado exige:
 O backend também impõe:
 
 - whitelist de tools;
+- seleção request-scoped de tools candidatas;
 - limite de tool calls por solicitação;
 - limite de tamanho da saída;
 - escopo por operação;
 - códigos explícitos para timeout, rate limit, provider indisponível e resposta inválida.
 
-## 8. Telemetria
+## 9. Telemetria
 
 A migration `20260916_0012` cria `assistant_telemetry`.
 
@@ -165,13 +188,13 @@ Não são persistidos nessa tabela:
 - payload completo das tools;
 - chaves de API.
 
-## 9. Degraded mode
+## 10. Degraded mode
 
 `GET /api/v1/assistant/status` informa `HEALTHY` ou `DEGRADED`.
 
 Se um provider real estiver configurado sem a respectiva chave, o restante do FluxMed continua funcionando e a interface do assistente comunica indisponibilidade em vez de quebrar a aplicação principal.
 
-## 10. Demonstração acadêmica
+## 11. Demonstração acadêmica
 
 A tela `/assistant` oferece perguntas que cobrem o critério de aceite da Fase 16:
 
@@ -183,7 +206,7 @@ A tela `/assistant` oferece perguntas que cobrem o critério de aceite da Fase 1
 
 O `MockLLMProvider` executa esses fluxos de maneira determinística para CI e demonstração sem rede. A validação final da fase também deve executar ao menos o mesmo conjunto com um provider real antes do merge.
 
-## 11. Critério de segurança para explicações
+## 12. Critério de segurança para explicações
 
 Quando a evidência disponível comprova somente a alocação final, mas não uma causalidade única, a resposta deve distinguir isso explicitamente.
 

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from fluxmed.application.assistant.tool_selection import select_assistant_tools
 from fluxmed.application.assistant.toolbox import AssistantToolbox
-from fluxmed.llm import LLMProvider, ProviderRequest, ToolExchange
+from fluxmed.llm import LLMProvider, ProviderRequest, ToolExchange, ToolResult
 from fluxmed.llm.config import LLMSettings
 from fluxmed.llm.prompts import ASSISTANT_SYSTEM_PROMPT, ASSISTANT_SYSTEM_PROMPT_VERSION
 
@@ -91,6 +91,7 @@ class AssistantService:
             has_route_context=context.route_id is not None,
             has_delivery_context=context.delivery_id is not None,
         )
+        selected_tool_names = {tool.name for tool in selected_tools}
         history: list[ToolExchange] = []
         call_views: list[AssistantToolCallView] = []
         input_tokens = 0
@@ -132,7 +133,16 @@ class AssistantService:
                 raise AssistantToolLimitError("Limite de tools excedido nesta solicitação.")
 
             for call in turn.tool_calls:
-                result = toolbox.execute(call)
+                if call.name not in selected_tool_names:
+                    result = ToolResult(
+                        call_id=call.id,
+                        name=call.name,
+                        content={},
+                        success=False,
+                        error="Tool não disponível para esta solicitação.",
+                    )
+                else:
+                    result = toolbox.execute(call)
                 history.append(ToolExchange(call=call, result=result))
                 call_views.append(
                     AssistantToolCallView(

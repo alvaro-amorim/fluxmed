@@ -2,7 +2,8 @@ import os
 
 from fluxmed.llm import LLMProvider
 from fluxmed.llm.config import LLMSettings
-from fluxmed.llm.providers import CohereProvider, GeminiProvider, MockLLMProvider
+from fluxmed.llm.providers import CohereProvider, GeminiProvider
+from fluxmed.llm.providers.grounded_mock import GroundedMockLLMProvider
 
 
 class LLMProviderUnavailableError(RuntimeError):
@@ -11,7 +12,7 @@ class LLMProviderUnavailableError(RuntimeError):
 
 def build_llm_provider(settings: LLMSettings) -> LLMProvider:
     if settings.provider == "mock":
-        return MockLLMProvider(settings.model or "fluxmed-mock-v1")
+        return GroundedMockLLMProvider(settings.model or "fluxmed-mock-v2")
     if settings.provider == "cohere":
         api_key = os.getenv("COHERE_API_KEY", "").strip()
         if not api_key:
@@ -27,7 +28,7 @@ def build_llm_provider(settings: LLMSettings) -> LLMProvider:
             raise LLMProviderUnavailableError("GEMINI_API_KEY não configurada.")
         return GeminiProvider(
             api_key=api_key,
-            model=settings.model or "gemini-3.8-flash",
+            model=settings.model or "gemini-2.5-flash",
             timeout_seconds=settings.timeout_seconds,
         )
     raise LLMProviderUnavailableError(

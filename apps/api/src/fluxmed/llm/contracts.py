@@ -4,6 +4,22 @@ from typing import Protocol
 JsonObject = dict[str, object]
 
 
+class LLMProviderError(RuntimeError):
+    pass
+
+
+class LLMProviderTimeoutError(LLMProviderError):
+    pass
+
+
+class LLMProviderRateLimitError(LLMProviderError):
+    pass
+
+
+class LLMProviderResponseError(LLMProviderError):
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class ToolDefinition:
     name: str

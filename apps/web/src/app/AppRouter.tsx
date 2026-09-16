@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import { AssistantPage } from '../features/assistant/AssistantPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
 import { DeliveriesPage } from '../features/deliveries/DeliveriesPage'
@@ -31,16 +32,7 @@ export function AppRouter() {
           <Route path="/fleet" element={<FleetPage />} />
           <Route path="/workforce" element={<WorkforcePage />} />
           <Route path="/reports" element={<ReportsPage />} />
-          <Route
-            path="/assistant"
-            element={
-              <PlaceholderPage
-                title="Assistente IA"
-                description="Explicações e análises em linguagem natural com dados validados."
-                phase="Planejado"
-              />
-            }
-          />
+          <Route path="/assistant" element={<AssistantPage />} />
           <Route
             path="/settings"
             element={

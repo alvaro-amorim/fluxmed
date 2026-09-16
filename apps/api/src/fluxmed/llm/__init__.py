@@ -1,5 +1,9 @@
 from fluxmed.llm.contracts import (
     LLMProvider,
+    LLMProviderError,
+    LLMProviderRateLimitError,
+    LLMProviderResponseError,
+    LLMProviderTimeoutError,
     ProviderRequest,
     ProviderTurn,
     ToolCall,
@@ -10,6 +14,10 @@ from fluxmed.llm.contracts import (
 
 __all__ = [
     "LLMProvider",
+    "LLMProviderError",
+    "LLMProviderRateLimitError",
+    "LLMProviderResponseError",
+    "LLMProviderTimeoutError",
     "ProviderRequest",
     "ProviderTurn",
     "ToolCall",

@@ -104,6 +104,7 @@ export function OperationDetailPage() {
 
   const immutable = operation.status === 'DISPATCHED'
   const hasResult = ['OPTIMIZED', 'OUTDATED', 'APPROVED', 'DISPATCHED'].includes(operation.status)
+  const canReport = ['OPTIMIZED', 'APPROVED', 'DISPATCHED'].includes(operation.status)
 
   return (
     <main className="content-page operation-detail-page">
@@ -119,6 +120,14 @@ export function OperationDetailPage() {
           <Link className="button button--ghost button-link" to="/operations">
             Voltar
           </Link>
+          {canReport ? (
+            <Link
+              className="button button--ghost button-link"
+              to={`/reports?operation_id=${operationId}`}
+            >
+              Relatórios
+            </Link>
+          ) : null}
           {!immutable ? (
             <button
               className="button button--secondary"

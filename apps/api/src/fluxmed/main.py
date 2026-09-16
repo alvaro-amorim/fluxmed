@@ -11,6 +11,7 @@ from fluxmed.api.v1.demo_resources import router as demo_resources_router
 from fluxmed.api.v1.operations import router as operations_router
 from fluxmed.api.v1.optimization import router as optimization_router
 from fluxmed.api.v1.preflight import router as preflight_router
+from fluxmed.api.v1.reports import router as reports_router
 from fluxmed.api.v1.resources import router as resources_router
 from fluxmed.api.v1.routing import router as routing_router
 from fluxmed.application.optimization.trace import OptimizationTraceService
@@ -41,6 +42,7 @@ app.include_router(demo_resources_router, prefix="/api/v1")
 app.include_router(preflight_router, prefix="/api/v1")
 app.include_router(routing_router, prefix="/api/v1")
 app.include_router(optimization_router, prefix="/api/v1")
+app.include_router(reports_router, prefix="/api/v1")
 
 
 @app.get("/health/live", tags=["health"])

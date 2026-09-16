@@ -11,6 +11,7 @@ import { OperationsPage } from '../features/operations/OperationsPage'
 import '../features/operations/operation-sections.css'
 import '../features/operations/operation-wizard.css'
 import '../features/operations/operations.css'
+import { ReportsPage } from '../features/reports/ReportsPage'
 import '../features/resources/resources.css'
 import { WorkforcePage } from '../features/workforce/WorkforcePage'
 import { PlaceholderPage } from '../pages/PlaceholderPage'
@@ -29,16 +30,7 @@ export function AppRouter() {
           <Route path="/deliveries" element={<DeliveriesPage />} />
           <Route path="/fleet" element={<FleetPage />} />
           <Route path="/workforce" element={<WorkforcePage />} />
-          <Route
-            path="/reports"
-            element={
-              <PlaceholderPage
-                title="Relatórios"
-                description="Relatórios operacionais, custos e exportações da operação."
-                phase="Planejado"
-              />
-            }
-          />
+          <Route path="/reports" element={<ReportsPage />} />
           <Route
             path="/assistant"
             element={

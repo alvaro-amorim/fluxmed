@@ -1,6 +1,7 @@
 import uuid
 from unittest.mock import Mock
 
+from fluxmed.application.assistant.narrative_tools import AssistantNarrativeToolset
 from fluxmed.application.assistant.toolbox import AssistantToolbox
 from fluxmed.application.assistant.tools import AssistantToolRegistry
 from fluxmed.llm import ProviderRequest, ToolCall, ToolExchange, ToolResult
@@ -134,6 +135,15 @@ def test_mock_provider_requests_grounded_driver_instruction_context() -> None:
         "operation_id": str(operation_id),
         "route_id": str(route_id),
     }
+
+
+def test_driver_instruction_windows_are_localized_to_operation_timezone() -> None:
+    assert AssistantNarrativeToolset._operational_datetime(
+        "2026-09-15T18:30:00+00:00"
+    ) == "2026-09-15T15:30:00-03:00"
+    assert AssistantNarrativeToolset._operational_datetime(
+        "2026-09-15T10:52:00+00:00"
+    ) == "2026-09-15T07:52:00-03:00"
 
 
 def test_mock_provider_requires_explicit_operation_context() -> None:

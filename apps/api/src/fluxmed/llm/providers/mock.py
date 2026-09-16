@@ -68,7 +68,8 @@ class MockLLMProvider:
             return ProviderTurn(content=f"A distância total da {operation_code} é {distance} km.")
         if "entrega" in message:
             deliveries = optimization.get("delivery_count")
-            return ProviderTurn(content=f"A {operation_code} possui {deliveries} entregas no plano.")
+            content = f"A {operation_code} possui {deliveries} entregas no plano."
+            return ProviderTurn(content=content)
 
         cost = self._currency(optimization.get("total_cost_brl"))
         distance = optimization.get("distance_km")
@@ -112,5 +113,7 @@ class MockLLMProvider:
             amount = Decimal(str(value))
         except (InvalidOperation, ValueError):
             return "valor indisponível"
-        rendered = f"{amount:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+        rendered = (
+            f"{amount:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+        )
         return f"R$ {rendered}"

@@ -94,9 +94,7 @@ class GeminiProvider:
                 raise LLMProviderResponseError(
                     f"Gemini rejeitou a requisição (HTTP {code or 400})."
                 ) from exc
-            raise LLMProviderError(
-                f"Gemini retornou HTTP {code or 'desconhecido'}."
-            ) from exc
+            raise LLMProviderError(f"Gemini retornou HTTP {code or 'desconhecido'}.") from exc
         finally:
             if owns_client:
                 client.close()

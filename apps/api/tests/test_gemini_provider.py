@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from fluxmed.llm import ProviderRequest
 from fluxmed.llm.providers import GeminiProvider
@@ -13,7 +13,7 @@ class _FakeUsage:
 @dataclass
 class _FakeInteraction:
     output_text: str = "O custo total da operação é R$ 400,38."
-    usage: _FakeUsage = _FakeUsage()
+    usage: _FakeUsage = field(default_factory=_FakeUsage)
 
 
 class _FakeInteractions:

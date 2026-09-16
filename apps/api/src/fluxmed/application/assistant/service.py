@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from fluxmed.application.assistant.tool_selection import select_assistant_tools
 from fluxmed.application.assistant.toolbox import AssistantToolbox
-from fluxmed.llm import LLMProvider, ProviderRequest, ToolExchange, ToolResult
+from fluxmed.llm import LLMProvider, ProviderRequest, ToolCall, ToolExchange, ToolResult
 from fluxmed.llm.config import LLMSettings
 from fluxmed.llm.prompts import ASSISTANT_SYSTEM_PROMPT, ASSISTANT_SYSTEM_PROMPT_VERSION
 
@@ -133,21 +133,31 @@ class AssistantService:
                 raise AssistantToolLimitError("Limite de tools excedido nesta solicitação.")
 
             for call in turn.tool_calls:
-                if call.name not in selected_tool_names:
+                trusted_call = self._bind_trusted_context(call, context)
+                if trusted_call.name not in selected_tool_names:
                     result = ToolResult(
-                        call_id=call.id,
-                        name=call.name,
+                        call_id=trusted_call.id,
+                        name=trusted_call.name,
                         content={},
                         success=False,
                         error="Tool não disponível para esta solicitação.",
                     )
                 else:
-                    result = toolbox.execute(call)
-                history.append(ToolExchange(call=call, result=result))
+                    result = toolbox.execute(trusted_call)
+                history.append(ToolExchange(call=trusted_call, result=result))
                 call_views.append(
                     AssistantToolCallView(
-                        name=call.name,
+                        name=trusted_call.name,
                         status="success" if result.success else "failed",
                         error=result.error,
                     )
                 )
+
+    @staticmethod
+    def _bind_trusted_context(call: ToolCall, context: AssistantContext) -> ToolCall:
+        """Bind canonical UI/backend scope instead of trusting model-supplied operation IDs."""
+
+        arguments = dict(call.arguments)
+        if context.operation_id is not None:
+            arguments["operation_id"] = str(context.operation_id)
+        return ToolCall(id=call.id, name=call.name, arguments=arguments)

@@ -16,8 +16,10 @@ interface ChatMessage {
 
 const suggestedQuestions = [
   'Qual o custo total da operação?',
-  'Qual a distância total da operação?',
-  'Quantas entregas existem no plano?',
+  'Por que o veículo foi escolhido para a primeira rota?',
+  'Gere instruções para o motorista da primeira rota.',
+  'Gere um relatório diário da operação.',
+  'Simule remover o ajudante da primeira rota.',
 ]
 
 function operationEligible(operation: Operation): boolean {
@@ -183,8 +185,11 @@ export function AssistantPage() {
       <div className="assistant-layout">
         <aside className="assistant-suggestions" aria-label="Perguntas sugeridas">
           <p className="eyebrow eyebrow--dark">Comece por aqui</p>
-          <h2>Perguntas sugeridas</h2>
-          <p>Estas perguntas exercitam o primeiro conjunto de tools de leitura.</p>
+          <h2>Demonstração da Fase 16</h2>
+          <p>
+            As sugestões exercitam pergunta factual, explicação, instruções, relatório e simulação
+            sem aplicar mudanças ao plano.
+          </p>
           <div className="assistant-suggestion-list">
             {suggestedQuestions.map((question) => (
               <button

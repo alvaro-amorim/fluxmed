@@ -1,4 +1,6 @@
 import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
@@ -7,6 +9,8 @@ from fluxmed.llm import ToolCall, ToolDefinition, ToolResult
 
 
 class AssistantNarrativeToolset:
+    OPERATION_TIMEZONE = ZoneInfo("America/Sao_Paulo")
+
     NAMES = {
         "generate_driver_instructions",
         "generate_dispatch_report",
@@ -90,10 +94,12 @@ class AssistantNarrativeToolset:
             content: dict[str, object] = {
                 "generation_kind": "driver_instructions",
                 "operation": summary.get("operation"),
+                "operational_timezone": "America/Sao_Paulo",
                 "route": route,
                 "instructions": [
                     "Use a ordem das paradas exatamente como fornecida no plano validado.",
                     "Destaque prioridades e janelas de atendimento sem inventar horários.",
+                    "As janelas de atendimento já estão no fuso operacional America/Sao_Paulo.",
                     "Informe endereço e requisitos especiais somente quando presentes nos dados.",
                     "Não altere rota, equipe, veículo ou sequência durante a redação.",
                 ],
@@ -181,7 +187,10 @@ class AssistantNarrativeToolset:
                 "handling_requirement",
                 "service_time_minutes",
             ):
-                merged[field] = delivery.get(field)
+                value = delivery.get(field)
+                if field in {"time_window_start", "time_window_end"}:
+                    value = self._operational_datetime(value)
+                merged[field] = value
             enriched.append(merged)
         result = dict(route)
         result["stops"] = enriched
@@ -190,6 +199,18 @@ class AssistantNarrativeToolset:
     def _read_result(self, call: ToolCall) -> dict[str, object] | None:
         result = self._read.execute(call)
         return result.content if result.success else None
+
+    @classmethod
+    def _operational_datetime(cls, value: object) -> object:
+        if not isinstance(value, str) or not value:
+            return value
+        try:
+            parsed = datetime.fromisoformat(value)
+        except ValueError:
+            return value
+        if parsed.tzinfo is None:
+            return value
+        return parsed.astimezone(cls.OPERATION_TIMEZONE).isoformat()
 
     @staticmethod
     def _definition(

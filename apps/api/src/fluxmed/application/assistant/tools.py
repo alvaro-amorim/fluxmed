@@ -1,5 +1,7 @@
 import uuid
 from collections.abc import Callable
+from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -9,6 +11,9 @@ from fluxmed.application.operations import OperationService
 from fluxmed.application.optimization.results import (
     OptimizationResultNotFoundError,
     OptimizationResultService,
+    OptimizationResultView,
+    RouteResultView,
+    RouteTeamView,
 )
 from fluxmed.application.resources import ResourceService
 from fluxmed.infrastructure.models.optimization_result import OptimizationTraceEventModel
@@ -363,20 +368,27 @@ class AssistantToolRegistry:
             ],
         }
 
-    def _current_route(self, operation_id: uuid.UUID, route_id: uuid.UUID):
+    def _current_route(
+        self,
+        operation_id: uuid.UUID,
+        route_id: uuid.UUID,
+    ) -> RouteResultView:
         result = self._require_latest_result(operation_id)
         for route in result.routes:
             if route.id == route_id:
                 return route
         raise AssistantToolPermissionError("Rota fora do plano atual da operação.")
 
-    def _latest_result_or_none(self, operation_id: uuid.UUID):
+    def _latest_result_or_none(
+        self,
+        operation_id: uuid.UUID,
+    ) -> OptimizationResultView | None:
         try:
             return OptimizationResultService(self._session).latest_for_operation(operation_id)
         except OptimizationResultNotFoundError:
             return None
 
-    def _require_latest_result(self, operation_id: uuid.UUID):
+    def _require_latest_result(self, operation_id: uuid.UUID) -> OptimizationResultView:
         result = self._latest_result_or_none(operation_id)
         if result is None:
             raise AssistantToolError("A operação ainda não possui plano otimizado validado.")
@@ -431,34 +443,30 @@ class AssistantToolRegistry:
         )
 
     @staticmethod
-    def _team_payload(team: object) -> dict[str, object]:
-        primary_role = getattr(team, "primary_role", None)
-        primary_worker = getattr(team, "primary_worker", None)
-        helper = getattr(team, "helper", None)
-        team_cost = getattr(team, "team_cost_brl", None)
+    def _team_payload(team: RouteTeamView) -> dict[str, object]:
         return {
-            "primary_role": primary_role,
+            "primary_role": team.primary_role,
             "primary_worker": (
                 {
-                    "id": str(primary_worker.id),
-                    "name": primary_worker.name,
-                    "role": primary_worker.role,
+                    "id": str(team.primary_worker.id),
+                    "name": team.primary_worker.name,
+                    "role": team.primary_worker.role,
                 }
-                if primary_worker is not None
+                if team.primary_worker is not None
                 else None
             ),
             "helper": (
-                {"id": str(helper.id), "name": helper.name, "role": helper.role}
-                if helper is not None
+                {"id": str(team.helper.id), "name": team.helper.name, "role": team.helper.role}
+                if team.helper is not None
                 else None
             ),
-            "team_cost_brl": str(team_cost) if team_cost is not None else "0",
+            "team_cost_brl": str(team.team_cost_brl),
         }
 
     @staticmethod
-    def _optional_decimal(value: object) -> str | None:
+    def _optional_decimal(value: Decimal | None) -> str | None:
         return None if value is None else str(value)
 
     @staticmethod
-    def _optional_datetime(value: object) -> str | None:
-        return value.isoformat() if hasattr(value, "isoformat") else None
+    def _optional_datetime(value: datetime | None) -> str | None:
+        return value.isoformat() if value is not None else None

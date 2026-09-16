@@ -3,8 +3,8 @@ import json
 import httpx
 
 from fluxmed.llm import ProviderRequest, ToolDefinition, ToolExchange, ToolResult
-from fluxmed.llm.providers import GeminiProvider
 from fluxmed.llm.contracts import ToolCall
+from fluxmed.llm.providers import GeminiProvider
 
 
 def test_gemini_provider_parses_function_call_and_uses_stateful_result() -> None:

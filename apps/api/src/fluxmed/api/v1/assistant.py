@@ -122,7 +122,12 @@ def assistant_message(
         )
     except LLMProviderTimeoutError as exc:
         _record_provider_failure(
-            request_id, current_user.id, payload, provider.name, provider.model, started,
+            request_id,
+            current_user.id,
+            payload,
+            provider.name,
+            provider.model,
+            started,
             "LLM_PROVIDER_TIMEOUT",
         )
         raise ApiError(
@@ -132,7 +137,12 @@ def assistant_message(
         ) from exc
     except LLMProviderRateLimitError as exc:
         _record_provider_failure(
-            request_id, current_user.id, payload, provider.name, provider.model, started,
+            request_id,
+            current_user.id,
+            payload,
+            provider.name,
+            provider.model,
+            started,
             "LLM_PROVIDER_RATE_LIMITED",
         )
         raise ApiError(
@@ -142,7 +152,12 @@ def assistant_message(
         ) from exc
     except LLMProviderResponseError as exc:
         _record_provider_failure(
-            request_id, current_user.id, payload, provider.name, provider.model, started,
+            request_id,
+            current_user.id,
+            payload,
+            provider.name,
+            provider.model,
+            started,
             "LLM_INVALID_RESPONSE",
         )
         raise ApiError(
@@ -152,7 +167,12 @@ def assistant_message(
         ) from exc
     except LLMProviderError as exc:
         _record_provider_failure(
-            request_id, current_user.id, payload, provider.name, provider.model, started,
+            request_id,
+            current_user.id,
+            payload,
+            provider.name,
+            provider.model,
+            started,
             "LLM_PROVIDER_UNAVAILABLE",
         )
         raise ApiError(
@@ -162,7 +182,12 @@ def assistant_message(
         ) from exc
     except AssistantToolLimitError as exc:
         _record_provider_failure(
-            request_id, current_user.id, payload, provider.name, provider.model, started,
+            request_id,
+            current_user.id,
+            payload,
+            provider.name,
+            provider.model,
+            started,
             "LLM_TOOL_LIMIT_EXCEEDED",
         )
         raise ApiError(
@@ -172,7 +197,12 @@ def assistant_message(
         ) from exc
     except AssistantInvalidResponseError as exc:
         _record_provider_failure(
-            request_id, current_user.id, payload, provider.name, provider.model, started,
+            request_id,
+            current_user.id,
+            payload,
+            provider.name,
+            provider.model,
+            started,
             "LLM_INVALID_RESPONSE",
         )
         raise ApiError(
@@ -182,7 +212,12 @@ def assistant_message(
         ) from exc
     except LookupError as exc:
         _record_provider_failure(
-            request_id, current_user.id, payload, provider.name, provider.model, started,
+            request_id,
+            current_user.id,
+            payload,
+            provider.name,
+            provider.model,
+            started,
             "ASSISTANT_CONTEXT_NOT_FOUND",
         )
         raise ApiError(
@@ -191,10 +226,7 @@ def assistant_message(
             "O contexto operacional solicitado não foi encontrado.",
         ) from exc
 
-    telemetry_calls = tuple(
-        {"name": item.name, "status": item.status}
-        for item in reply.tool_calls
-    )
+    telemetry_calls = tuple({"name": item.name, "status": item.status} for item in reply.tool_calls)
     AssistantTelemetryRecorder.record(
         AssistantTelemetryInput(
             request_id=reply.request_id,

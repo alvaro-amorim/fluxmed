@@ -33,9 +33,8 @@ class GroundedMockLLMProvider:
         if "custo" in message:
             cost = self._data(entries, "get_cost_breakdown")
             if cost:
-                return ProviderTurn(
-                    content=f"O custo total da operação é {self._currency(cost.get('total_cost_brl'))}."
-                )
+                total = self._currency(cost.get("total_cost_brl"))
+                return ProviderTurn(content=f"O custo total da operação é {total}.")
 
         if "por que" in message and ("veiculo" in message or "rota" in message):
             route = self._data(entries, "get_route_details")
@@ -71,12 +70,13 @@ class GroundedMockLLMProvider:
         if simulation:
             valid = bool(simulation.get("valid"))
             if valid:
+                current = self._currency(simulation.get("current_route_cost_brl"))
+                simulated = self._currency(simulation.get("simulated_route_cost_brl"))
+                delta = self._currency(simulation.get("cost_delta_brl"))
                 return ProviderTurn(
                     content=(
                         "A simulação de remoção do ajudante é válida segundo o backend. "
-                        f"Custo atual: {self._currency(simulation.get('current_route_cost_brl'))}; "
-                        f"custo simulado: {self._currency(simulation.get('simulated_route_cost_brl'))}; "
-                        f"delta: {self._currency(simulation.get('cost_delta_brl'))}. "
+                        f"Custo atual: {current}; custo simulado: {simulated}; delta: {delta}. "
                         "Nenhuma alteração foi aplicada."
                     )
                 )

@@ -1,4 +1,5 @@
 import json
+import logging
 from collections.abc import Mapping
 
 import httpx
@@ -15,6 +16,8 @@ from fluxmed.llm import (
 )
 
 GEMINI_INTERACTIONS_URL = "https://generativelanguage.googleapis.com/v1beta/interactions"
+
+logger = logging.getLogger(__name__)
 
 
 class GeminiProvider:
@@ -50,7 +53,10 @@ class GeminiProvider:
             "model": self._model,
             "system_instruction": self._system_instruction(request),
             "tools": [self._tool(tool) for tool in request.tools],
-            "generation_config": self._generation_config(request.tools),
+            "generation_config": self._generation_config(
+                request.tools,
+                has_tool_results=bool(request.history),
+            ),
         }
         if self._previous_interaction_id is None:
             payload["input"] = request.user_message
@@ -65,6 +71,7 @@ class GeminiProvider:
             "x-goog-api-key": self._api_key,
             "Content-Type": "application/json",
         }
+        phase = "tool_result" if self._previous_interaction_id is not None else "initial"
         try:
             if self._client is not None:
                 response = self._client.post(GEMINI_INTERACTIONS_URL, headers=headers, json=payload)
@@ -72,13 +79,25 @@ class GeminiProvider:
                 with httpx.Client(timeout=self._timeout_seconds) as client:
                     response = client.post(GEMINI_INTERACTIONS_URL, headers=headers, json=payload)
         except httpx.TimeoutException as exc:
+            logger.warning("Gemini timeout during %s phase", phase)
             raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.") from exc
         except httpx.HTTPError as exc:
+            logger.warning(
+                "Gemini transport error during %s phase: %s",
+                phase,
+                type(exc).__name__,
+            )
             raise LLMProviderError("Falha de comunicação com Gemini.") from exc
 
         if response.status_code == 429:
             raise LLMProviderRateLimitError("Gemini limitou temporariamente as requisições.")
         if response.status_code >= 400:
+            logger.warning(
+                "Gemini HTTP %s during %s phase: %s",
+                response.status_code,
+                phase,
+                self._safe_error_message(response),
+            )
             raise LLMProviderError(f"Gemini retornou HTTP {response.status_code}.")
 
         try:
@@ -124,16 +143,20 @@ class GeminiProvider:
         }
 
     @staticmethod
-    def _generation_config(tools: tuple[ToolDefinition, ...]) -> dict[str, object]:
+    def _generation_config(
+        tools: tuple[ToolDefinition, ...],
+        *,
+        has_tool_results: bool,
+    ) -> dict[str, object]:
         config: dict[str, object] = {
             "temperature": 0,
             "thinking_level": "low",
             "max_output_tokens": 1200,
         }
-        if tools:
+        if tools and not has_tool_results:
             config["tool_choice"] = {
                 "allowed_tools": {
-                    "mode": "validated",
+                    "mode": "any",
                     "tools": [tool.name for tool in tools],
                 }
             }
@@ -156,6 +179,22 @@ class GeminiProvider:
                 }
             ],
         }
+
+    @staticmethod
+    def _safe_error_message(response: httpx.Response) -> str:
+        try:
+            data = response.json()
+        except ValueError:
+            return response.text[:500].replace("\n", " ")
+        if not isinstance(data, Mapping):
+            return "Resposta de erro sem objeto JSON."
+        error = data.get("error")
+        if isinstance(error, Mapping):
+            message = error.get("message")
+            code = error.get("code")
+            if isinstance(message, str):
+                return f"{code}: {message}"[:500]
+        return "Resposta de erro sem mensagem estruturada."
 
     @staticmethod
     def _turn(data: Mapping[str, object]) -> ProviderTurn:

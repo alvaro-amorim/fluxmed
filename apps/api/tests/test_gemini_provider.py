@@ -47,7 +47,7 @@ def test_gemini_provider_parses_function_call_and_uses_stateful_result() -> None
 
     provider = GeminiProvider(
         api_key="test-key",
-        model="gemini-3.8-flash",
+        model="gemini-2.5-flash",
         timeout_seconds=1,
         client=httpx.Client(transport=httpx.MockTransport(handler)),
     )
@@ -76,8 +76,13 @@ def test_gemini_provider_parses_function_call_and_uses_stateful_result() -> None
             arguments={"operation_id": "operation-id"},
         ),
     )
-    assert requests[0]["system_instruction"] == "system"
-    assert requests[0]["model"] == "gemini-3.8-flash"
+    system_instruction = requests[0]["system_instruction"]
+    assert isinstance(system_instruction, str)
+    assert system_instruction.startswith("system")
+    assert "Contexto operacional confiável fornecido pelo backend" in system_instruction
+    assert '"operation_id":"operation-id"' in system_instruction
+    assert requests[0]["input"] == "Qual o custo?"
+    assert requests[0]["model"] == "gemini-2.5-flash"
 
     call = first.tool_calls[0]
     second = provider.generate(
@@ -106,3 +111,14 @@ def test_gemini_provider_parses_function_call_and_uses_stateful_result() -> None
     assert result_input[0]["call_id"] == "call-1"
     assert second.content == "Custo total: R$ 400,38."
     assert second.tool_calls == ()
+
+
+def test_gemini_provider_keeps_empty_context_out_of_system_instruction() -> None:
+    request = ProviderRequest(
+        system_prompt="system",
+        user_message="Olá",
+        context={},
+        tools=(),
+    )
+
+    assert GeminiProvider._system_instruction(request) == "system"

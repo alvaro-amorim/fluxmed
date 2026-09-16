@@ -86,7 +86,9 @@ class MockLLMProvider:
         route_id = self._selected_route_id(request, optimization)
         if self._asks_driver_instructions(message):
             if route_id is None:
-                return ProviderTurn(content="Nenhuma rota do plano está disponível para instruções.")
+                return ProviderTurn(
+                    content="Nenhuma rota do plano está disponível para instruções."
+                )
             return self._tool_turn(
                 "generate_driver_instructions",
                 {"operation_id": operation_id, "route_id": route_id},
@@ -152,7 +154,9 @@ class MockLLMProvider:
             return ProviderTurn(content=f"A distância total da {operation_code} é {distance} km.")
         if "entrega" in message:
             deliveries = optimization.get("delivery_count")
-            return ProviderTurn(content=f"A {operation_code} possui {deliveries} entregas no plano.")
+            return ProviderTurn(
+                content=f"A {operation_code} possui {deliveries} entregas no plano."
+            )
 
         cost = self._currency(optimization.get("total_cost_brl"))
         distance = optimization.get("distance_km")
@@ -199,9 +203,7 @@ class MockLLMProvider:
             primary = self._mapping(team.get("primary_worker"))
             primary_name = primary.get("name") or "motorista incluído no contrato"
             helper_name = helper.get("name") or "sem ajudante"
-            descriptions.append(
-                f"{item.get('route_code')}: {primary_name}; {helper_name}"
-            )
+            descriptions.append(f"{item.get('route_code')}: {primary_name}; {helper_name}")
         if not descriptions:
             return ProviderTurn(content="Não há atribuição de equipe disponível no contexto atual.")
         return ProviderTurn(content="Equipe do plano validado: " + "; ".join(descriptions) + ".")
@@ -341,7 +343,9 @@ class MockLLMProvider:
 
     @staticmethod
     def _asks_vehicle_reason(message: str) -> bool:
-        return "por que" in message and ("veiculo" in message or "van" in message or "rota" in message)
+        return "por que" in message and (
+            "veiculo" in message or "van" in message or "rota" in message
+        )
 
     @staticmethod
     def _mapping(value: object) -> dict[str, object]:

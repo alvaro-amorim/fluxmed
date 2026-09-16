@@ -117,6 +117,10 @@ def test_gemini_provider_parses_function_call_and_uses_stateful_result() -> None
     assert isinstance(result_input, list)
     assert result_input[0]["type"] == "function_result"
     assert result_input[0]["call_id"] == "call-1"
+    assert result_input[0]["result"] == {
+        "optimization": {"total_cost_brl": "400.38"}
+    }
+    assert not isinstance(result_input[0]["result"], list)
     second_generation_config = requests[1]["generation_config"]
     assert isinstance(second_generation_config, dict)
     assert "tool_choice" not in second_generation_config

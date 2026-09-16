@@ -2,6 +2,7 @@ import uuid
 from unittest.mock import Mock
 
 from fluxmed.application.assistant.narrative_tools import AssistantNarrativeToolset
+from fluxmed.application.assistant.tool_selection import select_assistant_tools
 from fluxmed.application.assistant.toolbox import AssistantToolbox
 from fluxmed.application.assistant.tools import AssistantToolRegistry
 from fluxmed.llm import ProviderRequest, ToolCall, ToolExchange, ToolResult
@@ -194,3 +195,71 @@ def test_toolbox_exposes_read_narrative_and_safe_simulation_tools() -> None:
     assert "generate_daily_operation_report" in names
     assert "simulate_driver_swap" in names
     assert "simulate_helper_removal" in names
+
+
+def test_tool_selector_keeps_cost_question_small_and_grounded() -> None:
+    definitions = AssistantToolbox(Mock(), context_operation_id=uuid.uuid4()).definitions()
+
+    selected = select_assistant_tools("Qual o custo total da operação?", definitions)
+
+    assert [tool.name for tool in selected] == [
+        "get_operation_summary",
+        "get_cost_breakdown",
+    ]
+
+
+def test_tool_selector_supports_vehicle_explanation_without_full_catalogue() -> None:
+    definitions = AssistantToolbox(Mock(), context_operation_id=uuid.uuid4()).definitions()
+
+    selected = select_assistant_tools(
+        "Por que o veículo foi escolhido para a primeira rota?",
+        definitions,
+    )
+
+    assert [tool.name for tool in selected] == [
+        "get_operation_summary",
+        "get_route_details",
+        "get_vehicle_details",
+    ]
+
+
+def test_tool_selector_supports_generation_and_simulation_intents() -> None:
+    definitions = AssistantToolbox(Mock(), context_operation_id=uuid.uuid4()).definitions()
+
+    instruction_names = {
+        tool.name
+        for tool in select_assistant_tools(
+            "Gere instruções para o motorista da primeira rota.",
+            definitions,
+        )
+    }
+    simulation_names = {
+        tool.name
+        for tool in select_assistant_tools(
+            "Simule remover o ajudante da primeira rota.",
+            definitions,
+        )
+    }
+
+    assert instruction_names == {
+        "get_operation_summary",
+        "generate_driver_instructions",
+        "get_team_assignment_details",
+    }
+    assert simulation_names == {
+        "get_operation_summary",
+        "simulate_helper_removal",
+        "get_team_assignment_details",
+    }
+
+
+def test_tool_selector_never_exposes_more_than_five_tools() -> None:
+    definitions = AssistantToolbox(Mock(), context_operation_id=uuid.uuid4()).definitions()
+
+    selected = select_assistant_tools(
+        "Compare custo, algoritmo, veículo, equipe, entrega e relatório de despacho.",
+        definitions,
+    )
+
+    assert len(selected) <= 5
+    assert selected[0].name == "get_operation_summary"

@@ -1,10 +1,15 @@
 import uuid
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from sqlalchemy.orm import Session
 
 from fluxmed.application.assistant.tools import AssistantToolRegistry
-from fluxmed.application.optimization.results import OptimizationResultService, TeamSimulationView
+from fluxmed.application.optimization.results import (
+    OptimizationResultNotFoundError,
+    OptimizationResultService,
+    TeamSimulationError,
+    TeamSimulationView,
+)
 from fluxmed.llm import ToolCall, ToolDefinition, ToolResult
 
 
@@ -92,25 +97,28 @@ class AssistantSimulationToolset:
         current_helper = self._nested_uuid(team, "helper")
         current_cost = self._decimal(route_result.content.get("cost_brl"))
 
-        if call.name == "simulate_driver_swap":
-            try:
-                new_driver_id = uuid.UUID(str(call.arguments.get("new_driver_id")))
-            except (ValueError, AttributeError):
-                return self._failed(call, "new_driver_id inválido.")
+        try:
+            if call.name == "simulate_driver_swap":
+                try:
+                    new_driver_id = uuid.UUID(str(call.arguments.get("new_driver_id")))
+                except (ValueError, AttributeError):
+                    return self._failed(call, "new_driver_id inválido.")
+                simulation = OptimizationResultService(self._session).simulate_team(
+                    parsed_route_id,
+                    primary_worker_id=new_driver_id,
+                    helper_worker_id=current_helper,
+                    apply=False,
+                )
+                return self._result(call, simulation, current_cost)
+
             simulation = OptimizationResultService(self._session).simulate_team(
                 parsed_route_id,
-                primary_worker_id=new_driver_id,
-                helper_worker_id=current_helper,
+                primary_worker_id=current_primary,
+                helper_worker_id=None,
                 apply=False,
             )
-            return self._result(call, simulation, current_cost)
-
-        simulation = OptimizationResultService(self._session).simulate_team(
-            parsed_route_id,
-            primary_worker_id=current_primary,
-            helper_worker_id=None,
-            apply=False,
-        )
+        except (OptimizationResultNotFoundError, TeamSimulationError) as exc:
+            return self._failed(call, str(exc))
         return self._result(call, simulation, current_cost)
 
     @staticmethod
@@ -176,7 +184,7 @@ class AssistantSimulationToolset:
     def _decimal(value: object) -> Decimal | None:
         try:
             return Decimal(str(value))
-        except (ValueError, TypeError):
+        except (InvalidOperation, ValueError, TypeError):
             return None
 
     @staticmethod

@@ -1,6 +1,12 @@
 import os
 from dataclasses import dataclass
 
+DEFAULT_MODELS = {
+    "mock": "fluxmed-mock-v1",
+    "cohere": "command-a-plus-05-2026",
+    "gemini": "gemini-2.5-flash",
+}
+
 
 @dataclass(frozen=True, slots=True)
 class LLMSettings:
@@ -13,7 +19,7 @@ class LLMSettings:
     @classmethod
     def from_env(cls) -> "LLMSettings":
         provider = os.getenv("LLM_PROVIDER", "mock").strip().lower() or "mock"
-        default_model = "fluxmed-mock-v1" if provider == "mock" else ""
+        default_model = DEFAULT_MODELS.get(provider, "")
         model = os.getenv("LLM_MODEL", default_model).strip() or default_model
         return cls(
             provider=provider,

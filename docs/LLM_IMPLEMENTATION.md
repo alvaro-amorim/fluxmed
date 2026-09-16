@@ -101,7 +101,7 @@ Estas tools não pedem que a LLM invente dados. Elas montam contexto estruturado
 - `generate_daily_operation_report`;
 - `generate_executive_summary`.
 
-As instruções de motorista enriquecem cada parada com endereço, janela, temperatura, manuseio e tempo de serviço quando esses dados existem.
+As instruções de motorista enriquecem cada parada com endereço, janela, temperatura, manuseio e tempo de serviço quando esses dados existem. As janelas persistidas com timezone são convertidas para o fuso operacional `America/Sao_Paulo` antes de serem apresentadas ao modelo para redação das instruções, evitando expor horários UTC como se fossem horários locais.
 
 ## 6. Simulações seguras
 

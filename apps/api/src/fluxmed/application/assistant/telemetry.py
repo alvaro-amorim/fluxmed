@@ -17,7 +17,7 @@ class AssistantTelemetryInput:
     latency_ms: int
     input_tokens: int
     output_tokens: int
-    tool_calls: tuple[dict[str, object], ...]
+    tool_calls: tuple[dict[str, str], ...]
     tool_failures: int
     status: str
     fallback_used: bool = False

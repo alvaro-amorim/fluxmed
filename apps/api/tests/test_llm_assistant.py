@@ -2,6 +2,7 @@ import uuid
 from unittest.mock import Mock
 
 from fluxmed.application.assistant.narrative_tools import AssistantNarrativeToolset
+from fluxmed.application.assistant.service import AssistantContext, AssistantService
 from fluxmed.application.assistant.tool_selection import select_assistant_tools
 from fluxmed.application.assistant.toolbox import AssistantToolbox
 from fluxmed.application.assistant.tools import AssistantToolRegistry
@@ -161,6 +162,25 @@ def test_mock_provider_requires_explicit_operation_context() -> None:
 
     assert "Selecione uma operação" in turn.content
     assert turn.tool_calls == ()
+
+
+def test_service_binds_selected_operation_over_model_argument() -> None:
+    selected_operation_id = uuid.uuid4()
+    model_operation_id = uuid.uuid4()
+    call = ToolCall(
+        id="call-1",
+        name="get_operation_summary",
+        arguments={"operation_id": str(model_operation_id)},
+    )
+
+    trusted = AssistantService._bind_trusted_context(
+        call,
+        AssistantContext(operation_id=selected_operation_id),
+    )
+
+    assert trusted.arguments["operation_id"] == str(selected_operation_id)
+    assert trusted.id == call.id
+    assert trusted.name == call.name
 
 
 def test_tool_registry_blocks_cross_operation_access_before_query() -> None:

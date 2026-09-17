@@ -43,7 +43,7 @@ afterEach(() => {
 })
 
 it('asks a factual question using the selected operation context and copies the chat history', async () => {
-  const writeText = vi.fn(async () => undefined)
+  const writeText = vi.fn(async (_text: string) => undefined)
   vi.stubGlobal(
     'navigator',
     Object.assign(Object.create(window.navigator), {
@@ -107,7 +107,7 @@ it('asks a factual question using the selected operation context and copies the 
   await user.click(copyButton)
 
   await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1))
-  const copied = String(writeText.mock.calls[0][0])
+  const copied = String(writeText.mock.calls[0]?.[0] ?? '')
   expect(copied).toContain('# FluxMed — Histórico do Assistente IA')
   expect(copied).toContain('**Operação:** OP-20260915-001')
   expect(copied).toContain('## Você')

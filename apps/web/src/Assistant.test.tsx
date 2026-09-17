@@ -66,15 +66,17 @@ it('asks a factual question using the selected operation context and copies the 
         const payload = JSON.parse(String(init?.body)) as {
           message: string
           context: { operation_id: string }
+          history: Array<{ role: string; content: string }>
         }
         expect(payload.context.operation_id).toBe(operation.id)
         expect(payload.message).toBe('Qual o custo total da operação?')
+        expect(payload.history).toEqual([])
         return response({
           request_id: 'request-id',
           message: 'O custo total da OP-20260915-001 é R$ 400,38.',
           provider: 'mock',
           model: 'fluxmed-mock-v1',
-          prompt_version: 'assistant-system-v1',
+          prompt_version: 'assistant-system-v3',
           latency_ms: 2,
           input_tokens: 0,
           output_tokens: 0,
@@ -114,6 +116,81 @@ it('asks a factual question using the selected operation context and copies the 
   expect(copied).toContain('_Provider: mock · fluxmed-mock-v1_')
   expect(copied).toContain('**Fontes estruturadas:** get_operation_summary (success)')
   expect(screen.getByRole('button', { name: 'Copiado' })).toBeInTheDocument()
+})
+
+it('sends prior user and assistant messages with a follow-up question', async () => {
+  let assistantCalls = 0
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = typeof input === 'string' ? input : input.toString()
+      const method = init?.method ?? 'GET'
+      if (path.endsWith('/api/v1/auth/me')) return response(planner)
+      if (path.endsWith('/api/v1/operations')) {
+        return response({ items: [operation], page: 1, page_size: 20, total: 1, total_pages: 1 })
+      }
+      if (path.endsWith('/api/v1/assistant/status')) {
+        return response({ status: 'HEALTHY', provider: 'mock', model: 'fluxmed-mock-v1' })
+      }
+      if (path.endsWith('/api/v1/assistant/messages') && method === 'POST') {
+        assistantCalls += 1
+        const payload = JSON.parse(String(init?.body)) as {
+          message: string
+          history: Array<{ role: string; content: string }>
+        }
+        if (assistantCalls === 1) {
+          expect(payload.history).toEqual([])
+          return response({
+            request_id: 'vehicle-request',
+            message: 'O veículo da primeira rota é a VAN_COMPACT FMD1A03.',
+            provider: 'mock',
+            model: 'fluxmed-mock-v1',
+            prompt_version: 'assistant-system-v3',
+            latency_ms: 2,
+            input_tokens: 0,
+            output_tokens: 0,
+            tool_calls: [{ name: 'get_vehicle_details', status: 'success', error: null }],
+            suggested_actions: [],
+          })
+        }
+        expect(payload.message).toBe('E qual é a capacidade dele?')
+        expect(payload.history).toEqual([
+          { role: 'user', content: 'Qual veículo está na primeira rota?' },
+          {
+            role: 'assistant',
+            content: 'O veículo da primeira rota é a VAN_COMPACT FMD1A03.',
+          },
+        ])
+        return response({
+          request_id: 'capacity-request',
+          message: 'A capacidade máxima é 900 kg e 5 m³.',
+          provider: 'mock',
+          model: 'fluxmed-mock-v1',
+          prompt_version: 'assistant-system-v3',
+          latency_ms: 2,
+          input_tokens: 0,
+          output_tokens: 0,
+          tool_calls: [{ name: 'get_vehicle_details', status: 'success', error: null }],
+          suggested_actions: [],
+        })
+      }
+      return response({}, 404)
+    }),
+  )
+
+  render(<App />)
+  const user = userEvent.setup()
+  await screen.findByRole('heading', { name: 'Explique o plano com dados validados' })
+
+  const input = screen.getByLabelText('Pergunte sobre a operação selecionada')
+  await user.type(input, 'Qual veículo está na primeira rota?')
+  await user.click(screen.getByRole('button', { name: 'Enviar' }))
+  await screen.findByText('O veículo da primeira rota é a VAN_COMPACT FMD1A03.')
+
+  await user.type(input, 'E qual é a capacidade dele?')
+  await user.click(screen.getByRole('button', { name: 'Enviar' }))
+
+  expect(await screen.findByText('A capacidade máxima é 900 kg e 5 m³.')).toBeInTheDocument()
 })
 
 it('disables questions when the provider is degraded', async () => {

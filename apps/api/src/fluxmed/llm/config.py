@@ -34,8 +34,7 @@ class LLMSettings:
         model = os.getenv("LLM_MODEL", default_model).strip() or default_model
         default_thinking = DEFAULT_THINKING_LEVELS.get(model, "low")
         thinking_level = (
-            os.getenv("LLM_THINKING_LEVEL", default_thinking).strip().lower()
-            or default_thinking
+            os.getenv("LLM_THINKING_LEVEL", default_thinking).strip().lower() or default_thinking
         )
         return cls(
             provider=provider,

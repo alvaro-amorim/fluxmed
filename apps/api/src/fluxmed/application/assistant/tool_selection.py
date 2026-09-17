@@ -108,7 +108,16 @@ def plan_assistant_grounding(
             exposed_tools=supported("simulate_driver_swap"),
         )
 
-    if _contains_any(normalized, "custo", "custos", "preco", "gasto", "valor"):
+    if _contains_any(
+        normalized,
+        "custo",
+        "custos",
+        "custa",
+        "custar",
+        "preco",
+        "gasto",
+        "valor",
+    ):
         return AssistantGroundingPlan(
             intent=AssistantIntent.COST,
             retrieval_tools=supported("get_operation_summary", "get_cost_breakdown"),

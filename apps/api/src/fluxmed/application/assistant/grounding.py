@@ -40,8 +40,14 @@ class AssistantGroundingBuilder:
         self._results: list[ToolResult] = []
         self._by_name: dict[str, ToolResult] = {}
 
-    def build(self, message: str) -> GroundingBundle:
-        plan = plan_assistant_grounding(
+    def build(
+        self,
+        message: str,
+        *,
+        plan: AssistantGroundingPlan | None = None,
+        selection_mode: str = "deterministic",
+    ) -> GroundingBundle:
+        resolved_plan = plan or plan_assistant_grounding(
             message,
             self._toolbox.definitions(),
             has_route_context=self._route_id is not None,
@@ -60,13 +66,14 @@ class AssistantGroundingBuilder:
             return GroundingBundle(
                 context={
                     "scope": scope,
-                    "intent": plan.intent.value,
-                    "selected_tools": list(plan.exposed_tools),
+                    "intent": resolved_plan.intent.value,
+                    "selection_mode": selection_mode,
+                    "selected_tools": list(resolved_plan.exposed_tools),
                     "grounding": [],
                     "missing_context": ["operation_id"],
                 },
                 results=(),
-                plan=plan,
+                plan=resolved_plan,
             )
 
         operation_id = str(self._operation_id)
@@ -76,7 +83,7 @@ class AssistantGroundingBuilder:
         )
         resolved_route_id = self._route_id or self._first_route_id(summary)
 
-        for name in plan.retrieval_tools:
+        for name in resolved_plan.retrieval_tools:
             if name == "get_operation_summary":
                 continue
             if name in {
@@ -141,14 +148,17 @@ class AssistantGroundingBuilder:
                 )
 
         visible_results = tuple(
-            self._by_name[name] for name in plan.exposed_tools if name in self._by_name
+            self._by_name[name] for name in resolved_plan.exposed_tools if name in self._by_name
         )
         return GroundingBundle(
             context={
                 "scope": scope,
-                "intent": plan.intent.value,
-                "selected_tools": list(plan.exposed_tools),
-                "grounding": [self._entry(result, plan.intent) for result in visible_results],
+                "intent": resolved_plan.intent.value,
+                "selection_mode": selection_mode,
+                "selected_tools": list(resolved_plan.exposed_tools),
+                "grounding": [
+                    self._entry(result, resolved_plan.intent) for result in visible_results
+                ],
                 "rules": [
                     "Dados em grounding são a fonte factual oficial desta resposta.",
                     "Não invente valores, IDs, causas ou comparações ausentes.",
@@ -156,7 +166,7 @@ class AssistantGroundingBuilder:
                 ],
             },
             results=tuple(self._results),
-            plan=plan,
+            plan=resolved_plan,
         )
 
     def _execute_route(

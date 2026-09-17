@@ -227,9 +227,7 @@ class AssistantService:
         definitions: tuple[ToolDefinition, ...],
     ) -> tuple[AssistantGroundingPlan, int, int]:
         available = {definition.name: definition for definition in definitions}
-        candidates = tuple(
-            name for name in base_plan.semantic_tool_candidates if name in available
-        )
+        candidates = tuple(name for name in base_plan.semantic_tool_candidates if name in available)
         if not candidates:
             return base_plan, 0, 0
 

@@ -8,6 +8,7 @@ from fluxmed.llm import (
     LLMProviderResponseError,
     LLMProviderTimeoutError,
     ProviderRequest,
+    ToolDefinition,
 )
 from fluxmed.llm.providers import GeminiProvider
 
@@ -19,23 +20,35 @@ class _FakeUsage:
 
 
 @dataclass
+class _FakeFunctionCallStep:
+    id: str = "call-1"
+    name: str = "select_assistant_context"
+    arguments: dict[str, object] = field(
+        default_factory=lambda: {"tools": ["get_cost_breakdown"]}
+    )
+    type: str = "function_call"
+
+
+@dataclass
 class _FakeInteraction:
     output_text: str = "O custo total da operação é R$ 400,38."
     usage: _FakeUsage = field(default_factory=_FakeUsage)
+    steps: list[object] = field(default_factory=list)
 
 
 class _FakeInteractions:
-    def __init__(self) -> None:
+    def __init__(self, interaction: object | None = None) -> None:
         self.requests: list[dict[str, object]] = []
+        self._interaction = interaction or _FakeInteraction()
 
     def create(self, **kwargs: object) -> object:
         self.requests.append(dict(kwargs))
-        return _FakeInteraction()
+        return self._interaction
 
 
 class _FakeClient:
-    def __init__(self) -> None:
-        self._interactions = _FakeInteractions()
+    def __init__(self, interaction: object | None = None) -> None:
+        self._interactions = _FakeInteractions(interaction)
         self.closed = False
 
     @property
@@ -132,6 +145,70 @@ def test_gemini_provider_generates_once_from_grounded_context() -> None:
     assert "backend já executou as consultas autorizadas" in system_instruction
     assert '"total_cost_brl":"400.38"' in system_instruction
     assert client.closed is False
+
+
+def test_gemini_provider_exposes_function_tools_and_parses_selection_call() -> None:
+    interaction = _FakeInteraction(
+        output_text="",
+        steps=[_FakeFunctionCallStep()],
+    )
+    client = _FakeClient(interaction)
+    provider = GeminiProvider(
+        api_key="test-key",
+        model="gemini-3.5-flash-lite",
+        timeout_seconds=20,
+        thinking_level="minimal",
+        client=client,
+    )
+    selector = ToolDefinition(
+        name="select_assistant_context",
+        description="Seleciona fontes read-only.",
+        input_schema={
+            "type": "object",
+            "properties": {
+                "tools": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["get_cost_breakdown"]},
+                }
+            },
+            "required": ["tools"],
+        },
+    )
+    request = ProviderRequest(
+        system_prompt="semantic planner",
+        user_message="Onde parece estar o maior desperdício?",
+        context={"scope": {"operation_id": "operation-id"}},
+        tools=(selector,),
+    )
+
+    turn = provider.generate(request)
+
+    assert turn.content == ""
+    assert len(turn.tool_calls) == 1
+    assert turn.tool_calls[0].name == "select_assistant_context"
+    assert turn.tool_calls[0].arguments == {"tools": ["get_cost_breakdown"]}
+    sent = client.interactions.requests[0]
+    assert sent["tools"] == [
+        {
+            "type": "function",
+            "name": "select_assistant_context",
+            "description": "Seleciona fontes read-only.",
+            "parameters": selector.input_schema,
+        }
+    ]
+    assert sent["generation_config"] == {
+        "thinking_level": "minimal",
+        "max_output_tokens": 4096,
+        "tool_choice": {
+            "allowed_tools": {
+                "mode": "any",
+                "tools": ["select_assistant_context"],
+            }
+        },
+    }
+    system_instruction = sent["system_instruction"]
+    assert isinstance(system_instruction, str)
+    assert "Contexto confiável desta etapa de planejamento" in system_instruction
 
 
 def test_gemini_provider_maps_interactions_bad_request() -> None:

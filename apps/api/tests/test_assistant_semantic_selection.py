@@ -50,18 +50,19 @@ def _settings() -> LLMSettings:
 
 def _definitions() -> tuple[ToolDefinition, ...]:
     schema = {"type": "object", "properties": {}}
+    descriptions = {
+        "get_operation_summary": "Resumo oficial da operação.",
+        "get_route_details": "Detalhes de uma rota e sua utilização.",
+        "get_vehicle_details": "Características do veículo usado na rota.",
+        "get_delivery_details": "Dados operacionais de uma entrega.",
+        "get_cost_breakdown": "Decomposição dos custos oficiais por rota.",
+        "get_algorithm_run_summary": "Resumo da execução do algoritmo genético.",
+        "get_comparison_results": "Comparação entre GA e baselines.",
+        "get_team_assignment_details": "Equipe atribuída às rotas.",
+    }
     return tuple(
-        ToolDefinition(name=name, description=name, input_schema=schema)
-        for name in (
-            "get_operation_summary",
-            "get_route_details",
-            "get_vehicle_details",
-            "get_delivery_details",
-            "get_cost_breakdown",
-            "get_algorithm_run_summary",
-            "get_comparison_results",
-            "get_team_assignment_details",
-        )
+        ToolDefinition(name=name, description=descriptions[name], input_schema=schema)
+        for name in descriptions
     )
 
 
@@ -108,6 +109,12 @@ def test_semantic_selection_uses_model_choice_without_trusting_arguments() -> No
 
     request = provider.requests[0]
     assert request.context["scope"] == {"operation_id": str(operation_id)}
+    candidate_tools = request.context["candidate_tools"]
+    assert isinstance(candidate_tools, list)
+    assert {
+        "name": "get_comparison_results",
+        "description": "Comparação entre GA e baselines.",
+    } in candidate_tools
     assert len(request.tools) == 1
     selector = request.tools[0]
     assert selector.name == "select_assistant_context"

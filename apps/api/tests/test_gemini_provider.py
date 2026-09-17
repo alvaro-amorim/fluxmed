@@ -6,6 +6,7 @@ from google.genai import types
 from fluxmed.llm import (
     LLMProviderRateLimitError,
     LLMProviderResponseError,
+    LLMProviderTimeoutError,
     ProviderRequest,
 )
 from fluxmed.llm.providers import GeminiProvider
@@ -48,8 +49,10 @@ class _FakeClient:
 class _FailingInteractions:
     def __init__(self, error: Exception) -> None:
         self._error = error
+        self.calls = 0
 
     def create(self, **_kwargs: object) -> object:
+        self.calls += 1
         raise self._error
 
 
@@ -72,7 +75,11 @@ class BadRequestError(Exception):
 
 class RateLimitError(Exception):
     status_code = 429
-    message = "quota exceeded"
+    message = "quota exceeded; Please retry in 8.5s"
+
+
+class APITimeoutError(Exception):
+    message = "Request timed out"
 
 
 def _request() -> ProviderRequest:
@@ -97,8 +104,9 @@ def test_gemini_provider_generates_once_from_grounded_context() -> None:
     client = _FakeClient()
     provider = GeminiProvider(
         api_key="test-key",
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash-lite",
         timeout_seconds=20,
+        thinking_level="minimal",
         client=client,
     )
 
@@ -110,12 +118,12 @@ def test_gemini_provider_generates_once_from_grounded_context() -> None:
     assert turn.output_tokens == 9
     assert len(client.interactions.requests) == 1
     sent = client.interactions.requests[0]
-    assert sent["model"] == "gemini-2.5-flash"
+    assert sent["model"] == "gemini-3.5-flash-lite"
     assert sent["input"] == "Qual o custo total da operação?"
     assert sent["timeout"] == 20
     assert sent["store"] is False
     assert sent["generation_config"] == {
-        "thinking_level": "low",
+        "thinking_level": "minimal",
         "max_output_tokens": 4096,
     }
     assert "tools" not in sent
@@ -138,16 +146,35 @@ def test_gemini_provider_maps_interactions_bad_request() -> None:
         provider.generate(_request())
 
 
-def test_gemini_provider_maps_interactions_rate_limit() -> None:
+def test_gemini_provider_maps_sdk_timeout() -> None:
     provider = GeminiProvider(
         api_key="test-key",
         model="gemini-2.5-flash",
         timeout_seconds=20,
-        client=_FailingClient(RateLimitError()),
+        client=_FailingClient(APITimeoutError()),
+    )
+
+    with pytest.raises(LLMProviderTimeoutError):
+        provider.generate(_request())
+
+
+def test_gemini_provider_maps_rate_limit_and_opens_local_cooldown() -> None:
+    client = _FailingClient(RateLimitError())
+    provider = GeminiProvider(
+        api_key="test-key",
+        model="gemini-2.5-flash",
+        timeout_seconds=20,
+        client=client,
     )
 
     with pytest.raises(LLMProviderRateLimitError):
         provider.generate(_request())
+    assert provider.cooldown_remaining_seconds > 0
+    assert client.interactions.calls == 1
+
+    with pytest.raises(LLMProviderRateLimitError, match="cooldown"):
+        provider.generate(_request())
+    assert client.interactions.calls == 1
 
 
 def test_gemini_provider_builds_v1beta_client_without_retrying_429(
@@ -163,8 +190,9 @@ def test_gemini_provider_builds_v1beta_client_without_retrying_429(
     monkeypatch.setattr("fluxmed.llm.providers.gemini.genai.Client", fake_sdk_client)
     provider = GeminiProvider(
         api_key="test-key",
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash-lite",
         timeout_seconds=20,
+        thinking_level="minimal",
     )
 
     built = provider._build_client()

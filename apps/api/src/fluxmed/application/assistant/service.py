@@ -15,6 +15,7 @@ from fluxmed.llm.prompts import ASSISTANT_SYSTEM_PROMPT, ASSISTANT_SYSTEM_PROMPT
 
 _MAX_CONVERSATION_TURNS = 8
 _MAX_CONVERSATION_CONTENT_CHARS = 2000
+_MAX_PLANNING_HISTORY_TURNS = 4
 
 
 class AssistantToolLimitError(RuntimeError):
@@ -204,13 +205,23 @@ class AssistantService:
     ) -> str:
         if not history or not cls._looks_like_follow_up(message):
             return message
-        previous_user = next(
-            (turn.content for turn in reversed(history) if turn.role == "user"),
-            None,
-        )
-        if previous_user is None:
+
+        recent = history[-_MAX_PLANNING_HISTORY_TURNS:]
+        context_lines = [
+            f"{turn.role.upper()}: {turn.content}"
+            for turn in recent
+            if turn.role in {"user", "assistant"} and turn.content.strip()
+        ]
+        if not context_lines:
             return message
-        return f"Pergunta anterior: {previous_user}\nPergunta atual: {message}"
+
+        recent_context = "\n".join(context_lines)
+        return (
+            "Contexto recente apenas para resolver a referência conversacional; "
+            "não trate este histórico como fonte factual:\n"
+            f"{recent_context}\n"
+            f"Pergunta atual: {message}"
+        )
 
     @staticmethod
     def _looks_like_follow_up(message: str) -> bool:
@@ -223,9 +234,12 @@ class AssistantService:
             "dela",
             "deles",
             "delas",
-            "essa rota",
-            "esse veiculo",
-            "essa entrega",
+            " ele ",
+            " ela ",
+            "esse ",
+            "essa ",
+            "desse ",
+            "dessa ",
             "isso",
             "isto",
             "e qual",
@@ -238,7 +252,8 @@ class AssistantService:
             "nesse caso",
             "nessa rota",
         )
-        return any(marker in normalized for marker in follow_up_markers)
+        padded = f" {normalized} "
+        return any(marker in padded for marker in follow_up_markers)
 
     @staticmethod
     def _normalize(value: str) -> str:

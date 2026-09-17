@@ -1,5 +1,7 @@
 import json
 import logging
+import re
+import time
 from typing import Protocol, cast
 
 import httpx
@@ -16,6 +18,8 @@ from fluxmed.llm import (
 )
 
 logger = logging.getLogger(__name__)
+
+_RETRY_AFTER_PATTERN = re.compile(r"retry\s+in\s+([0-9]+(?:\.[0-9]+)?)s", re.IGNORECASE)
 
 
 class _InteractionsClient(Protocol):
@@ -38,6 +42,7 @@ class GeminiProvider:
         api_key: str,
         model: str,
         timeout_seconds: float,
+        thinking_level: str = "low",
         client: _GeminiClient | None = None,
     ) -> None:
         if not api_key.strip():
@@ -45,7 +50,9 @@ class GeminiProvider:
         self._api_key = api_key
         self._model = model
         self._timeout_seconds = timeout_seconds
+        self._thinking_level = thinking_level
         self._client = client
+        self._rate_limited_until = 0.0
 
     @property
     def name(self) -> str:
@@ -55,16 +62,26 @@ class GeminiProvider:
     def model(self) -> str:
         return self._model
 
+    @property
+    def cooldown_remaining_seconds(self) -> float:
+        return max(0.0, self._rate_limited_until - time.monotonic())
+
     def generate(self, request: ProviderRequest) -> ProviderTurn:
-        client = self._client or self._build_client()
-        owns_client = self._client is None
+        if self.cooldown_remaining_seconds > 0:
+            raise LLMProviderRateLimitError(
+                "Gemini está em cooldown após um rate limit recente."
+            )
+
+        if self._client is None:
+            self._client = self._build_client()
+        client = self._client
         try:
             interaction = client.interactions.create(
                 model=self._model,
                 input=request.user_message,
                 system_instruction=self._system_instruction(request),
                 generation_config={
-                    "thinking_level": "low",
+                    "thinking_level": self._thinking_level,
                     "max_output_tokens": 4096,
                 },
                 store=False,
@@ -78,26 +95,27 @@ class GeminiProvider:
             raise LLMProviderError("Falha de comunicação com Gemini.") from exc
         except Exception as exc:
             code = self._exception_status_code(exc)
+            error_name = type(exc).__name__
+            safe_message = self._safe_exception_message(exc)
             logger.warning(
                 "Gemini SDK error %s (HTTP %s): %s",
-                type(exc).__name__,
+                error_name,
                 code or "desconhecido",
-                self._safe_exception_message(exc),
+                safe_message,
             )
-            if code == 429 or type(exc).__name__ == "RateLimitError":
+            if code == 429 or error_name == "RateLimitError":
+                cooldown = self._retry_after_seconds(safe_message)
+                self._rate_limited_until = time.monotonic() + cooldown
                 raise LLMProviderRateLimitError(
                     "Gemini limitou temporariamente as requisições."
                 ) from exc
-            if code == 408:
+            if code == 408 or error_name in {"APITimeoutError", "TimeoutError"}:
                 raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.") from exc
-            if code in {400, 404, 422} or type(exc).__name__ == "BadRequestError":
+            if code in {400, 404, 422} or error_name == "BadRequestError":
                 raise LLMProviderResponseError(
                     f"Gemini rejeitou a requisição (HTTP {code or 400})."
                 ) from exc
             raise LLMProviderError(f"Gemini retornou HTTP {code or 'desconhecido'}.") from exc
-        finally:
-            if owns_client:
-                client.close()
 
         content = getattr(interaction, "output_text", None)
         if not isinstance(content, str) or not content.strip():
@@ -111,6 +129,11 @@ class GeminiProvider:
             input_tokens=input_tokens,
             output_tokens=output_tokens,
         )
+
+    def close(self) -> None:
+        if self._client is not None:
+            self._client.close()
+            self._client = None
 
     def _build_client(self) -> _GeminiClient:
         retry_options = types.HttpRetryOptions(
@@ -157,6 +180,16 @@ class GeminiProvider:
         if self._api_key:
             message = message.replace(self._api_key, "[redacted]")
         return message[:500].replace("\n", " ")
+
+    @staticmethod
+    def _retry_after_seconds(message: str) -> float:
+        match = _RETRY_AFTER_PATTERN.search(message)
+        if match is None:
+            return 15.0
+        try:
+            return max(1.0, min(float(match.group(1)), 120.0))
+        except ValueError:
+            return 15.0
 
     @staticmethod
     def _exception_status_code(error: Exception) -> int:

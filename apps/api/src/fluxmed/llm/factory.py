@@ -76,6 +76,4 @@ def _build_cached_provider(
 def clear_llm_provider_cache() -> None:
     """Test/development hook for explicit provider reconfiguration in-process."""
 
-    for provider in _build_cached_provider.cache_info(),:
-        del provider
     _build_cached_provider.cache_clear()

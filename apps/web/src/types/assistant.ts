@@ -4,9 +4,15 @@ export interface AssistantContextInput {
   delivery_id?: string | null
 }
 
+export interface AssistantHistoryMessageInput {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 export interface AssistantMessageInput {
   message: string
   context: AssistantContextInput
+  history?: AssistantHistoryMessageInput[]
 }
 
 export interface AssistantToolCall {

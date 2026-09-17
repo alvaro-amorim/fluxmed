@@ -99,7 +99,10 @@ class AssistantNarrativeToolset:
                 "instructions": [
                     "Use a ordem das paradas exatamente como fornecida no plano validado.",
                     "Destaque prioridades e janelas de atendimento sem inventar horários.",
-                    "As janelas de atendimento já estão no fuso operacional America/Sao_Paulo.",
+                    (
+                        "Chegadas previstas e janelas de atendimento já estão no fuso "
+                        "operacional America/Sao_Paulo."
+                    ),
                     "Informe endereço e requisitos especiais somente quando presentes nos dados.",
                     "Não altere rota, equipe, veículo ou sequência durante a redação.",
                 ],
@@ -164,6 +167,10 @@ class AssistantNarrativeToolset:
             if not isinstance(stop, dict):
                 enriched.append(stop)
                 continue
+            merged = dict(stop)
+            merged["planned_arrival_at"] = self._operational_datetime(
+                merged.get("planned_arrival_at")
+            )
             delivery_id = stop.get("delivery_id")
             delivery = self._read_result(
                 ToolCall(
@@ -173,9 +180,8 @@ class AssistantNarrativeToolset:
                 )
             )
             if delivery is None:
-                enriched.append(dict(stop))
+                enriched.append(merged)
                 continue
-            merged = dict(stop)
             for field in (
                 "recipient_name",
                 "destination_address",

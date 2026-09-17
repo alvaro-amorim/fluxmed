@@ -1,6 +1,7 @@
 from fluxmed.application.assistant.service import (
     AssistantContext,
     AssistantContextLimitError,
+    AssistantConversationTurn,
     AssistantInvalidResponseError,
     AssistantReply,
     AssistantService,
@@ -22,6 +23,7 @@ from fluxmed.application.assistant.tools import (
 __all__ = [
     "AssistantContext",
     "AssistantContextLimitError",
+    "AssistantConversationTurn",
     "AssistantInvalidResponseError",
     "AssistantReply",
     "AssistantService",

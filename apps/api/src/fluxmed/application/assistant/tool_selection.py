@@ -6,6 +6,7 @@ from enum import StrEnum
 from fluxmed.llm import ToolDefinition
 
 _MAX_SELECTED_TOOLS = 5
+_MAX_SEMANTIC_CANDIDATES = 7
 
 
 class AssistantIntent(StrEnum):
@@ -212,12 +213,14 @@ def plan_assistant_grounding(
         "get_delivery_details",
         "get_cost_breakdown",
         "get_algorithm_run_summary",
+        "get_comparison_results",
+        "get_team_assignment_details",
     )
     return AssistantGroundingPlan(
         intent=AssistantIntent.GENERAL,
         retrieval_tools=supported(*retrieval),
         exposed_tools=supported(*exposed),
-        semantic_tool_candidates=semantic_candidates[:_MAX_SELECTED_TOOLS],
+        semantic_tool_candidates=semantic_candidates[:_MAX_SEMANTIC_CANDIDATES],
     )
 
 

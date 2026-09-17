@@ -141,9 +141,7 @@ class AssistantGroundingBuilder:
                 )
 
         visible_results = tuple(
-            self._by_name[name]
-            for name in plan.exposed_tools
-            if name in self._by_name
+            self._by_name[name] for name in plan.exposed_tools if name in self._by_name
         )
         return GroundingBundle(
             context={

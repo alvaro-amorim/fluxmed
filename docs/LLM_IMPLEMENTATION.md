@@ -12,9 +12,9 @@ A LLM não substitui:
 - Team Assignment Solver;
 - Solution Validator.
 
-O modelo recebe somente contexto explícito e dados backend-side autorizados.
+A fonte de verdade continua no backend. O modelo interpreta e redige a partir de grounding estruturado autorizado.
 
-## 2. Arquitetura atual
+## 2. Arquitetura final da Fase 16
 
 ```text
 React /assistant
@@ -25,177 +25,203 @@ POST /api/v1/assistant/messages
     v
 AssistantService
     |
+    +--> histórico conversacional bounded
+    |
     +--> GroundingPlan
+    |      |
     |      +--> intenção conhecida
-    |      +--> retrieval_tools
-    |      +--> exposed_tools
-    |      +--> candidatos semânticos para intenção ambígua
+    |      |      -> retrieval determinístico
+    |      |
+    |      +--> intenção ambígua / GENERAL
+    |             -> semantic planner com function calling
+    |             -> allowlist read-only
     |
     +--> AssistantToolbox
     |      +--> read tools
     |      +--> narrative context tools
     |      +--> safe simulation tools
     |
-    +--> Context budget + compactação
+    +--> AssistantGroundingBuilder
+    |      -> execução backend
+    |      -> contexto factual mínimo
     |
-    +--> LLMProvider (uma chamada no caminho determinístico)
+    +--> budget de contexto
+    |
+    +--> LLMProvider
            +--> Mock
            +--> Cohere
            +--> Gemini
 ```
 
-O frontend nunca recebe chaves dos providers e nunca chama Cohere/Gemini diretamente.
+O frontend nunca recebe chaves dos providers e nunca chama Gemini/Cohere diretamente.
 
-## 3. Structured RAG e GroundingPlan
+## 3. Structured RAG
 
-O FluxMed usa Structured RAG: o backend recupera dados oficiais, monta contexto estruturado e somente depois chama a LLM para interpretar/redigir.
+O FluxMed usa Structured RAG: o backend recupera dados oficiais antes da geração textual.
 
-`GroundingPlan` separa duas responsabilidades que antes estavam misturadas:
+`GroundingPlan` separa:
 
-- `retrieval_tools`: consultas que o backend precisa executar para resolver IDs, contexto e dependências;
-- `exposed_tools`: subconjunto mínimo cujos payloads são realmente enviados à LLM.
+- `retrieval_tools`: consultas necessárias para resolver dependências e IDs;
+- `exposed_tools`: subconjunto mínimo enviado à LLM.
 
 Exemplo de custo:
 
 ```text
-get_operation_summary   # resolver/contexto interno
-get_cost_breakdown      # dado factual necessário
+get_operation_summary
+get_cost_breakdown
         |
         v
-LLM recebe somente get_cost_breakdown
+LLM recebe os dados factuais necessários
 ```
 
-Exemplo de explicação de veículo:
+Exemplo de veículo:
 
 ```text
 get_operation_summary
         |
-resolve R-01
+resolve rota
         |
 get_route_details
         |
 resolve vehicle_id
         |
 get_vehicle_details
-        |
-LLM recebe route compacta + vehicle details
 ```
 
-As paradas da rota são removidas do payload quando a intenção é apenas explicar o veículo, porque não são necessárias para essa resposta.
+A LLM não executa SQL e não recebe acesso irrestrito aos services.
 
-Exemplo de instruções ao motorista:
+## 4. Caminho híbrido de seleção de contexto
 
-```text
-get_operation_summary
-        |
-resolve primeira rota
-        |
-generate_driver_instructions
-        |
-LLM recebe somente o contexto final de instruções
-```
+A arquitetura final é híbrida.
 
-Isso evita reenviar operation summary, route details, team details e delivery details duplicados no mesmo prompt.
+### Intenção conhecida
 
-## 4. Function calling e caminho híbrido
-
-O caminho normal de intenções conhecidas é determinístico e executa uma única chamada externa à LLM. Isso reduz latência, custo e pressão de quota.
-
-O plano também reserva `semantic_tool_candidates` para perguntas ambíguas. A arquitetura alvo é híbrida:
+Perguntas com intenção operacional inequívoca usam roteamento determinístico.
 
 ```text
-intenção conhecida
-    -> grounding determinístico
+pergunta conhecida
+    -> GroundingPlan determinístico
+    -> backend executa tools
     -> uma chamada de geração
-
-intenção ambígua
-    -> catálogo read-only pequeno
-    -> seleção semântica/function calling
-    -> execução backend autorizada
-    -> geração final
 ```
 
-O function calling semântico não é necessário para as perguntas acadêmicas conhecidas da Fase 16 e não deve ser usado para operações de escrita. Antes de habilitar esse caminho em produção, ele deve ter testes próprios de quota, autorização, contexto e múltiplos turnos.
+Isso preserva baixa latência e previsibilidade.
 
-## 5. Context budget
+### Intenção ambígua
 
-O contexto estruturado tem limite explícito por requisição:
+Perguntas que caem em `GENERAL` usam uma etapa semântica controlada:
+
+```text
+pergunta aberta
+    -> semantic planner
+    -> function calling: select_assistant_context
+    -> 0..3 fontes read-only permitidas
+    -> backend executa as fontes escolhidas
+    -> geração final grounded
+```
+
+O semantic planner:
+
+- não responde ao usuário;
+- recebe apenas catálogo pequeno de fontes autorizadas;
+- não inventa IDs;
+- não executa as tools;
+- não pode selecionar tools de escrita;
+- não pode selecionar simulações;
+- usa histórico somente para resolver referentes conversacionais.
+
+O backend valida os nomes escolhidos contra a allowlist antes de executar qualquer consulta.
+
+## 5. Estado conversacional controlado
+
+O frontend envia histórico recente junto com a nova pergunta.
+
+Regras atuais:
+
+- no máximo 8 mensagens recentes;
+- conteúdo de cada turno compactado quando necessário;
+- no máximo 4 turnos entram no planejamento semântico de follow-up;
+- histórico não é fonte factual;
+- fatos precisam ser reconfirmados no grounding atual;
+- mudança de assunto não deve herdar automaticamente a intenção anterior.
+
+Isso permite follow-ups como:
+
+```text
+Qual veículo está na primeira rota?
+E qual é a capacidade dele?
+E qual é a autonomia?
+```
+
+Também permite referências como:
+
+```text
+Entre as baselines, qual percorreu menos distância?
+E ela usou quantos veículos?
+```
+
+O segundo turno precisa reconfirmar o dado na fonte correta (`get_comparison_results`), e não apenas repetir informação do histórico.
+
+## 6. Context minimization
+
+O contexto enviado ao provider é minimizado.
+
+Exemplos:
+
+- pergunta de custo não recebe paradas completas;
+- explicação de veículo não recebe toda a operação;
+- instruções ao motorista recebem contexto narrativo já enriquecido;
+- histórico é bounded;
+- o semantic planner recebe somente descrições curtas das fontes candidatas.
+
+Limite explícito:
 
 ```env
 LLM_MAX_CONTEXT_CHARS=30000
 ```
 
-Se o grounding exceder o orçamento, o backend rejeita a chamada antes de enviar um payload excessivo ao provider. O sistema não deve truncar silenciosamente uma rota operacional e fingir que as instruções estão completas.
+Se o limite for excedido, a requisição falha explicitamente. O FluxMed não trunca dados operacionais silenciosamente para fingir uma resposta completa.
 
-A estratégia primária é reduzir duplicação antes de atingir o limite.
+## 7. Providers
 
-## 6. Ambiente local
+A integração usa `LLMProvider`.
 
-O arquivo versionado é `.env.example`.
+Implementações:
 
-Crie o arquivo local na raiz do repositório:
+- `MockLLMProvider` — testes/CI/desenvolvimento;
+- `CohereProvider`;
+- `GeminiProvider`.
 
-```powershell
-Copy-Item .env.example .env
-```
-
-Por padrão o desenvolvimento usa mock:
-
-```env
-LLM_PROVIDER=mock
-LLM_MODEL=fluxmed-mock-v1
-```
-
-Para Gemini real:
+Configuração real validada:
 
 ```env
 LLM_PROVIDER=gemini
 LLM_MODEL=gemini-3.5-flash-lite
 LLM_THINKING_LEVEL=minimal
-GEMINI_API_KEY=...
-```
-
-O modelo padrão real da V1 é `gemini-3.5-flash-lite`, escolhido para o caminho grounded de baixa latência. O modelo não precisa resolver otimização; ele recebe dados já resolvidos pelo backend e interpreta/redige a resposta.
-
-`LLM_THINKING_LEVEL` é configurável. O default depende do modelo. Para `gemini-3.5-flash-lite`, o padrão é `minimal`.
-
-Outras opções podem ser testadas por benchmark sem alterar os módulos de negócio, por exemplo `gemini-3.6-flash` com `minimal` ou `gemini-3.8-flash` com `low`.
-
-## 7. Cliente Gemini, retries e cooldown
-
-O provider Gemini usa o SDK oficial `google-genai` e mantém o cliente reutilizável enquanto a configuração do processo não muda. A factory mantém providers configurados em cache por provider/model/timeout/thinking/key, permitindo reuso da conexão HTTP/TLS.
-
-Erros transitórios `408` e `5xx` usam retries limitados do SDK. `429` não é retentado automaticamente.
-
-Ao receber `429`, o provider extrai o tempo de retry quando disponível e abre um cooldown local. Durante esse intervalo, novas requisições são rejeitadas localmente em vez de continuar pressionando a quota externa.
-
-Isso não é fallback: o provider continua sendo Gemini e nenhuma resposta alternativa é gerada silenciosamente.
-
-## 8. Timeout e classificação de erros
-
-Defaults atuais:
-
-```env
 LLM_TIMEOUT_SECONDS=45
-LLM_MAX_OUTPUT_CHARS=6000
 LLM_MAX_TOOL_CALLS=5
+LLM_MAX_OUTPUT_CHARS=6000
 LLM_MAX_CONTEXT_CHARS=30000
 ```
 
-O backend diferencia:
+O Gemini usa o SDK oficial `google-genai` e a Interactions API.
 
-- timeout do provider;
-- rate limit;
-- provider indisponível;
-- resposta inválida;
-- limite de tools;
-- limite de contexto.
+## 8. Reuso de cliente, retries e cooldown
 
-`APITimeoutError` do SDK Gemini é tratado como timeout, não como indisponibilidade genérica.
+O provider Gemini reutiliza cliente/conexões enquanto a configuração do processo não muda.
+
+Política de erro:
+
+- retries limitados para `408` e `5xx`;
+- `429` não é retentado automaticamente;
+- `429` abre cooldown local respeitando o retry indicado pelo provider quando disponível;
+- timeout é classificado separadamente de indisponibilidade genérica.
+
+Não existe fallback silencioso na Fase 16.
 
 ## 9. Tools de leitura
 
-O catálogo atual oferece:
+Catálogo atual:
 
 - `get_operation_summary`;
 - `get_route_details`;
@@ -206,112 +232,216 @@ O catálogo atual oferece:
 - `get_algorithm_run_summary`;
 - `get_team_assignment_details`.
 
-Todas respeitam a operação selecionada. Uma tentativa de acessar outra operação é rejeitada antes da consulta operacional.
+Todas respeitam a operação selecionada. Tentativa de acessar outra operação é rejeitada backend-side.
 
-## 10. Tools narrativas
+## 10. Contextos narrativos
 
-Estas tools montam contexto estruturado; a redação final continua sendo responsabilidade da LLM:
+Tools narrativas montam dados estruturados; a redação continua sendo da LLM:
 
 - `generate_driver_instructions`;
 - `generate_dispatch_report`;
 - `generate_daily_operation_report`;
 - `generate_executive_summary`.
 
-As instruções de motorista enriquecem cada parada com endereço, janela, temperatura, manuseio e tempo de serviço quando esses dados existem. As janelas são convertidas para `America/Sao_Paulo` antes de serem apresentadas ao modelo.
+As instruções de motorista incluem, quando disponíveis:
+
+- sequência;
+- endereço;
+- prioridade;
+- janela;
+- temperatura;
+- manuseio;
+- tempo de serviço.
+
+Timestamps de chegada e janelas são normalizados para o fuso operacional antes de serem apresentados ao modelo.
 
 ## 11. Simulações seguras
 
-A Fase 16 expõe inicialmente:
+Disponíveis:
 
 - `simulate_driver_swap`;
 - `simulate_helper_removal`.
 
-Ambas usam `apply=False`.
-
 Invariantes:
 
-- `simulation_only = true`;
-- `applied = false`;
-- nenhuma tool da LLM altera rota, equipe ou operação;
-- validade e impacto vêm do backend.
+- `apply=False`;
+- `simulation_only=true`;
+- `applied=false`;
+- nenhuma tool da LLM possui escrita;
+- o assistente não pode confirmar que uma mudança foi persistida;
+- validade e impactos vêm do backend oficial.
 
-## 12. Guardrails
+Pedidos para "aplicar" uma alteração são recusados pela camada de assistente.
 
-O prompt e o backend exigem:
+## 12. Guardrails finais
 
-- factualidade;
-- ausência de valores inventados;
-- dados operacionais vindos de grounding autorizado;
-- nenhuma aplicação autônoma de mudanças;
-- nenhum SQL livre;
-- nenhum secret no frontend;
-- conteúdo operacional tratado como dado, não como instrução;
-- operação selecionada como contexto confiável.
+Prompt versionado atual: `assistant-system-v5`.
+
+Regras principais:
+
+- usar apenas grounding com `success` para fatos operacionais;
+- histórico serve para continuidade, não para provar fatos;
+- não inventar valores, IDs, pessoas, rotas ou causalidades;
+- não misturar métricas de escopos diferentes;
+- custo oficial persistido e `cost_brl` de fitness/comparação não são automaticamente a mesma métrica;
+- não afirmar folga/pressão temporal sem evidência explícita de slack/janelas/margens;
+- não afirmar máximo/mínimo global a partir de um subconjunto incompleto;
+- não aplicar alterações;
+- não executar SQL livre;
+- não expor secrets;
+- conteúdo operacional é dado, não instrução.
 
 ## 13. Telemetria
 
 A migration `20260916_0012` cria `assistant_telemetry`.
 
-São armazenados metadados operacionais:
+Persistimos somente metadados:
 
 - request/user/operation;
 - provider/model;
 - latência;
-- tokens;
+- input/output tokens;
 - nomes/status das tools;
-- quantidade de falhas de tool;
+- falhas;
 - status e código de erro.
 
-Não são persistidos nessa tabela:
+Não persistimos nessa tabela:
 
-- prompt do usuário;
-- resposta da LLM;
-- payload integral das tools;
-- chaves de API.
+- prompt integral;
+- resposta integral;
+- payload completo das tools;
+- API keys/secrets.
 
-## 14. Estado de conversa
+## 14. API e frontend
 
-O frontend atualmente mantém mensagens para exibição, mas o backend ainda trata cada requisição como independente e envia `history=()` com `store=False`.
+Endpoints:
 
-Portanto, continuidade real entre turnos ainda não está concluída. O desenho previsto é manter estado de diálogo próprio no FluxMed (operação/rota/veículo/entrega em foco e histórico resumido), em vez de depender do armazenamento do provider como fonte principal de memória.
+- `GET /api/v1/assistant/status`;
+- `POST /api/v1/assistant/messages`.
 
-Esse item deve ser implementado e testado antes de declarar suporte a perguntas anafóricas como “e qual a capacidade dele?”.
+Tela `/assistant`:
 
-## 15. Status do provider
+- seleção da operação;
+- chat;
+- identificação de provider/model;
+- fontes estruturadas usadas em cada resposta;
+- degraded mode;
+- botão `Copiar histórico` para exportar a conversa em Markdown de validação.
 
-`GET /api/v1/assistant/status` indica se o provider está configurado, não executa uma chamada paga de health-check a cada carregamento da tela.
+Polish visual de Markdown, scroll e fluidez do chat permanece para a Fase 18.
 
-A interface deve comunicar “Configurado”, não prometer disponibilidade instantânea. Evolução prevista: expor estado recente como cooldown/rate limit e última chamada bem-sucedida sem fazer polling caro no provider.
+## 15. Validação manual com Gemini real
 
-## 16. Demonstração acadêmica
+A validação final cobriu:
 
-A validação manual cobre:
+### Fluxos acadêmicos principais
 
-1. `Qual o custo total da operação?`;
-2. `Por que o veículo foi escolhido para a primeira rota?`;
-3. `Gere instruções para o motorista da primeira rota.`;
-4. `Gere um relatório diário da operação.`;
-5. `Simule remover o ajudante da primeira rota.`;
-6. tentativa adversarial de inventar uma métrica.
+1. custo total da operação;
+2. explicação de veículo;
+3. instruções para motorista;
+4. relatório diário;
+5. simulação de remoção de ajudante.
 
-Além dos testes unitários, a validação real deve incluir perguntas consecutivas para detectar rate limit, timeout e regressões de contexto.
+### Linguagem aberta / seleção semântica
 
-## 17. Critério de segurança para explicações
+Foram validadas perguntas não codificadas literalmente, por exemplo:
 
-Quando a evidência comprova somente a alocação final, mas não uma causalidade única, a resposta deve distinguir isso explicitamente.
+- "onde ta indo mais grana nessa operacao?";
+- "tem gente demais alocada em algum trecho do plano?";
+- "essa solução ficou melhor que as alternativas simples que tentaram antes?";
+- "como foi a busca até chegar nessa solução?";
+- "esse plano tá apertado ou tem folga nos recursos usados?".
 
-A van pode estar comprovadamente alocada à rota e ter capacidade compatível, mas a LLM não deve afirmar que ela foi escolhida “porque era a mais barata” se essa comparação causal não estiver persistida.
+As fontes selecionadas incluíram corretamente `get_cost_breakdown`, `get_team_assignment_details`, `get_comparison_results`, `get_algorithm_run_summary`, `get_route_details`, `get_vehicle_details` e `get_delivery_details` conforme o significado da pergunta.
 
-Decision Trace e métricas estruturadas podem sustentar explicações, mas nunca devem ser convertidos em chain-of-thought privada.
+### Conversa multi-turno
 
-## 18. Próximos incrementos desta fase
+Validado:
 
-Antes do merge final da Fase 16:
+```text
+Qual veículo está na primeira rota?
+E qual é a capacidade dele?
+E qual é a autonomia?
+E qual combustível ele usa?
+E ele é refrigerado?
+```
 
-- validar o grounding compacto com provider real;
-- medir latência/tokens nas cinco perguntas de demonstração;
-- adicionar teste de duas ou mais mensagens consecutivas;
-- implementar estado de conversa próprio;
-- habilitar function calling semântico apenas para intenção ambígua, com catálogo read-only pequeno;
-- melhorar UX de falha e, posteriormente, oferecer fallback explícito somente com consentimento do usuário;
-- manter a documentação sincronizada com cada mudança arquitetural.
+Também:
+
+```text
+Entre as alternativas simples, qual percorreu menos distância?
+E ela usou quantos veículos?
+```
+
+No segundo caso o follow-up reconfirmou o dado via `get_comparison_results`.
+
+### Segurança e factualidade
+
+Validado que o assistente:
+
+- corrige premissa falsa sobre rota mais cara;
+- rejeita valor operacional inventado pelo usuário;
+- não acessa operação diferente do contexto selecionado;
+- recusa código Python fora do escopo;
+- rejeita premissa falsa de veículo elétrico quando o grounding informa diesel;
+- não confirma aplicação de troca de motorista;
+- não afirma "maior folga" global quando faltam dados completos para calcular o máximo.
+
+### Latência observada
+
+Em ambiente local com `gemini-3.5-flash-lite` e `thinking_level=minimal`:
+
+- perguntas factuais: geralmente imediatas/poucos segundos;
+- respostas mais pesadas: observadas abaixo de aproximadamente 20 segundos durante a validação manual.
+
+Esses valores são observações de desenvolvimento, não SLA de produção.
+
+## 16. Factualidade de métricas com escopos diferentes
+
+O `final_comparison` contém métricas do fitness da comparação. Já o plano persistido possui custo operacional composto pelo Cost Engine após composição final de rota/equipe.
+
+Quando os valores divergirem, a LLM deve declarar os escopos separadamente.
+
+Exemplo correto:
+
+```text
+A comparação registra cost_brl X para o fitness.
+O custo operacional oficial persistido do plano é Y.
+Esses valores possuem escopos diferentes.
+```
+
+Não é permitido escrever `X (ou Y)` como se fossem duas formas da mesma métrica.
+
+## 17. Limitações conscientes após a Fase 16
+
+Não são bloqueadores desta fase:
+
+- renderização rica de Markdown no chat;
+- streaming token a token;
+- fallback automático entre providers;
+- analytics avançado de conversa;
+- persistência indefinida de histórico;
+- tool agregadora para toda pergunta analítica possível;
+- aplicação de alterações pelo assistente.
+
+Quando uma pergunta exige uma agregação que o grounding atual não fornece — por exemplo, "maior folga temporal de toda a operação" — o comportamento correto é declarar insuficiência de dados em vez de calcular a partir de um subconjunto.
+
+## 18. Critério de encerramento da Fase 16
+
+A parte funcional da LLM é considerada concluída quando há evidência de:
+
+- provider real funcionando;
+- grounding factual;
+- seleção determinística para intenções conhecidas;
+- seleção semântica segura para perguntas ambíguas;
+- conversa multi-turno controlada;
+- guardrails contra premissas falsas e prompt injection;
+- simulações sem escrita;
+- telemetria;
+- validação manual dos fluxos acadêmicos.
+
+Antes do merge ainda é obrigatório:
+
+- executar a suíte local completa;
+- obter CI verde em uma execução que realmente inicialize os jobs;
+- manter a PR e a documentação sincronizadas.

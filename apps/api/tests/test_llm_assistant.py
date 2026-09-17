@@ -264,12 +264,10 @@ def test_tool_selector_supports_generation_and_simulation_intents() -> None:
     assert instruction_names == {
         "get_operation_summary",
         "generate_driver_instructions",
-        "get_team_assignment_details",
     }
     assert simulation_names == {
         "get_operation_summary",
         "simulate_helper_removal",
-        "get_team_assignment_details",
     }
 
 

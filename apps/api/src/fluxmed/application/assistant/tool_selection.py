@@ -225,9 +225,7 @@ def select_assistant_tools(
     )
     available = {definition.name: definition for definition in definitions}
     return tuple(
-        available[name]
-        for name in plan.retrieval_tools[:_MAX_SELECTED_TOOLS]
-        if name in available
+        available[name] for name in plan.retrieval_tools[:_MAX_SELECTED_TOOLS] if name in available
     )
 
 

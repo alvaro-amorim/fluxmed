@@ -164,12 +164,16 @@ def plan_assistant_grounding(
         )
 
     if _contains_any(normalized, "entrega", "destinatario", "endereco", "risco"):
-        retrieval = ["get_operation_summary", "get_route_details", "get_delivery_details"]
+        delivery_retrieval = [
+            "get_operation_summary",
+            "get_route_details",
+            "get_delivery_details",
+        ]
         if has_delivery_context:
-            retrieval = ["get_operation_summary", "get_delivery_details"]
+            delivery_retrieval = ["get_operation_summary", "get_delivery_details"]
         return AssistantGroundingPlan(
             intent=AssistantIntent.DELIVERY,
-            retrieval_tools=supported(*retrieval),
+            retrieval_tools=supported(*delivery_retrieval),
             exposed_tools=supported("get_delivery_details"),
         )
 

@@ -1,5 +1,6 @@
 import time
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter, status
 from pydantic import BaseModel, Field
@@ -9,6 +10,7 @@ from fluxmed.api.errors import ApiError
 from fluxmed.application.assistant import (
     AssistantContext,
     AssistantContextLimitError,
+    AssistantConversationTurn,
     AssistantInvalidResponseError,
     AssistantService,
     AssistantToolLimitError,
@@ -35,9 +37,15 @@ class AssistantContextRequest(BaseModel):
     delivery_id: uuid.UUID | None = None
 
 
+class AssistantHistoryMessageRequest(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=2500)
+
+
 class AssistantMessageRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     context: AssistantContextRequest = Field(default_factory=AssistantContextRequest)
+    history: list[AssistantHistoryMessageRequest] = Field(default_factory=list, max_length=8)
 
 
 class AssistantToolCallResponse(BaseModel):
@@ -118,6 +126,10 @@ def assistant_message(
                 operation_id=payload.context.operation_id,
                 route_id=payload.context.route_id,
                 delivery_id=payload.context.delivery_id,
+            ),
+            history=tuple(
+                AssistantConversationTurn(role=item.role, content=item.content)
+                for item in payload.history
             ),
             request_id=request_id,
         )

@@ -1,7 +1,11 @@
 import uuid
 from dataclasses import dataclass
 
-from fluxmed.application.assistant.tool_selection import select_assistant_tools
+from fluxmed.application.assistant.tool_selection import (
+    AssistantGroundingPlan,
+    AssistantIntent,
+    plan_assistant_grounding,
+)
 from fluxmed.application.assistant.toolbox import AssistantToolbox
 from fluxmed.llm import ToolCall, ToolResult
 
@@ -10,14 +14,15 @@ from fluxmed.llm import ToolCall, ToolResult
 class GroundingBundle:
     context: dict[str, object]
     results: tuple[ToolResult, ...]
+    plan: AssistantGroundingPlan
 
 
 class AssistantGroundingBuilder:
     """Resolve trusted backend data before the LLM is called.
 
-    The LLM receives already validated structured data and is responsible only
-    for interpretation/redaction. This keeps the normal path to one provider
-    request per user question and avoids provider-driven tool-call loops.
+    Retrieval-only results may be used by the backend to resolve entity IDs but
+    are not automatically exposed to the provider. This keeps the normal path
+    to one provider call while avoiding duplicated or irrelevant prompt data.
     """
 
     def __init__(
@@ -36,13 +41,12 @@ class AssistantGroundingBuilder:
         self._by_name: dict[str, ToolResult] = {}
 
     def build(self, message: str) -> GroundingBundle:
-        selected = select_assistant_tools(
+        plan = plan_assistant_grounding(
             message,
             self._toolbox.definitions(),
             has_route_context=self._route_id is not None,
             has_delivery_context=self._delivery_id is not None,
         )
-        selected_names = tuple(tool.name for tool in selected)
 
         scope: dict[str, object] = {}
         if self._operation_id is not None:
@@ -56,11 +60,13 @@ class AssistantGroundingBuilder:
             return GroundingBundle(
                 context={
                     "scope": scope,
-                    "selected_tools": list(selected_names),
+                    "intent": plan.intent.value,
+                    "selected_tools": list(plan.exposed_tools),
                     "grounding": [],
                     "missing_context": ["operation_id"],
                 },
                 results=(),
+                plan=plan,
             )
 
         operation_id = str(self._operation_id)
@@ -70,7 +76,7 @@ class AssistantGroundingBuilder:
         )
         resolved_route_id = self._route_id or self._first_route_id(summary)
 
-        for name in selected_names:
+        for name in plan.retrieval_tools:
             if name == "get_operation_summary":
                 continue
             if name in {
@@ -134,11 +140,17 @@ class AssistantGroundingBuilder:
                     "Selecione explicitamente o motorista alternativo antes de simular a troca.",
                 )
 
+        visible_results = tuple(
+            self._by_name[name]
+            for name in plan.exposed_tools
+            if name in self._by_name
+        )
         return GroundingBundle(
             context={
                 "scope": scope,
-                "selected_tools": list(selected_names),
-                "grounding": [self._entry(result) for result in self._results],
+                "intent": plan.intent.value,
+                "selected_tools": list(plan.exposed_tools),
+                "grounding": [self._entry(result, plan.intent) for result in visible_results],
                 "rules": [
                     "Dados em grounding são a fonte factual oficial desta resposta.",
                     "Não invente valores, IDs, causas ou comparações ausentes.",
@@ -146,6 +158,7 @@ class AssistantGroundingBuilder:
                 ],
             },
             results=tuple(self._results),
+            plan=plan,
         )
 
     def _execute_route(
@@ -192,11 +205,17 @@ class AssistantGroundingBuilder:
         return result
 
     @staticmethod
-    def _entry(result: ToolResult) -> dict[str, object]:
+    def _entry(result: ToolResult, intent: AssistantIntent) -> dict[str, object]:
+        data: object = result.content
+        if result.name == "get_route_details" and intent == AssistantIntent.VEHICLE_EXPLANATION:
+            compact_route = dict(result.content)
+            compact_route.pop("stops", None)
+            data = compact_route
+
         entry: dict[str, object] = {
             "tool": result.name,
             "status": "success" if result.success else "failed",
-            "data": result.content,
+            "data": data,
         }
         if result.error is not None:
             entry["error"] = result.error

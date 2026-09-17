@@ -1,41 +1,119 @@
 import re
 import unicodedata
+from dataclasses import dataclass
+from enum import StrEnum
 
 from fluxmed.llm import ToolDefinition
 
 _MAX_SELECTED_TOOLS = 5
 
 
-def select_assistant_tools(
+class AssistantIntent(StrEnum):
+    COST = "cost"
+    VEHICLE_EXPLANATION = "vehicle_explanation"
+    DRIVER_INSTRUCTIONS = "driver_instructions"
+    DAILY_REPORT = "daily_report"
+    DISPATCH_REPORT = "dispatch_report"
+    EXECUTIVE_SUMMARY = "executive_summary"
+    HELPER_REMOVAL = "helper_removal"
+    DRIVER_SWAP = "driver_swap"
+    ALGORITHM = "algorithm"
+    COMPARISON = "comparison"
+    DELIVERY = "delivery"
+    GENERAL = "general"
+
+
+@dataclass(frozen=True, slots=True)
+class AssistantGroundingPlan:
+    """Deterministic plan for backend retrieval and provider-visible grounding.
+
+    `retrieval_tools` may contain resolver-only calls needed by the backend to
+    discover route/vehicle/delivery identifiers. `exposed_tools` is the smaller
+    subset whose payload is actually sent to the LLM.
+    """
+
+    intent: AssistantIntent
+    retrieval_tools: tuple[str, ...]
+    exposed_tools: tuple[str, ...]
+    semantic_tool_candidates: tuple[str, ...] = ()
+
+
+def plan_assistant_grounding(
     message: str,
     definitions: tuple[ToolDefinition, ...],
     *,
     has_route_context: bool = False,
     has_delivery_context: bool = False,
-) -> tuple[ToolDefinition, ...]:
-    """Select a small deterministic backend grounding set for this request.
-
-    The selector never answers the question and never calculates official
-    metrics. It chooses which approved backend tools should run before the LLM
-    so the model receives only the structured evidence relevant to the user's
-    intent.
-    """
-
+) -> AssistantGroundingPlan:
     normalized = _normalize(message)
-    selected: list[str] = ["get_operation_summary"]
+    available = {definition.name for definition in definitions}
 
-    def add(*names: str) -> None:
-        for name in names:
-            if name not in selected:
-                selected.append(name)
+    def supported(*names: str) -> tuple[str, ...]:
+        return tuple(name for name in names if name in available)
 
-    if has_route_context:
-        add("get_route_details")
-    if has_delivery_context:
-        add("get_delivery_details")
+    helper_simulation = _contains_any(normalized, "remover", "retirar", "sem") and (
+        "ajudante" in normalized
+    )
+    driver_simulation = "motorista" in normalized and _contains_any(
+        normalized,
+        "trocar",
+        "troca",
+        "substituir",
+        "simul",
+    )
+
+    if _contains_any(normalized, "instruc", "orientac") and _contains_any(
+        normalized,
+        "motorista",
+        "rota",
+    ):
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.DRIVER_INSTRUCTIONS,
+            retrieval_tools=supported("get_operation_summary", "generate_driver_instructions"),
+            exposed_tools=supported("generate_driver_instructions"),
+        )
+
+    if "resumo executivo" in normalized:
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.EXECUTIVE_SUMMARY,
+            retrieval_tools=supported("get_operation_summary", "generate_executive_summary"),
+            exposed_tools=supported("generate_executive_summary"),
+        )
+
+    if "relatorio" in normalized and "despacho" in normalized:
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.DISPATCH_REPORT,
+            retrieval_tools=supported("get_operation_summary", "generate_dispatch_report"),
+            exposed_tools=supported("generate_dispatch_report"),
+        )
+
+    if "relatorio" in normalized:
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.DAILY_REPORT,
+            retrieval_tools=supported("get_operation_summary", "generate_daily_operation_report"),
+            exposed_tools=supported("generate_daily_operation_report"),
+        )
+
+    if helper_simulation or ("simul" in normalized and "ajudante" in normalized):
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.HELPER_REMOVAL,
+            retrieval_tools=supported("get_operation_summary", "simulate_helper_removal"),
+            exposed_tools=supported("simulate_helper_removal"),
+        )
+
+    if driver_simulation:
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.DRIVER_SWAP,
+            retrieval_tools=supported("get_operation_summary", "simulate_driver_swap"),
+            exposed_tools=supported("simulate_driver_swap"),
+        )
 
     if _contains_any(normalized, "custo", "custos", "preco", "gasto", "valor"):
-        add("get_cost_breakdown")
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.COST,
+            retrieval_tools=supported("get_operation_summary", "get_cost_breakdown"),
+            exposed_tools=supported("get_cost_breakdown"),
+        )
 
     if _contains_any(normalized, "por que", "porque") and _contains_any(
         normalized,
@@ -45,45 +123,15 @@ def select_assistant_tools(
         "moto",
         "rota",
     ):
-        add("get_route_details", "get_vehicle_details")
-
-    if _contains_any(normalized, "veiculo", "frota"):
-        add("get_route_details", "get_vehicle_details")
-
-    if _contains_any(normalized, "instruc", "orientac") and _contains_any(
-        normalized,
-        "motorista",
-        "rota",
-    ):
-        add("generate_driver_instructions")
-
-    if "resumo executivo" in normalized:
-        add("generate_executive_summary")
-    elif "relatorio" in normalized and "despacho" in normalized:
-        add("generate_dispatch_report")
-    elif "relatorio" in normalized:
-        add("generate_daily_operation_report")
-
-    helper_simulation = _contains_any(normalized, "remover", "retirar", "sem") and (
-        "ajudante" in normalized
-    )
-    if helper_simulation or ("simul" in normalized and "ajudante" in normalized):
-        add("simulate_helper_removal", "get_team_assignment_details")
-    elif _contains_any(normalized, "equipe", "ajudante", "motorista"):
-        add("get_team_assignment_details")
-
-    driver_simulation = "motorista" in normalized and _contains_any(
-        normalized,
-        "trocar",
-        "troca",
-        "substituir",
-        "simul",
-    )
-    if driver_simulation:
-        add("simulate_driver_swap", "get_team_assignment_details")
-
-    if _contains_any(normalized, "entrega", "destinatario", "endereco", "risco"):
-        add("get_route_details", "get_delivery_details")
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.VEHICLE_EXPLANATION,
+            retrieval_tools=supported(
+                "get_operation_summary",
+                "get_route_details",
+                "get_vehicle_details",
+            ),
+            exposed_tools=supported("get_route_details", "get_vehicle_details"),
+        )
 
     if _contains_any(
         normalized,
@@ -95,7 +143,11 @@ def select_assistant_tools(
         "pruning",
         "seed",
     ) or re.search(r"\bga\b", normalized):
-        add("get_algorithm_run_summary")
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.ALGORITHM,
+            retrieval_tools=supported("get_operation_summary", "get_algorithm_run_summary"),
+            exposed_tools=supported("get_algorithm_run_summary"),
+        )
 
     if _contains_any(
         normalized,
@@ -105,13 +157,78 @@ def select_assistant_tools(
         "insertion",
         "heuristica",
     ):
-        add("get_comparison_results")
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.COMPARISON,
+            retrieval_tools=supported("get_operation_summary", "get_comparison_results"),
+            exposed_tools=supported("get_comparison_results"),
+        )
 
-    if len(selected) == 1:
-        add("get_route_details", "get_cost_breakdown", "get_team_assignment_details")
+    if _contains_any(normalized, "entrega", "destinatario", "endereco", "risco"):
+        retrieval = ["get_operation_summary", "get_route_details", "get_delivery_details"]
+        if has_delivery_context:
+            retrieval = ["get_operation_summary", "get_delivery_details"]
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.DELIVERY,
+            retrieval_tools=supported(*retrieval),
+            exposed_tools=supported("get_delivery_details"),
+        )
 
+    if _contains_any(normalized, "veiculo", "frota"):
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.VEHICLE_EXPLANATION,
+            retrieval_tools=supported(
+                "get_operation_summary",
+                "get_route_details",
+                "get_vehicle_details",
+            ),
+            exposed_tools=supported("get_route_details", "get_vehicle_details"),
+        )
+
+    retrieval: list[str] = ["get_operation_summary"]
+    exposed: list[str] = ["get_operation_summary"]
+    if has_route_context:
+        retrieval.append("get_route_details")
+        exposed.append("get_route_details")
+    if has_delivery_context:
+        retrieval.append("get_delivery_details")
+        exposed.append("get_delivery_details")
+
+    semantic_candidates = supported(
+        "get_route_details",
+        "get_vehicle_details",
+        "get_delivery_details",
+        "get_cost_breakdown",
+        "get_algorithm_run_summary",
+    )
+    return AssistantGroundingPlan(
+        intent=AssistantIntent.GENERAL,
+        retrieval_tools=supported(*retrieval),
+        exposed_tools=supported(*exposed),
+        semantic_tool_candidates=semantic_candidates[:_MAX_SELECTED_TOOLS],
+    )
+
+
+def select_assistant_tools(
+    message: str,
+    definitions: tuple[ToolDefinition, ...],
+    *,
+    has_route_context: bool = False,
+    has_delivery_context: bool = False,
+) -> tuple[ToolDefinition, ...]:
+    """Compatibility view of the deterministic retrieval plan."""
+
+    plan = plan_assistant_grounding(
+        message,
+        definitions,
+        has_route_context=has_route_context,
+        has_delivery_context=has_delivery_context,
+    )
     available = {definition.name: definition for definition in definitions}
-    return tuple(available[name] for name in selected[:_MAX_SELECTED_TOOLS] if name in available)
+    return tuple(
+        available[name]
+        for name in plan.retrieval_tools[:_MAX_SELECTED_TOOLS]
+        if name in available
+    )
 
 
 def _normalize(value: str) -> str:

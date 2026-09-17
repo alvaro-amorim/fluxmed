@@ -5,14 +5,32 @@ from fluxmed.application.assistant.service import (
     AssistantConversationTurn,
     AssistantService,
 )
-from fluxmed.application.assistant.tool_selection import select_assistant_tools
+from fluxmed.application.assistant.tool_selection import (
+    AssistantIntent,
+    plan_assistant_grounding,
+)
 from fluxmed.application.assistant.toolbox import AssistantToolbox
 
 
-def _selected_tools(message: str, history: tuple[AssistantConversationTurn, ...]) -> list[str]:
+def _definitions():
+    return AssistantToolbox(Mock(), context_operation_id=uuid.uuid4()).definitions()
+
+
+def _assert_semantic_follow_up(
+    message: str,
+    history: tuple[AssistantConversationTurn, ...],
+    *,
+    expected_history_fragment: str,
+    expected_candidate: str,
+) -> None:
     planning_message = AssistantService._planning_message(message, history)
-    definitions = AssistantToolbox(Mock(), context_operation_id=uuid.uuid4()).definitions()
-    return [tool.name for tool in select_assistant_tools(planning_message, definitions)]
+    assert expected_history_fragment in planning_message
+    assert f"Pergunta atual: {message}" in planning_message
+
+    plan = plan_assistant_grounding(message, _definitions())
+    assert plan.intent is AssistantIntent.GENERAL
+    assert plan.retrieval_tools == ("get_operation_summary",)
+    assert expected_candidate in plan.semantic_tool_candidates
 
 
 def test_vehicle_capacity_follow_up_reuses_recent_exchange_subject() -> None:
@@ -24,11 +42,12 @@ def test_vehicle_capacity_follow_up_reuses_recent_exchange_subject() -> None:
         ),
     )
 
-    assert _selected_tools("E qual é a capacidade dele?", history) == [
-        "get_operation_summary",
-        "get_route_details",
-        "get_vehicle_details",
-    ]
+    _assert_semantic_follow_up(
+        "E qual é a capacidade dele?",
+        history,
+        expected_history_fragment="VAN_COMPACT FMD1A03",
+        expected_candidate="get_vehicle_details",
+    )
 
 
 def test_vehicle_autonomy_follow_up_keeps_subject_after_two_turns() -> None:
@@ -48,11 +67,12 @@ def test_vehicle_autonomy_follow_up_keeps_subject_after_two_turns() -> None:
         ),
     )
 
-    assert _selected_tools("E qual é a autonomia?", history) == [
-        "get_operation_summary",
-        "get_route_details",
-        "get_vehicle_details",
-    ]
+    _assert_semantic_follow_up(
+        "E qual é a autonomia?",
+        history,
+        expected_history_fragment="autonomia máxima de 430 km",
+        expected_candidate="get_vehicle_details",
+    )
 
 
 def test_vehicle_fuel_follow_up_keeps_subject_across_chain() -> None:
@@ -69,11 +89,12 @@ def test_vehicle_fuel_follow_up_keeps_subject_across_chain() -> None:
         ),
     )
 
-    assert _selected_tools("E qual combustível ele usa?", history) == [
-        "get_operation_summary",
-        "get_route_details",
-        "get_vehicle_details",
-    ]
+    _assert_semantic_follow_up(
+        "E qual combustível ele usa?",
+        history,
+        expected_history_fragment="rota R-01",
+        expected_candidate="get_vehicle_details",
+    )
 
 
 def test_route_cost_follow_up_reuses_recent_exchange_subject() -> None:
@@ -82,10 +103,12 @@ def test_route_cost_follow_up_reuses_recent_exchange_subject() -> None:
         AssistantConversationTurn(role="assistant", content="A rota R-01 custa mais."),
     )
 
-    assert _selected_tools("Por quê?", history) == [
-        "get_operation_summary",
-        "get_cost_breakdown",
-    ]
+    _assert_semantic_follow_up(
+        "Por quê?",
+        history,
+        expected_history_fragment="A rota R-01 custa mais.",
+        expected_candidate="get_cost_breakdown",
+    )
 
 
 def test_unrelated_message_does_not_inherit_previous_subject() -> None:

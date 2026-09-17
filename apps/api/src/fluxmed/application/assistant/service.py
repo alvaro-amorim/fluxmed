@@ -1,3 +1,4 @@
+import json
 import time
 import uuid
 from dataclasses import dataclass
@@ -12,6 +13,10 @@ from fluxmed.llm.prompts import ASSISTANT_SYSTEM_PROMPT, ASSISTANT_SYSTEM_PROMPT
 
 
 class AssistantToolLimitError(RuntimeError):
+    pass
+
+
+class AssistantContextLimitError(RuntimeError):
     pass
 
 
@@ -94,6 +99,19 @@ class AssistantService:
 
         if len(grounding.results) > self._settings.max_tool_calls_per_request:
             raise AssistantToolLimitError("Limite de tools excedido nesta solicitação.")
+
+        context_chars = len(
+            json.dumps(
+                grounding.context,
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            )
+        )
+        if context_chars > self._settings.max_context_chars:
+            raise AssistantContextLimitError(
+                "O contexto estruturado desta pergunta excede o limite seguro de envio à IA."
+            )
 
         call_views = tuple(
             AssistantToolCallView(

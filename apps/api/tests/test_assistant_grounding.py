@@ -1,8 +1,8 @@
 import uuid
 
 from fluxmed.application.assistant.grounding import AssistantGroundingBuilder
-from fluxmed.application.assistant.toolbox import AssistantToolbox
 from fluxmed.application.assistant.tool_selection import AssistantIntent
+from fluxmed.application.assistant.toolbox import AssistantToolbox
 from fluxmed.llm import ToolCall, ToolDefinition, ToolResult
 
 

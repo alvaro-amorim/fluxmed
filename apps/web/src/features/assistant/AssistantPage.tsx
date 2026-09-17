@@ -2,7 +2,11 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 
 import { getAssistantStatus, sendAssistantMessage } from '../../services/assistant'
 import { listOperations } from '../../services/operations'
-import type { AssistantStatus, AssistantToolCall } from '../../types/assistant'
+import type {
+  AssistantHistoryMessageInput,
+  AssistantStatus,
+  AssistantToolCall,
+} from '../../types/assistant'
 import type { Operation } from '../../types/operations'
 import './assistant.css'
 
@@ -73,6 +77,22 @@ function formatHistory(operation: Operation | null, messages: ChatMessage[]): st
   return lines.join('\n').trim()
 }
 
+function compactConversationContent(content: string): string {
+  const clean = content.trim()
+  if (clean.length <= 2000) return clean
+  return `${clean.slice(0, 1000).trimEnd()} … ${clean.slice(-1000).trimStart()}`
+}
+
+function conversationHistory(messages: ChatMessage[]): AssistantHistoryMessageInput[] {
+  return messages
+    .filter((message) => message.id !== 'welcome')
+    .slice(-8)
+    .map((message) => ({
+      role: message.role,
+      content: compactConversationContent(message.content),
+    }))
+}
+
 export function AssistantPage() {
   const [operations, setOperations] = useState<Operation[]>([])
   const [operationId, setOperationId] = useState('')
@@ -126,6 +146,7 @@ export function AssistantPage() {
     const cleanMessage = message.trim()
     if (!cleanMessage || !operationId || sending) return
 
+    const history = conversationHistory(messages)
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
@@ -141,6 +162,7 @@ export function AssistantPage() {
       const response = await sendAssistantMessage({
         message: cleanMessage,
         context: { operation_id: operationId },
+        history,
       })
       setMessages((current) => [
         ...current,

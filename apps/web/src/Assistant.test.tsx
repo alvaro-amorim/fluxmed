@@ -42,7 +42,14 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-it('asks a factual question using the selected operation context', async () => {
+it('asks a factual question using the selected operation context and copies the chat history', async () => {
+  const writeText = vi.fn(async () => undefined)
+  vi.stubGlobal(
+    'navigator',
+    Object.assign(Object.create(window.navigator), {
+      clipboard: { writeText },
+    }),
+  )
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -84,6 +91,7 @@ it('asks a factual question using the selected operation context', async () => {
 
   expect(await screen.findByRole('heading', { name: 'Explique o plano com dados validados' })).toBeInTheDocument()
   expect(screen.getByText(/Assistente IA · Configurado/i)).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Copiar histórico' })).toBeDisabled()
 
   await user.click(screen.getByRole('button', { name: 'Qual o custo total da operação?' }))
 
@@ -91,6 +99,21 @@ it('asks a factual question using the selected operation context', async () => {
     expect(screen.getByText('O custo total da OP-20260915-001 é R$ 400,38.')).toBeInTheDocument()
   })
   expect(screen.getByText(/get_operation_summary \(success\)/)).toBeInTheDocument()
+
+  const copyButton = screen.getByRole('button', { name: 'Copiar histórico' })
+  expect(copyButton).toBeEnabled()
+  await user.click(copyButton)
+
+  await waitFor(() => expect(writeText).toHaveBeenCalledTimes(1))
+  const copied = String(writeText.mock.calls[0][0])
+  expect(copied).toContain('# FluxMed — Histórico do Assistente IA')
+  expect(copied).toContain('**Operação:** OP-20260915-001')
+  expect(copied).toContain('## Você')
+  expect(copied).toContain('Qual o custo total da operação?')
+  expect(copied).toContain('## FluxMed IA')
+  expect(copied).toContain('_Provider: mock · fluxmed-mock-v1_')
+  expect(copied).toContain('**Fontes estruturadas:** get_operation_summary (success)')
+  expect(screen.getByRole('button', { name: 'Copiado' })).toBeInTheDocument()
 })
 
 it('disables questions when the provider is degraded', async () => {

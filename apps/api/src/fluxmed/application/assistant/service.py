@@ -119,7 +119,7 @@ class AssistantService:
         )
         definitions = toolbox.definitions()
         plan = plan_assistant_grounding(
-            planning_message,
+            user_message,
             definitions,
             has_route_context=context.route_id is not None,
             has_delivery_context=context.delivery_id is not None,
@@ -146,7 +146,7 @@ class AssistantService:
             route_id=context.route_id,
             delivery_id=context.delivery_id,
         ).build(
-            planning_message,
+            user_message,
             plan=plan,
             selection_mode=selection_mode,
         )
@@ -267,7 +267,13 @@ class AssistantService:
                 user_message=message,
                 context={
                     "scope": context.as_provider_context(),
-                    "candidate_tools": list(candidates),
+                    "candidate_tools": [
+                        {
+                            "name": name,
+                            "description": available[name].description,
+                        }
+                        for name in candidates
+                    ],
                 },
                 tools=(selector,),
                 history=(),
@@ -366,31 +372,29 @@ class AssistantService:
         words = normalized.split()
         if len(words) <= 3:
             return True
-        follow_up_markers = (
-            "dele",
-            "dela",
-            "deles",
-            "delas",
-            " ele ",
-            " ela ",
-            "esse ",
-            "essa ",
-            "desse ",
-            "dessa ",
-            "isso",
-            "isto",
-            "e qual",
-            "e quanto",
-            "e o ",
-            "e a ",
-            "por que",
-            "porque",
-            "tambem",
-            "nesse caso",
-            "nessa rota",
+        follow_up_patterns = (
+            r"\bdele\b",
+            r"\bdela\b",
+            r"\bdeles\b",
+            r"\bdelas\b",
+            r"\bele\b",
+            r"\bela\b",
+            r"^e\s+qual\b",
+            r"^e\s+quanto\b",
+            r"^e\s+o\b",
+            r"^e\s+a\b",
+            r"\bpor que\b",
+            r"\bporque\b",
+            r"\btambem\b",
+            r"\bnesse caso\b",
+            r"\bnessa rota\b",
+            r"\bessa rota\b",
+            r"\besse veiculo\b",
+            r"\bessa entrega\b",
+            r"\bdesse custo\b",
+            r"\bdessa rota\b",
         )
-        padded = f" {normalized} "
-        return any(marker in padded for marker in follow_up_markers)
+        return any(re.search(pattern, normalized) for pattern in follow_up_patterns)
 
     @staticmethod
     def _normalize(value: str) -> str:

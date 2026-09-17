@@ -68,9 +68,7 @@ class GeminiProvider:
 
     def generate(self, request: ProviderRequest) -> ProviderTurn:
         if self.cooldown_remaining_seconds > 0:
-            raise LLMProviderRateLimitError(
-                "Gemini está em cooldown após um rate limit recente."
-            )
+            raise LLMProviderRateLimitError("Gemini está em cooldown após um rate limit recente.")
 
         if self._client is None:
             self._client = self._build_client()

@@ -187,7 +187,13 @@ def plan_assistant_grounding(
             exposed_tools=supported("get_delivery_details"),
         )
 
-    if _contains_any(normalized, "veiculo", "frota"):
+    # Referential follow-ups such as "e ela usou quantos veículos?" must not be
+    # hijacked by the generic vehicle keyword rule. Let the semantic planner use
+    # recent conversation context to determine whether "ela" refers to a baseline,
+    # route, vehicle or another entity, then re-ground the requested fact.
+    if _contains_any(normalized, "veiculo", "frota") and not _is_referential_follow_up(
+        normalized
+    ):
         return AssistantGroundingPlan(
             intent=AssistantIntent.VEHICLE_EXPLANATION,
             retrieval_tools=supported(
@@ -253,3 +259,19 @@ def _normalize(value: str) -> str:
 
 def _contains_any(value: str, *needles: str) -> bool:
     return any(needle in value for needle in needles)
+
+
+def _is_referential_follow_up(value: str) -> bool:
+    if value.startswith("e "):
+        return True
+    patterns = (
+        r"\bele\b",
+        r"\bela\b",
+        r"\bdele\b",
+        r"\bdela\b",
+        r"\bessa alternativa\b",
+        r"\besse baseline\b",
+        r"\bessa baseline\b",
+        r"\bessa solucao\b",
+    )
+    return any(re.search(pattern, value) for pattern in patterns)

@@ -102,6 +102,34 @@ def test_unrelated_message_does_not_inherit_previous_subject() -> None:
     assert planning_message == "Me dê um resumo geral da operação e dos prazos."
 
 
+def test_generic_solution_reference_does_not_import_previous_cost_or_team_terms() -> None:
+    history = (
+        AssistantConversationTurn(
+            role="assistant",
+            content="O maior custo está na equipe e nenhum ajudante foi alocado.",
+        ),
+        AssistantConversationTurn(
+            role="assistant",
+            content="Não há simulações anteriores disponíveis.",
+        ),
+    )
+    message = "essa solução ficou melhor que as alternativas simples que tentaram antes?"
+
+    assert AssistantService._planning_message(message, history) == message
+
+
+def test_solution_search_question_does_not_inherit_simulation_terms_from_history() -> None:
+    history = (
+        AssistantConversationTurn(
+            role="assistant",
+            content="Nenhum ajudante está alocado e a simulação não foi aplicada.",
+        ),
+    )
+    message = "como foi a busca até chegar nessa solução?"
+
+    assert AssistantService._planning_message(message, history) == message
+
+
 def test_history_is_bounded_and_long_turns_are_compacted() -> None:
     history = tuple(
         AssistantConversationTurn(role="user", content=f"mensagem-{index}-" + "x" * 2500)

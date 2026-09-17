@@ -14,6 +14,8 @@ interface ChatMessage {
   providerLabel?: string
 }
 
+type CopyState = 'idle' | 'copied' | 'error'
+
 const suggestedQuestions = [
   'Qual o custo total da operação?',
   'Por que o veículo foi escolhido para a primeira rota?',
@@ -31,6 +33,46 @@ function statusLabel(status: AssistantStatus | null): string {
   return status.status === 'HEALTHY' ? 'Configurado' : 'Temporariamente indisponível'
 }
 
+function formatHistory(operation: Operation | null, messages: ChatMessage[]): string {
+  const conversation = messages.filter((message) => message.id !== 'welcome')
+  const lines = ['# FluxMed — Histórico do Assistente IA', '']
+
+  if (operation) {
+    lines.push(
+      `**Operação:** ${operation.operation_code}`,
+      `**Data:** ${operation.operation_date}`,
+      `**Status:** ${operation.status}`,
+      `**Revisão:** ${operation.current_revision_number}`,
+      `**Cidade:** ${operation.city_name}`,
+      '',
+    )
+  }
+
+  if (conversation.length === 0) {
+    lines.push('_Nenhuma interação registrada nesta conversa._')
+    return lines.join('\n')
+  }
+
+  for (const message of conversation) {
+    lines.push(`## ${message.role === 'assistant' ? 'FluxMed IA' : 'Você'}`, '')
+    if (message.providerLabel) {
+      lines.push(`_Provider: ${message.providerLabel}_`, '')
+    }
+    lines.push(message.content.trim())
+    if (message.toolCalls && message.toolCalls.length > 0) {
+      lines.push(
+        '',
+        `**Fontes estruturadas:** ${message.toolCalls
+          .map((tool) => `${tool.name} (${tool.status})`)
+          .join(', ')}`,
+      )
+    }
+    lines.push('')
+  }
+
+  return lines.join('\n').trim()
+}
+
 export function AssistantPage() {
   const [operations, setOperations] = useState<Operation[]>([])
   const [operationId, setOperationId] = useState('')
@@ -39,6 +81,7 @@ export function AssistantPage() {
   const [sending, setSending] = useState(false)
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [copyState, setCopyState] = useState<CopyState>('idle')
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -92,6 +135,7 @@ export function AssistantPage() {
     setInput('')
     setSending(true)
     setError(null)
+    setCopyState('idle')
 
     try {
       const response = await sendAssistantMessage({
@@ -116,6 +160,21 @@ export function AssistantPage() {
       )
     } finally {
       setSending(false)
+    }
+  }
+
+  async function copyHistory() {
+    const clipboard = navigator.clipboard
+    if (!clipboard?.writeText) {
+      setCopyState('error')
+      return
+    }
+
+    try {
+      await clipboard.writeText(formatHistory(selectedOperation, messages))
+      setCopyState('copied')
+    } catch {
+      setCopyState('error')
     }
   }
 
@@ -164,6 +223,7 @@ export function AssistantPage() {
           onChange={(event) => {
             setOperationId(event.target.value)
             setMessages((current) => current.slice(0, 1))
+            setCopyState('idle')
           }}
         >
           {operations.length === 0 ? <option value="">Nenhuma operação otimizada</option> : null}
@@ -211,6 +271,21 @@ export function AssistantPage() {
         </aside>
 
         <section className="assistant-chat" aria-label="Conversa com Assistente IA">
+          <div className="assistant-chat__toolbar">
+            <button
+              type="button"
+              className="assistant-copy-button"
+              disabled={messages.length <= 1}
+              onClick={() => void copyHistory()}
+              title="Copiar conversa em Markdown para análise ou compartilhamento"
+            >
+              {copyState === 'copied' ? 'Copiado' : 'Copiar histórico'}
+            </button>
+            <span className="assistant-copy-status" aria-live="polite">
+              {copyState === 'error' ? 'Não foi possível copiar.' : ''}
+            </span>
+          </div>
+
           <div className="assistant-messages" aria-live="polite">
             {messages.map((message) => (
               <article

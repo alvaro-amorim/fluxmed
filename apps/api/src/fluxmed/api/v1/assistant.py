@@ -8,6 +8,7 @@ from fluxmed.api.dependencies import CurrentUser, DbSession
 from fluxmed.api.errors import ApiError
 from fluxmed.application.assistant import (
     AssistantContext,
+    AssistantContextLimitError,
     AssistantInvalidResponseError,
     AssistantService,
     AssistantToolLimitError,
@@ -193,6 +194,21 @@ def assistant_message(
         raise ApiError(
             status.HTTP_422_UNPROCESSABLE_ENTITY,
             "LLM_TOOL_LIMIT_EXCEEDED",
+            str(exc),
+        ) from exc
+    except AssistantContextLimitError as exc:
+        _record_provider_failure(
+            request_id,
+            current_user.id,
+            payload,
+            provider.name,
+            provider.model,
+            started,
+            "LLM_CONTEXT_LIMIT_EXCEEDED",
+        )
+        raise ApiError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "LLM_CONTEXT_LIMIT_EXCEEDED",
             str(exc),
         ) from exc
     except AssistantInvalidResponseError as exc:

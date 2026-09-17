@@ -1,5 +1,7 @@
 import json
+import re
 import time
+import unicodedata
 import uuid
 from dataclasses import dataclass
 
@@ -10,6 +12,9 @@ from fluxmed.application.assistant.toolbox import AssistantToolbox
 from fluxmed.llm import LLMProvider, ProviderRequest, ToolCall
 from fluxmed.llm.config import LLMSettings
 from fluxmed.llm.prompts import ASSISTANT_SYSTEM_PROMPT, ASSISTANT_SYSTEM_PROMPT_VERSION
+
+_MAX_CONVERSATION_TURNS = 8
+_MAX_CONVERSATION_CONTENT_CHARS = 2000
 
 
 class AssistantToolLimitError(RuntimeError):
@@ -39,6 +44,12 @@ class AssistantContext:
         if self.delivery_id is not None:
             context["delivery_id"] = str(self.delivery_id)
         return context
+
+
+@dataclass(frozen=True, slots=True)
+class AssistantConversationTurn:
+    role: str
+    content: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,11 +89,15 @@ class AssistantService:
         message: str,
         *,
         context: AssistantContext,
+        history: tuple[AssistantConversationTurn, ...] = (),
         request_id: uuid.UUID | None = None,
     ) -> AssistantReply:
         user_message = message.strip()
         if not user_message:
             raise AssistantInvalidResponseError("A mensagem do assistente não pode ser vazia.")
+
+        conversation = self._compact_history(history)
+        planning_message = self._planning_message(user_message, conversation)
 
         resolved_request_id = request_id or uuid.uuid4()
         started = time.perf_counter()
@@ -95,14 +110,24 @@ class AssistantService:
             operation_id=context.operation_id,
             route_id=context.route_id,
             delivery_id=context.delivery_id,
-        ).build(user_message)
+        ).build(planning_message)
 
         if len(grounding.results) > self._settings.max_tool_calls_per_request:
             raise AssistantToolLimitError("Limite de tools excedido nesta solicitação.")
 
+        provider_context = dict(grounding.context)
+        if conversation:
+            provider_context["conversation_history"] = [
+                {"role": item.role, "content": item.content} for item in conversation
+            ]
+            provider_context["conversation_history_rule"] = (
+                "Use o histórico somente para resolver referências e continuidade da conversa. "
+                "Fatos operacionais devem ser confirmados pelo grounding atual."
+            )
+
         context_chars = len(
             json.dumps(
-                grounding.context,
+                provider_context,
                 ensure_ascii=False,
                 separators=(",", ":"),
                 sort_keys=True,
@@ -126,7 +151,7 @@ class AssistantService:
             ProviderRequest(
                 system_prompt=ASSISTANT_SYSTEM_PROMPT,
                 user_message=user_message,
-                context=grounding.context,
+                context=provider_context,
                 tools=(),
                 history=(),
             )
@@ -153,6 +178,75 @@ class AssistantService:
             output_tokens=turn.output_tokens,
             tool_calls=call_views,
         )
+
+    @classmethod
+    def _compact_history(
+        cls,
+        history: tuple[AssistantConversationTurn, ...],
+    ) -> tuple[AssistantConversationTurn, ...]:
+        compacted: list[AssistantConversationTurn] = []
+        for turn in history[-_MAX_CONVERSATION_TURNS:]:
+            role = turn.role.strip().lower()
+            content = turn.content.strip()
+            if role not in {"user", "assistant"} or not content:
+                continue
+            if len(content) > _MAX_CONVERSATION_CONTENT_CHARS:
+                half = _MAX_CONVERSATION_CONTENT_CHARS // 2
+                content = f"{content[:half].rstrip()} … {content[-half:].lstrip()}"
+            compacted.append(AssistantConversationTurn(role=role, content=content))
+        return tuple(compacted)
+
+    @classmethod
+    def _planning_message(
+        cls,
+        message: str,
+        history: tuple[AssistantConversationTurn, ...],
+    ) -> str:
+        if not history or not cls._looks_like_follow_up(message):
+            return message
+        previous_user = next(
+            (turn.content for turn in reversed(history) if turn.role == "user"),
+            None,
+        )
+        if previous_user is None:
+            return message
+        return f"Pergunta anterior: {previous_user}\nPergunta atual: {message}"
+
+    @staticmethod
+    def _looks_like_follow_up(message: str) -> bool:
+        normalized = AssistantService._normalize(message)
+        words = normalized.split()
+        if len(words) <= 3:
+            return True
+        follow_up_markers = (
+            "dele",
+            "dela",
+            "deles",
+            "delas",
+            "essa rota",
+            "esse veiculo",
+            "essa entrega",
+            "isso",
+            "isto",
+            "e qual",
+            "e quanto",
+            "e o ",
+            "e a ",
+            "por que",
+            "porque",
+            "tambem",
+            "nesse caso",
+            "nessa rota",
+        )
+        return any(marker in normalized for marker in follow_up_markers)
+
+    @staticmethod
+    def _normalize(value: str) -> str:
+        decomposed = unicodedata.normalize("NFKD", value.casefold())
+        without_marks = "".join(
+            char for char in decomposed if not unicodedata.combining(char)
+        )
+        return re.sub(r"\s+", " ", without_marks).strip()
 
     @staticmethod
     def _bind_trusted_context(call: ToolCall, context: AssistantContext) -> ToolCall:

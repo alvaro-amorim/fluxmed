@@ -24,7 +24,9 @@ class _FakeFunctionCallStep:
     id: str = "call-1"
     name: str = "select_assistant_context"
     arguments: dict[str, object] = field(
-        default_factory=lambda: {"tools": ["get_cost_breakdown"]}
+        default_factory=lambda: {
+            "tools": ["get_cost_breakdown"]
+        }
     )
     type: str = "function_call"
 

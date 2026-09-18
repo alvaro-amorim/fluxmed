@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from geoalchemy2.elements import WKTElement
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from fluxmed.city.generator import DATASET_VERSION, DEFAULT_SEED, Coordinate

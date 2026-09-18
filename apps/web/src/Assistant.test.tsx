@@ -43,13 +43,6 @@ afterEach(() => {
 })
 
 it('asks a factual question using the selected operation context and copies the chat history', async () => {
-  const writeText = vi.fn(async (_text: string) => undefined)
-  vi.stubGlobal(
-    'navigator',
-    Object.assign(Object.create(window.navigator), {
-      clipboard: { writeText },
-    }),
-  )
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -90,6 +83,7 @@ it('asks a factual question using the selected operation context and copies the 
 
   render(<App />)
   const user = userEvent.setup()
+  const writeText = vi.spyOn(navigator.clipboard, 'writeText')
 
   expect(await screen.findByRole('heading', { name: 'Explique o plano com dados validados' })).toBeInTheDocument()
   expect(screen.getByText(/Assistente IA · Configurado/i)).toBeInTheDocument()

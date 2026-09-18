@@ -191,10 +191,7 @@ def plan_assistant_grounding(
     # hijacked by the generic vehicle keyword rule. Let the semantic planner use
     # recent conversation context to determine whether "ela" refers to a baseline,
     # route, vehicle or another entity, then re-ground the requested fact.
-    if (
-        _contains_any(normalized, "veiculo", "frota")
-        and not _is_referential_follow_up(normalized)
-    ):
+    if _contains_any(normalized, "veiculo", "frota") and not _is_referential_follow_up(normalized):
         return AssistantGroundingPlan(
             intent=AssistantIntent.VEHICLE_EXPLANATION,
             retrieval_tools=supported(

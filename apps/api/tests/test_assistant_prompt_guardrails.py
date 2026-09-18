@@ -10,8 +10,7 @@ def test_assistant_prompt_versions_metric_scope_guardrails() -> None:
 
 def test_assistant_prompt_does_not_infer_time_pressure_from_punctuality_alone() -> None:
     assert (
-        "Não conclua que o plano está temporalmente apertado ou folgado"
-        in ASSISTANT_SYSTEM_PROMPT
+        "Não conclua que o plano está temporalmente apertado ou folgado" in ASSISTANT_SYSTEM_PROMPT
     )
     assert "evidência explícita de janelas, slack ou margens temporais" in ASSISTANT_SYSTEM_PROMPT
 

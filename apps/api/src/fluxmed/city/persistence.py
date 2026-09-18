@@ -1,5 +1,6 @@
 import uuid
 from collections.abc import Iterable
+from typing import Any
 
 from geoalchemy2.elements import WKTElement
 from sqlalchemy import delete, insert, select
@@ -33,6 +34,28 @@ def _line_wkt(points: Iterable[Coordinate]) -> WKTElement:
 def _polygon_wkt(points: Iterable[Coordinate]) -> WKTElement:
     coordinates = ", ".join(f"{lon} {lat}" for lon, lat in points)
     return WKTElement(f"POLYGON(({coordinates}))", srid=4326)
+
+
+_BULK_INSERT_BATCH_SIZE = 500
+
+
+def _execute_batched_insert(
+    session: Session,
+    model: Any,
+    rows: list[dict[str, object]],
+) -> None:
+    """Insert generated city rows in true multi-value batches.
+
+    SQLAlchemy ORM executemany can degrade to many individual statements when
+    GeoAlchemy values are present. Santa Aurora contains tens of thousands of
+    lots/buildings/addresses, so that behavior makes integration-test seeding
+    take hours on Docker Desktop. Explicit multi-value batches keep each SQL
+    statement bounded while reducing round trips by orders of magnitude.
+    """
+    table = model.__table__
+    for offset in range(0, len(rows), _BULK_INSERT_BATCH_SIZE):
+        batch = rows[offset : offset + _BULK_INSERT_BATCH_SIZE]
+        session.execute(table.insert().values(batch))
 
 
 def seed_santa_aurora(
@@ -80,8 +103,9 @@ def seed_santa_aurora(
     district_ids: dict[str, uuid.UUID] = {
         district.slug: district.id for district in generated.districts
     }
-    session.execute(
-        insert(DistrictModel),
+    _execute_batched_insert(
+        session,
+        DistrictModel,
         [
             {
                 "id": district.id,
@@ -93,8 +117,9 @@ def seed_santa_aurora(
             for district in generated.districts
         ],
     )
-    session.execute(
-        insert(IntersectionModel),
+    _execute_batched_insert(
+        session,
+        IntersectionModel,
         [
             {
                 "id": intersection.id,
@@ -106,8 +131,9 @@ def seed_santa_aurora(
             for intersection in generated.intersections
         ],
     )
-    session.execute(
-        insert(StreetModel),
+    _execute_batched_insert(
+        session,
+        StreetModel,
         [
             {
                 "id": street.id,
@@ -119,8 +145,9 @@ def seed_santa_aurora(
             for street in generated.streets
         ],
     )
-    session.execute(
-        insert(RoadSegmentModel),
+    _execute_batched_insert(
+        session,
+        RoadSegmentModel,
         [
             {
                 "id": segment.id,
@@ -140,8 +167,9 @@ def seed_santa_aurora(
             for segment in generated.road_segments
         ],
     )
-    session.execute(
-        insert(LotModel),
+    _execute_batched_insert(
+        session,
+        LotModel,
         [
             {
                 "id": lot.id,
@@ -155,8 +183,9 @@ def seed_santa_aurora(
             for lot in generated.lots
         ],
     )
-    session.execute(
-        insert(BuildingModel),
+    _execute_batched_insert(
+        session,
+        BuildingModel,
         [
             {
                 "id": building.id,
@@ -169,8 +198,9 @@ def seed_santa_aurora(
             for building in generated.buildings
         ],
     )
-    session.execute(
-        insert(AddressModel),
+    _execute_batched_insert(
+        session,
+        AddressModel,
         [
             {
                 "id": address.id,
@@ -190,8 +220,9 @@ def seed_santa_aurora(
             for address in generated.addresses
         ],
     )
-    session.execute(
-        insert(FacilityModel),
+    _execute_batched_insert(
+        session,
+        FacilityModel,
         [
             {
                 "id": facility.id,

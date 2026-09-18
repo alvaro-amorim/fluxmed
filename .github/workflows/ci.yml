@@ -1,14 +1,25 @@
-name: CI
+name: Full CI
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   backend:
     name: Backend
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -37,21 +48,23 @@ jobs:
           cache: pip
           cache-dependency-path: apps/api/pyproject.toml
       - name: Install
-        run: python -m pip install --upgrade pip && pip install -e '.[dev]'
+        run: python -m pip install -e '.[dev]'
       - name: Lint
-        run: ruff check src tests
+        run: python -m ruff check src tests
       - name: Format check
-        run: ruff format --check src tests
+        run: python -m ruff format --check src tests
       - name: Type check
-        run: mypy src
+        run: python -m mypy src
       - name: Migrations
         run: alembic upgrade head
       - name: Tests
-        run: pytest -q
+        run: python -X faulthandler -m pytest -q -o faulthandler_timeout=180
 
   frontend:
     name: Frontend
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     defaults:
       run:
         working-directory: apps/web
@@ -60,8 +73,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('apps/web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
       - name: Install
-        run: npm install
+        run: npm install --prefer-offline --no-audit --no-fund
       - name: Lint
         run: npm run lint
       - name: Type check
@@ -73,7 +93,9 @@ jobs:
 
   e2e:
     name: Demo login E2E
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -106,14 +128,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('apps/web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
       - name: Install backend
-        run: python -m pip install --upgrade pip && pip install -e 'apps/api[dev]'
+        run: python -m pip install -e 'apps/api[dev]'
       - name: Prepare database and demo user
         working-directory: apps/api
         run: alembic upgrade head && python -m fluxmed.scripts.seed_demo
       - name: Install frontend
         working-directory: apps/web
-        run: npm install
+        run: npm install --prefer-offline --no-audit --no-fund
       - name: Install Chromium
         working-directory: apps/web
         run: npx playwright install --with-deps chromium

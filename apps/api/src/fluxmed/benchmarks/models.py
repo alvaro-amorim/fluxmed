@@ -40,6 +40,8 @@ class BenchmarkRun:
     runtime_seconds: float
     feasible: bool
     hard_violations: int
+    unassigned_delivery_count: int
+    route_hard_violation_counts: dict[str, int]
     service_penalty: float
     critical_risk: float
     cost_brl: float

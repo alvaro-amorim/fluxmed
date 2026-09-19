@@ -30,6 +30,8 @@ def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[P
         "runtime_seconds",
         "feasible",
         "hard_violations",
+        "unassigned_delivery_count",
+        "route_hard_violation_counts",
         "service_penalty",
         "critical_risk",
         "cost_brl",
@@ -47,6 +49,10 @@ def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[P
         for run in report.runs:
             row = asdict(run)
             row["method"] = run.method.value
+            row["route_hard_violation_counts"] = json.dumps(
+                run.route_hard_violation_counts,
+                sort_keys=True,
+            )
             row["pruning_counts"] = json.dumps(run.pruning_counts, sort_keys=True)
             writer.writerow(row)
 

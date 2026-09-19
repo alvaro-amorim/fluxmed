@@ -118,3 +118,53 @@ def test_decoder_can_measure_advanced_pruning_without_hiding_infeasibility() -> 
     assert pruned.pruning_counts["REFRIGERATION_INCOMPATIBLE"] == 1
     assert unpruned.unassigned_delivery_ids == ()
     assert unpruned.routes[0].hard_violations == ("REFRIGERATION_INCOMPATIBLE",)
+
+
+def test_benchmark_records_exact_infeasibility_reason() -> None:
+    delivery = OptimizationDelivery(
+        id=uuid.UUID(int=701),
+        weight_kg=Decimal("10"),
+        volume_m3=Decimal("0.10"),
+        service_minutes=5,
+        temperature_class=TemperatureClass.REFRIGERATED,
+    )
+    vehicle = OptimizationVehicle(
+        id=uuid.UUID(int=702),
+        max_payload_kg=Decimal("100"),
+        max_volume_m3=Decimal("1"),
+        max_range_km=Decimal("100"),
+        refrigerated=False,
+    )
+    matrix = TravelMatrix(
+        {
+            (None, delivery.id): TravelMetric(Decimal("5"), Decimal("10")),
+            (delivery.id, None): TravelMetric(Decimal("5"), Decimal("10")),
+        }
+    )
+    problem = BenchmarkProblem(
+        scenario_name="INFEASIBILITY_REASON",
+        deliveries=[delivery],
+        vehicles=[vehicle],
+        travel_matrix=matrix,
+    )
+    runner = OptimizerBenchmarkRunner(
+        GeneticOptimizerConfig(
+            population_size=4,
+            max_generations=2,
+            stagnation_generations=1,
+        )
+    )
+
+    report = runner.run(problem, seeds=(101,))
+
+    baseline = next(
+        run for run in report.runs if run.method is BenchmarkMethod.NEAREST_NEIGHBOR
+    )
+    ga_basic = next(run for run in report.runs if run.method is BenchmarkMethod.GA_BASIC)
+
+    assert baseline.feasible is False
+    assert baseline.unassigned_delivery_count == 1
+    assert baseline.route_hard_violation_counts == {}
+    assert ga_basic.feasible is False
+    assert ga_basic.unassigned_delivery_count == 0
+    assert ga_basic.route_hard_violation_counts == {"REFRIGERATION_INCOMPATIBLE": 1}

@@ -1,5 +1,6 @@
 import uuid
 from collections.abc import Callable
+from collections import Counter
 from dataclasses import replace
 from statistics import fmean, pstdev
 from time import perf_counter
@@ -18,7 +19,12 @@ from fluxmed.optimization.baselines import (
 from fluxmed.optimization.decoder import RouteDecoder
 from fluxmed.optimization.engine import GeneticOptimizer, GeneticOptimizerConfig
 from fluxmed.optimization.fitness import FitnessEvaluator
-from fluxmed.optimization.models import FitnessVector, OptimizationDelivery, TravelMatrix
+from fluxmed.optimization.models import (
+    DecodedSolution,
+    FitnessVector,
+    OptimizationDelivery,
+    TravelMatrix,
+)
 
 
 class OptimizerBenchmarkRunner:
@@ -118,6 +124,7 @@ class OptimizerBenchmarkRunner:
             seed=None,
             runtime_seconds=runtime,
             fitness=fitness,
+            solution=solution,
             pruning_counts=solution.pruning_counts,
         )
 
@@ -146,6 +153,7 @@ class OptimizerBenchmarkRunner:
             seed=seed,
             runtime_seconds=runtime,
             fitness=result.best.fitness,
+            solution=result.best.solution,
             pruning_counts=result.pruning_counts,
             generations_completed=result.generations_completed,
             stop_reason=result.stop_reason,
@@ -159,10 +167,14 @@ class OptimizerBenchmarkRunner:
         seed: int | None,
         runtime_seconds: float,
         fitness: FitnessVector,
+        solution: DecodedSolution,
         pruning_counts: dict[str, int],
         generations_completed: int | None = None,
         stop_reason: str | None = None,
     ) -> BenchmarkRun:
+        route_hard_violation_counts = Counter(
+            code for route in solution.routes for code in route.hard_violations
+        )
         return BenchmarkRun(
             scenario_name=problem.scenario_name,
             delivery_count=problem.delivery_count,
@@ -171,6 +183,8 @@ class OptimizerBenchmarkRunner:
             runtime_seconds=runtime_seconds,
             feasible=fitness.feasible,
             hard_violations=fitness.hard_violations,
+            unassigned_delivery_count=len(solution.unassigned_delivery_ids),
+            route_hard_violation_counts=dict(route_hard_violation_counts),
             service_penalty=float(fitness.service_penalty),
             critical_risk=float(fitness.critical_risk),
             cost_brl=float(fitness.total_cost_brl),

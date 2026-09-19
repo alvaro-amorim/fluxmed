@@ -14,8 +14,7 @@ def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[P
     payload = {
         "runs": [{**asdict(run), "method": run.method.value} for run in report.runs],
         "summaries": [
-            {**asdict(summary), "method": summary.method.value}
-            for summary in report.summaries
+            {**asdict(summary), "method": summary.method.value} for summary in report.summaries
         ],
     }
     json_path.write_text(

@@ -43,12 +43,14 @@ class RouteDecoder:
         travel_matrix: TravelMatrix,
         operation_start_at: datetime | None = None,
         operation_end_at: datetime | None = None,
+        advanced_pruning_enabled: bool = True,
     ) -> None:
         self._deliveries = {delivery.id: delivery for delivery in deliveries}
         self._vehicles = tuple(vehicles)
         self._travel_matrix = travel_matrix
         self._operation_start_at = operation_start_at
         self._operation_end_at = operation_end_at
+        self._advanced_pruning_enabled = advanced_pruning_enabled
 
     def decode(self, chromosome: tuple[uuid.UUID, ...]) -> DecodedSolution:
         states = [_RouteState(vehicle=vehicle, delivery_ids=[]) for vehicle in self._vehicles]
@@ -81,19 +83,28 @@ class RouteDecoder:
         feasible: list[tuple[tuple[object, ...], _RouteState]] = []
         for state in states:
             vehicle = state.vehicle
-            reason = self._eligibility_failure(state, delivery)
+            reason = self._basic_eligibility_failure(state, delivery)
             if reason is not None:
                 pruning_counts[reason] = pruning_counts.get(reason, 0) + 1
                 continue
 
+            if self._advanced_pruning_enabled:
+                reason = self._advanced_eligibility_failure(state, delivery)
+                if reason is not None:
+                    pruning_counts[reason] = pruning_counts.get(reason, 0) + 1
+                    continue
+
             prospective = self._prospective_route(state, delivery)
-            if prospective.distance_km > vehicle.max_range_km:
-                pruning_counts["RANGE_IMPOSSIBLE"] = pruning_counts.get("RANGE_IMPOSSIBLE", 0) + 1
-                continue
-            if prospective.hard_violations:
-                for violation in prospective.hard_violations:
-                    pruning_counts[violation] = pruning_counts.get(violation, 0) + 1
-                continue
+            if self._advanced_pruning_enabled:
+                if prospective.distance_km > vehicle.max_range_km:
+                    pruning_counts["RANGE_IMPOSSIBLE"] = (
+                        pruning_counts.get("RANGE_IMPOSSIBLE", 0) + 1
+                    )
+                    continue
+                if prospective.hard_violations:
+                    for violation in prospective.hard_violations:
+                        pruning_counts[violation] = pruning_counts.get(violation, 0) + 1
+                    continue
 
             current = state.current_location
             direct_return = self._travel_matrix.metric(current, None)
@@ -127,8 +138,8 @@ class RouteDecoder:
         feasible.sort(key=lambda item: item[0])
         return feasible[0][1]
 
-    def _eligibility_failure(
-        self,
+    @staticmethod
+    def _basic_eligibility_failure(
         state: _RouteState,
         delivery: OptimizationDelivery,
     ) -> str | None:
@@ -139,6 +150,14 @@ class RouteDecoder:
             return "CAPACITY_EXCEEDED"
         if next_volume > vehicle.max_volume_m3:
             return "VOLUME_EXCEEDED"
+        return None
+
+    @staticmethod
+    def _advanced_eligibility_failure(
+        state: _RouteState,
+        delivery: OptimizationDelivery,
+    ) -> str | None:
+        vehicle = state.vehicle
         if delivery.temperature_class is TemperatureClass.REFRIGERATED and not vehicle.refrigerated:
             return "REFRIGERATION_INCOMPATIBLE"
         helper_required = (
@@ -192,6 +211,23 @@ class RouteDecoder:
 
         for delivery_id in state.delivery_ids:
             delivery = self._deliveries[delivery_id]
+            if (
+                delivery.temperature_class is TemperatureClass.REFRIGERATED
+                and not state.vehicle.refrigerated
+            ):
+                hard_violations.append("REFRIGERATION_INCOMPATIBLE")
+            helper_required = (
+                delivery.handling_requirement is HandlingRequirement.TWO_PERSON
+                or state.vehicle.helper_policy is HelperPolicy.REQUIRED
+            )
+            if helper_required and not state.vehicle.helper_available:
+                hard_violations.append("TEAM_INFEASIBLE")
+            if (
+                delivery.handling_requirement is HandlingRequirement.TWO_PERSON
+                and state.vehicle.helper_policy is HelperPolicy.FORBIDDEN
+            ):
+                hard_violations.append("TEAM_INFEASIBLE")
+
             metric = self._travel_matrix.metric(current, delivery_id)
             distance_km += metric.distance_km
             travel_minutes += metric.travel_minutes

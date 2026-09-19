@@ -46,6 +46,8 @@ class GeneticOptimizerConfig:
     stagnation_generations: int = 25
     low_diversity_threshold: float = 0.35
     immigrant_fraction: float = 0.10
+    advanced_pruning_enabled: bool = True
+    repair_enabled: bool = True
 
     def validate(self) -> None:
         if self.population_size < 4:
@@ -101,6 +103,7 @@ class GeneticOptimizer:
             travel_matrix=travel_matrix,
             operation_start_at=operation_start_at,
             operation_end_at=operation_end_at,
+            advanced_pruning_enabled=self.config.advanced_pruning_enabled,
         )
         baselines = self._baselines(deliveries, travel_matrix, decoder)
         self._raise_if_cancelled(should_cancel)
@@ -253,7 +256,7 @@ class GeneticOptimizer:
         rng: random.Random,
     ) -> EvaluatedIndividual:
         solution = decoder.decode(chromosome)
-        if solution.unassigned_delivery_ids:
+        if self.config.repair_enabled and solution.unassigned_delivery_ids:
             repaired_chromosome = repair_chromosome(chromosome, solution, rng)
             repaired_solution = decoder.decode(repaired_chromosome)
             if (

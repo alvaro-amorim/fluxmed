@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -88,9 +88,9 @@ def resolve_operation_timezone(
 
 def operation_window(
     *,
-    operation_date: datetime.date,
-    operation_start_time: datetime.time,
-    operation_end_time: datetime.time,
+    operation_date: date,
+    operation_start_time: time,
+    operation_end_time: time,
     timezone: ZoneInfo,
 ) -> tuple[datetime, datetime]:
     return (

@@ -1,6 +1,6 @@
 import uuid
-from collections.abc import Callable
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import replace
 from statistics import fmean, pstdev
 from time import perf_counter

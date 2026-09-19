@@ -157,9 +157,7 @@ def test_benchmark_records_exact_infeasibility_reason() -> None:
 
     report = runner.run(problem, seeds=(101,))
 
-    baseline = next(
-        run for run in report.runs if run.method is BenchmarkMethod.NEAREST_NEIGHBOR
-    )
+    baseline = next(run for run in report.runs if run.method is BenchmarkMethod.NEAREST_NEIGHBOR)
     ga_basic = next(run for run in report.runs if run.method is BenchmarkMethod.GA_BASIC)
 
     assert baseline.feasible is False

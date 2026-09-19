@@ -111,8 +111,7 @@ def main() -> None:
     source.add_argument(
         "--matrix-template-code",
         help=(
-            "Use an existing operation as the resource/time/traffic template "
-            "for a scenario matrix."
+            "Use an existing operation as the resource/time/traffic template for a scenario matrix."
         ),
     )
     parser.add_argument(

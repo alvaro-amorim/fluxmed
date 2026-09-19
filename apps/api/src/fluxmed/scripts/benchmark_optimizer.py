@@ -4,16 +4,18 @@ from decimal import Decimal
 from pathlib import Path
 
 from sqlalchemy.exc import OperationalError
+
+from fluxmed.application.deliveries.scenario import ScenarioProfile
 from fluxmed.benchmarks import (
     BenchmarkProblem,
     OptimizerBenchmarkRunner,
     SantaAuroraBenchmarkLoader,
     SantaAuroraScenarioProblemFactory,
     ScenarioMatrixBenchmarkRunner,
+    ScenarioMatrixCell,
     write_benchmark_report,
     write_matrix_manifest,
 )
-from fluxmed.application.deliveries.scenario import ScenarioProfile
 from fluxmed.infrastructure.database import SessionFactory
 from fluxmed.optimization import (
     GeneticOptimizerConfig,
@@ -108,7 +110,10 @@ def main() -> None:
     )
     source.add_argument(
         "--matrix-template-code",
-        help="Use an existing operation as the resource/time/traffic template for a scenario matrix.",
+        help=(
+            "Use an existing operation as the resource/time/traffic template "
+            "for a scenario matrix."
+        ),
     )
     parser.add_argument(
         "--profiles",
@@ -193,13 +198,11 @@ def main() -> None:
                 benchmark_runner=OptimizerBenchmarkRunner(config),
             )
 
-            def show_cell(cell: object) -> None:
-                profile = getattr(cell, "profile")
-                delivery_count = getattr(cell, "delivery_count")
-                scenario_seed = getattr(cell, "scenario_seed")
+            def show_cell(cell: ScenarioMatrixCell) -> None:
                 print(
                     "Matrix cell: "
-                    f"{profile.value} · deliveries={delivery_count} · scenario_seed={scenario_seed}"
+                    f"{cell.profile.value} · deliveries={cell.delivery_count} · "
+                    f"scenario_seed={cell.scenario_seed}"
                 )
 
             matrix_result = matrix_runner.run(

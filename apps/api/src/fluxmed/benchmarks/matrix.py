@@ -106,10 +106,11 @@ class SantaAuroraScenarioProblemFactory:
             delivery_count=delivery_count,
             seed=scenario_seed,
         )
-        namespace = uuid.uuid5(
-            uuid.NAMESPACE_URL,
-            f"fluxmed-benchmark:{self._operation.id}:{profile.value}:{delivery_count}:{scenario_seed}",
+        namespace_label = (
+            f"fluxmed-benchmark:{self._operation.id}:{profile.value}:"
+            f"{delivery_count}:{scenario_seed}"
         )
+        namespace = uuid.uuid5(uuid.NAMESPACE_URL, namespace_label)
         deliveries: list[OptimizationDelivery] = []
         delivery_addresses: dict[uuid.UUID, uuid.UUID] = {}
         for index, spec in enumerate(batch.deliveries, start=1):

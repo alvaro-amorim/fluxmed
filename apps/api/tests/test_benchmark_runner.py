@@ -2,6 +2,7 @@ import uuid
 from decimal import Decimal
 
 from fluxmed.benchmarks import BenchmarkMethod, BenchmarkProblem, OptimizerBenchmarkRunner
+from fluxmed.domain.enums import TemperatureClass
 from fluxmed.optimization import (
     GeneticOptimizerConfig,
     OptimizationDelivery,
@@ -10,7 +11,6 @@ from fluxmed.optimization import (
     TravelMatrix,
     TravelMetric,
 )
-from fluxmed.domain.enums import TemperatureClass
 
 
 def _problem() -> BenchmarkProblem:

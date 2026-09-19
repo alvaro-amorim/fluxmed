@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import replace
 from statistics import fmean, pstdev
 from time import perf_counter
@@ -17,7 +18,7 @@ from fluxmed.optimization.baselines import (
 from fluxmed.optimization.decoder import RouteDecoder
 from fluxmed.optimization.engine import GeneticOptimizer, GeneticOptimizerConfig
 from fluxmed.optimization.fitness import FitnessEvaluator
-from fluxmed.optimization.models import FitnessVector
+from fluxmed.optimization.models import FitnessVector, OptimizationDelivery, TravelMatrix
 
 
 class OptimizerBenchmarkRunner:
@@ -93,7 +94,10 @@ class OptimizerBenchmarkRunner:
         self,
         problem: BenchmarkProblem,
         method: BenchmarkMethod,
-        chromosome_factory: Callable[..., tuple[object, ...]],
+        chromosome_factory: Callable[
+            [list[OptimizationDelivery], TravelMatrix],
+            tuple[uuid.UUID, ...],
+        ],
     ) -> BenchmarkRun:
         decoder = RouteDecoder(
             deliveries=problem.deliveries,

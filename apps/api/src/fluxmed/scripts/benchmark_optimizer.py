@@ -3,6 +3,7 @@ import uuid
 from decimal import Decimal
 from pathlib import Path
 
+from sqlalchemy.exc import OperationalError
 from fluxmed.benchmarks import (
     BenchmarkProblem,
     OptimizerBenchmarkRunner,
@@ -80,6 +81,12 @@ def _load_operation(operation_code: str) -> tuple[BenchmarkProblem, str]:
             f"deliveries={loaded.problem.delivery_count} · vehicles={len(loaded.problem.vehicles)}"
         )
         return loaded.problem, label
+    except OperationalError as exc:
+        raise RuntimeError(
+            "Não foi possível conectar ao PostgreSQL do FluxMed em até 5 segundos. "
+            "Verifique se o serviço 'db' está ativo e se DATABASE_URL aponta para o banco "
+            "de desenvolvimento que contém a operação."
+        ) from exc
     finally:
         session.rollback()
         session.close()
@@ -122,7 +129,10 @@ def main() -> None:
         config = _config(quick=True)
     else:
         operation_code = str(args.operation_code)
-        problem, label = _load_operation(operation_code)
+        try:
+            problem, label = _load_operation(operation_code)
+        except RuntimeError as exc:
+            parser.error(str(exc))
         suffix = "-quick" if args.quick else ""
         output_dir = args.output or Path(f"benchmarks/results/operation-{operation_code}{suffix}")
         config = _config(quick=args.quick)

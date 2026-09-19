@@ -110,10 +110,7 @@ def main() -> None:
     )
     source.add_argument(
         "--matrix-template-code",
-        help=(
-            "Use an existing operation as the resource/time/traffic template "
-            "for a scenario matrix."
-        ),
+        help="Use an existing operation as the resource/time/traffic template for a scenario matrix.",
     )
     parser.add_argument(
         "--profiles",
@@ -173,9 +170,7 @@ def main() -> None:
         except RuntimeError as exc:
             parser.error(str(exc))
         suffix = "-quick" if args.quick else ""
-        output_dir = args.output or Path(
-            f"benchmarks/results/operation-{operation_code}{suffix}"
-        )
+        output_dir = args.output or Path(f"benchmarks/results/operation-{operation_code}{suffix}")
         print(f"Problem loaded: {label}")
         report = OptimizerBenchmarkRunner(config).run(
             problem,
@@ -184,9 +179,7 @@ def main() -> None:
     else:
         template_code = str(args.matrix_template_code)
         suffix = "-quick" if args.quick else ""
-        output_dir = args.output or Path(
-            f"benchmarks/results/matrix-{template_code}{suffix}"
-        )
+        output_dir = args.output or Path(f"benchmarks/results/matrix-{template_code}{suffix}")
         session = SessionFactory()
         try:
             factory = SantaAuroraScenarioProblemFactory(

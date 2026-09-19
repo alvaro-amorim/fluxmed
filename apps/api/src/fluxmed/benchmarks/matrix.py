@@ -15,7 +15,12 @@ from fluxmed.application.optimization.problem_inputs import (
 )
 from fluxmed.application.optimization.routing_matrix import RoutingMatrixBuilder
 from fluxmed.application.resources import ResourceService
-from fluxmed.benchmarks.models import BenchmarkProblem, BenchmarkReport
+from fluxmed.benchmarks.models import (
+    BenchmarkProblem,
+    BenchmarkReport,
+    BenchmarkRun,
+    BenchmarkSummary,
+)
 from fluxmed.benchmarks.runner import OptimizerBenchmarkRunner
 from fluxmed.domain.deliveries import ServiceTimeEstimator
 from fluxmed.domain.enums import WorkerRole
@@ -43,13 +48,14 @@ class ScenarioMatrixResult:
 class SantaAuroraScenarioProblemFactory:
     def __init__(self, session: Session, *, template_operation_code: str) -> None:
         self._session = session
-        self._operation = session.scalar(
+        operation = session.scalar(
             select(OperationModel).where(
                 OperationModel.operation_code == template_operation_code.strip()
             )
         )
-        if self._operation is None:
+        if operation is None:
             raise LookupError(template_operation_code)
+        self._operation: OperationModel = operation
 
         city = session.scalar(select(CityModel).where(CityModel.name == "Santa Aurora"))
         if city is None:
@@ -74,9 +80,7 @@ class SantaAuroraScenarioProblemFactory:
             raise ValueError("A operação-base não possui veículos selecionados.")
 
         self._address_pool = DeliveryRepository(session).scenario_address_pool(city_id=city.id)
-        self._address_by_id = {
-            context.address.id: context for context in self._address_pool
-        }
+        self._address_by_id = {context.address.id: context for context in self._address_pool}
         self._estimator = ServiceTimeEstimator()
         self._matrix_builder = RoutingMatrixBuilder(session)
         self._operation_start_at, self._operation_end_at = operation_window(
@@ -180,8 +184,8 @@ class ScenarioMatrixBenchmarkRunner:
         if invalid_sizes:
             raise ValueError("Os tamanhos do benchmark devem ficar entre 1 e 100 entregas.")
 
-        all_runs = []
-        all_summaries = []
+        all_runs: list[BenchmarkRun] = []
+        all_summaries: list[BenchmarkSummary] = []
         cells: list[ScenarioMatrixCell] = []
         for profile in profiles:
             for size in sizes:

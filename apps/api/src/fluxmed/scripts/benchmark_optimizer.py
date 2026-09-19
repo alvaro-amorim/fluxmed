@@ -3,7 +3,13 @@ import uuid
 from decimal import Decimal
 from pathlib import Path
 
-from fluxmed.benchmarks import BenchmarkProblem, OptimizerBenchmarkRunner, write_benchmark_report
+from fluxmed.benchmarks import (
+    BenchmarkProblem,
+    OptimizerBenchmarkRunner,
+    SantaAuroraBenchmarkLoader,
+    write_benchmark_report,
+)
+from fluxmed.infrastructure.database import SessionFactory
 from fluxmed.optimization import (
     GeneticOptimizerConfig,
     OptimizationDelivery,
@@ -55,12 +61,45 @@ def _smoke_problem() -> BenchmarkProblem:
     )
 
 
+def _config(*, quick: bool) -> GeneticOptimizerConfig:
+    if not quick:
+        return GeneticOptimizerConfig()
+    return GeneticOptimizerConfig(
+        population_size=16,
+        max_generations=30,
+        stagnation_generations=8,
+    )
+
+
+def _load_operation(operation_code: str) -> tuple[BenchmarkProblem, str]:
+    session = SessionFactory()
+    try:
+        loaded = SantaAuroraBenchmarkLoader(session).load_by_code(operation_code)
+        label = (
+            f"{loaded.operation_code} · traffic={loaded.traffic_mode.value} · "
+            f"deliveries={loaded.problem.delivery_count} · vehicles={len(loaded.problem.vehicles)}"
+        )
+        return loaded.problem, label
+    finally:
+        session.rollback()
+        session.close()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="FluxMed optimizer benchmark runner. The current CLI exposes a smoke dataset; "
-        "Santa Aurora scenario-matrix loading is added in the next Phase 17 increment."
+        description="FluxMed optimizer benchmark runner for smoke and Santa Aurora operations."
     )
-    parser.add_argument("--smoke", action="store_true", help="Run the deterministic smoke dataset.")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--smoke", action="store_true", help="Run the deterministic smoke dataset.")
+    source.add_argument(
+        "--operation-code",
+        help="Load an existing Santa Aurora operation read-only by operation code.",
+    )
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Use a reduced GA configuration for development validation.",
+    )
     parser.add_argument(
         "--seeds",
         nargs="+",
@@ -71,22 +110,29 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("benchmarks/results/smoke"),
+        default=None,
         help="Directory for JSON and CSV outputs.",
     )
     args = parser.parse_args()
-    if not args.smoke:
-        parser.error("Use --smoke for the current first benchmark increment.")
 
-    runner = OptimizerBenchmarkRunner(
-        GeneticOptimizerConfig(
-            population_size=16,
-            max_generations=30,
-            stagnation_generations=8,
+    if args.smoke:
+        problem = _smoke_problem()
+        label = "SMOKE_SYNTHETIC"
+        output_dir = args.output or Path("benchmarks/results/smoke")
+        config = _config(quick=True)
+    else:
+        operation_code = str(args.operation_code)
+        problem, label = _load_operation(operation_code)
+        suffix = "-quick" if args.quick else ""
+        output_dir = args.output or Path(
+            f"benchmarks/results/operation-{operation_code}{suffix}"
         )
-    )
-    report = runner.run(_smoke_problem(), seeds=tuple(args.seeds))
-    json_path, csv_path = write_benchmark_report(report, args.output)
+        config = _config(quick=args.quick)
+
+    print(f"Problem loaded: {label}")
+    runner = OptimizerBenchmarkRunner(config)
+    report = runner.run(problem, seeds=tuple(args.seeds))
+    json_path, csv_path = write_benchmark_report(report, output_dir)
     print(f"Benchmark complete: {len(report.runs)} runs")
     print(f"JSON: {json_path}")
     print(f"CSV: {csv_path}")

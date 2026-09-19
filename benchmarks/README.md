@@ -35,3 +35,20 @@ Expected artifacts:
 benchmarks/results/smoke/benchmark-report.json
 benchmarks/results/smoke/benchmark-runs.csv
 ```
+
+
+## Existing Santa Aurora operation
+
+The benchmark runner can load an existing operation read-only. It reuses the same delivery,
+vehicle-cost, helper-availability, timezone and routing-matrix transformations used by the
+production optimizer, then closes the SQLAlchemy session with a rollback.
+
+For a fast development validation:
+
+```powershell
+cd "$HOME\Desktop\fluxmed"
+.\apps\api\.venv\Scripts\Activate.ps1
+python scripts\benchmark_optimizer.py --operation-code OP-20260915-001 --quick --seeds 101
+```
+
+For an evidence-oriented run, omit `--quick` and provide the chosen seed set explicitly.

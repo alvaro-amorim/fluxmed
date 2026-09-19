@@ -80,9 +80,16 @@ Implemented:
 - deterministic smoke CLI;
 - unit coverage for method matrix and pruning ablation semantics.
 
+Second increment:
+
+- read-only loader for an existing Santa Aurora operation;
+- shared optimizer input transformations for deliveries, vehicles, timezone and operation window;
+- routing matrix rebuilt from the selected operation without persisting benchmark changes;
+- CLI support for `--operation-code` and a reduced `--quick` validation mode.
+
 Next:
 
-1. build a read-only problem loader from a prepared Santa Aurora operation;
+1. validate the loader against OP-20260915-001 locally;
 2. add scenario-matrix orchestration for NORMAL/BUSY/HIGH_PRESSURE/EMERGENCY x 20/40/60/80;
 3. persist convergence/evaluation/time-to-best series;
 4. generate academic charts and report-ready tables.

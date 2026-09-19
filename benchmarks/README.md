@@ -52,3 +52,25 @@ python scripts\benchmark_optimizer.py --operation-code OP-20260915-001 --quick -
 ```
 
 For an evidence-oriented run, omit `--quick` and provide the chosen seed set explicitly.
+
+
+## Scenario matrix development mode
+
+Matrix mode generates deliveries in memory from the same Santa Aurora scenario generator used by
+the application. The existing operation contributes the selected fleet/workforce, operation
+window, traffic mode and road overrides; benchmark deliveries are never persisted.
+
+Validate one small cell before running a larger matrix:
+
+```powershell
+python scripts\benchmark_optimizer.py \
+  --matrix-template-code OP-20260915-001 \
+  --profiles NORMAL \
+  --sizes 20 \
+  --scenario-seeds 20260917 \
+  --quick \
+  --seeds 101
+```
+
+The final academic matrix targets all four profiles and 20/40/60/80 deliveries with an explicitly
+recorded GA seed set. Do not use `--quick` for final evidence.

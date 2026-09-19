@@ -87,9 +87,17 @@ Second increment:
 - routing matrix rebuilt from the selected operation without persisting benchmark changes;
 - CLI support for `--operation-code` and a reduced `--quick` validation mode.
 
+Third increment:
+
+- validated the read-only loader against OP-20260915-001;
+- added in-memory scenario-matrix generation using the production scenario generator;
+- added deterministic scenario delivery IDs and the production service-time estimator;
+- added matrix orchestration, progress output and a machine-readable manifest;
+- added city-scoped scenario address pools so benchmark generation cannot mix cities.
+
 Next:
 
-1. validate the loader against OP-20260915-001 locally;
-2. add scenario-matrix orchestration for NORMAL/BUSY/HIGH_PRESSURE/EMERGENCY x 20/40/60/80;
+1. validate one NORMAL x 20 matrix cell locally;
+2. measure routing-matrix cost before attempting the full 4x4 matrix;
 3. persist convergence/evaluation/time-to-best series;
 4. generate academic charts and report-ready tables.

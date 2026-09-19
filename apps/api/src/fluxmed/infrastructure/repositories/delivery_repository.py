@@ -151,7 +151,10 @@ class DeliveryRepository:
         )
         return self.address_context(address_id) if address_id is not None else None
 
-    def scenario_address_pool(self) -> list[AddressContext]:
+    def scenario_address_pool(self, city_id: uuid.UUID | None = None) -> list[AddressContext]:
+        filters: list[ColumnElement[bool]] = [AddressModel.active.is_(True)]
+        if city_id is not None:
+            filters.append(AddressModel.city_id == city_id)
         rows = self._session.execute(
             select(
                 AddressModel,
@@ -164,7 +167,7 @@ class DeliveryRepository:
             .join(DistrictModel, DistrictModel.id == AddressModel.district_id)
             .join(BuildingModel, BuildingModel.id == AddressModel.building_id)
             .outerjoin(FacilityModel, FacilityModel.address_id == AddressModel.id)
-            .where(AddressModel.active.is_(True))
+            .where(*filters)
             .order_by(AddressModel.id)
         ).all()
         return [AddressContext(*row) for row in rows]

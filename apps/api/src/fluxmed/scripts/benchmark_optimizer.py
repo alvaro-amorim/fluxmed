@@ -8,8 +8,12 @@ from fluxmed.benchmarks import (
     BenchmarkProblem,
     OptimizerBenchmarkRunner,
     SantaAuroraBenchmarkLoader,
+    SantaAuroraScenarioProblemFactory,
+    ScenarioMatrixBenchmarkRunner,
     write_benchmark_report,
+    write_matrix_manifest,
 )
+from fluxmed.application.deliveries.scenario import ScenarioProfile
 from fluxmed.infrastructure.database import SessionFactory
 from fluxmed.optimization import (
     GeneticOptimizerConfig,
@@ -102,6 +106,31 @@ def main() -> None:
         "--operation-code",
         help="Load an existing Santa Aurora operation read-only by operation code.",
     )
+    source.add_argument(
+        "--matrix-template-code",
+        help="Use an existing operation as the resource/time/traffic template for a scenario matrix.",
+    )
+    parser.add_argument(
+        "--profiles",
+        nargs="+",
+        choices=[profile.value for profile in ScenarioProfile],
+        default=[profile.value for profile in ScenarioProfile],
+        help="Scenario profiles used by matrix mode.",
+    )
+    parser.add_argument(
+        "--sizes",
+        nargs="+",
+        type=int,
+        default=[20, 40, 60, 80],
+        help="Delivery counts used by matrix mode.",
+    )
+    parser.add_argument(
+        "--scenario-seeds",
+        nargs="+",
+        type=int,
+        default=[20260917],
+        help="Seeds used to generate each synthetic scenario cell.",
+    )
     parser.add_argument(
         "--quick",
         action="store_true",
@@ -122,32 +151,87 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    config = _config(quick=args.quick)
     if args.smoke:
         problem = _smoke_problem()
         label = "SMOKE_SYNTHETIC"
         output_dir = args.output or Path("benchmarks/results/smoke")
-        config = _config(quick=True)
-    else:
+        print(f"Problem loaded: {label}")
+        report = OptimizerBenchmarkRunner(_config(quick=True)).run(
+            problem,
+            seeds=tuple(args.seeds),
+        )
+    elif args.operation_code:
         operation_code = str(args.operation_code)
         try:
             problem, label = _load_operation(operation_code)
         except RuntimeError as exc:
             parser.error(str(exc))
         suffix = "-quick" if args.quick else ""
-        output_dir = args.output or Path(f"benchmarks/results/operation-{operation_code}{suffix}")
-        config = _config(quick=args.quick)
+        output_dir = args.output or Path(
+            f"benchmarks/results/operation-{operation_code}{suffix}"
+        )
+        print(f"Problem loaded: {label}")
+        report = OptimizerBenchmarkRunner(config).run(
+            problem,
+            seeds=tuple(args.seeds),
+        )
+    else:
+        template_code = str(args.matrix_template_code)
+        suffix = "-quick" if args.quick else ""
+        output_dir = args.output or Path(
+            f"benchmarks/results/matrix-{template_code}{suffix}"
+        )
+        session = SessionFactory()
+        try:
+            factory = SantaAuroraScenarioProblemFactory(
+                session,
+                template_operation_code=template_code,
+            )
+            matrix_runner = ScenarioMatrixBenchmarkRunner(
+                problem_factory=factory.build,
+                benchmark_runner=OptimizerBenchmarkRunner(config),
+            )
 
-    print(f"Problem loaded: {label}")
-    runner = OptimizerBenchmarkRunner(config)
-    report = runner.run(problem, seeds=tuple(args.seeds))
+            def show_cell(cell: object) -> None:
+                profile = getattr(cell, "profile")
+                delivery_count = getattr(cell, "delivery_count")
+                scenario_seed = getattr(cell, "scenario_seed")
+                print(
+                    "Matrix cell: "
+                    f"{profile.value} · deliveries={delivery_count} · scenario_seed={scenario_seed}"
+                )
+
+            matrix_result = matrix_runner.run(
+                template_operation_code=factory.template_operation_code,
+                profiles=tuple(ScenarioProfile(value) for value in args.profiles),
+                sizes=tuple(args.sizes),
+                scenario_seeds=tuple(args.scenario_seeds),
+                ga_seeds=tuple(args.seeds),
+                on_cell_start=show_cell,
+            )
+            report = matrix_result.report
+            manifest_path = write_matrix_manifest(
+                matrix_result,
+                output_dir,
+                ga_seeds=tuple(args.seeds),
+                quick=args.quick,
+            )
+        finally:
+            session.rollback()
+            session.close()
+        print(f"Matrix manifest: {manifest_path}")
+
     json_path, csv_path = write_benchmark_report(report, output_dir)
     print(f"Benchmark complete: {len(report.runs)} runs")
     print(f"JSON: {json_path}")
     print(f"CSV: {csv_path}")
     for summary in report.summaries:
         print(
-            f"{summary.method.value}: feasible={summary.feasible_runs}/{summary.runs} "
-            f"mean_cost={summary.mean_cost_brl} mean_runtime={summary.mean_runtime_seconds:.4f}s"
+            f"{summary.scenario_name} · {summary.method.value}: "
+            f"feasible={summary.feasible_runs}/{summary.runs} "
+            f"mean_cost={summary.mean_cost_brl} "
+            f"mean_runtime={summary.mean_runtime_seconds:.4f}s"
         )
 
 

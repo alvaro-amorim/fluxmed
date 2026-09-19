@@ -5,6 +5,13 @@ from fluxmed.benchmarks.loader import (
     LoadedBenchmarkOperation,
     SantaAuroraBenchmarkLoader,
 )
+from fluxmed.benchmarks.matrix import (
+    SantaAuroraScenarioProblemFactory,
+    ScenarioMatrixBenchmarkRunner,
+    ScenarioMatrixCell,
+    ScenarioMatrixResult,
+    write_matrix_manifest,
+)
 from fluxmed.benchmarks.models import (
     BenchmarkMethod,
     BenchmarkProblem,
@@ -23,7 +30,12 @@ __all__ = [
     "BenchmarkRun",
     "BenchmarkSummary",
     "LoadedBenchmarkOperation",
+    "SantaAuroraScenarioProblemFactory",
     "OptimizerBenchmarkRunner",
     "SantaAuroraBenchmarkLoader",
+    "ScenarioMatrixBenchmarkRunner",
+    "ScenarioMatrixCell",
+    "ScenarioMatrixResult",
     "write_benchmark_report",
+    "write_matrix_manifest",
 ]

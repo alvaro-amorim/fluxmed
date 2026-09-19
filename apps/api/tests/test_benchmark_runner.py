@@ -68,8 +68,7 @@ def test_benchmark_runner_compares_baselines_and_three_ga_variants() -> None:
 
     assert len(report.runs) == 8
     counts = {
-        method: sum(run.method is method for run in report.runs)
-        for method in BenchmarkMethod
+        method: sum(run.method is method for run in report.runs) for method in BenchmarkMethod
     }
     assert counts[BenchmarkMethod.NEAREST_NEIGHBOR] == 1
     assert counts[BenchmarkMethod.BEST_INSERTION] == 1

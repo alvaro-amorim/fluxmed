@@ -12,10 +12,7 @@ def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[P
     csv_path = output_dir / "benchmark-runs.csv"
 
     payload = {
-        "runs": [
-            {**asdict(run), "method": run.method.value}
-            for run in report.runs
-        ],
+        "runs": [{**asdict(run), "method": run.method.value} for run in report.runs],
         "summaries": [
             {**asdict(summary), "method": summary.method.value}
             for summary in report.summaries

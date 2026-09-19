@@ -1,8 +1,8 @@
 import uuid
+from collections.abc import Callable
 from dataclasses import replace
 from statistics import fmean, pstdev
 from time import perf_counter
-from typing import Callable
 
 from fluxmed.benchmarks.models import (
     BenchmarkMethod,

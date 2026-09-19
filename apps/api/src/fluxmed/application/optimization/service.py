@@ -1,6 +1,7 @@
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -190,4 +191,3 @@ class OptimizationService:
             validation=validation,
             persisted_result=persisted,
         )
-

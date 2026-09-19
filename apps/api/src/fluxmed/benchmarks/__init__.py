@@ -1,10 +1,10 @@
+from fluxmed.benchmarks.export import write_benchmark_report
 from fluxmed.benchmarks.loader import (
     BenchmarkOperationNotFoundError,
     BenchmarkProblemLoadError,
     LoadedBenchmarkOperation,
     SantaAuroraBenchmarkLoader,
 )
-from fluxmed.benchmarks.export import write_benchmark_report
 from fluxmed.benchmarks.models import (
     BenchmarkMethod,
     BenchmarkProblem,

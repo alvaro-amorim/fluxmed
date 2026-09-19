@@ -124,9 +124,7 @@ def main() -> None:
         operation_code = str(args.operation_code)
         problem, label = _load_operation(operation_code)
         suffix = "-quick" if args.quick else ""
-        output_dir = args.output or Path(
-            f"benchmarks/results/operation-{operation_code}{suffix}"
-        )
+        output_dir = args.output or Path(f"benchmarks/results/operation-{operation_code}{suffix}")
         config = _config(quick=args.quick)
 
     print(f"Problem loaded: {label}")

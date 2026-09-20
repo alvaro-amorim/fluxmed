@@ -5,7 +5,7 @@ from collections import defaultdict
 from pathlib import Path
 from statistics import fmean
 
-from fluxmed.benchmarks.models import BenchmarkMethod, BenchmarkReport
+from fluxmed.benchmarks.models import BenchmarkMethod, BenchmarkReport, BenchmarkRun
 
 _METHOD_LABELS = {
     BenchmarkMethod.NEAREST_NEIGHBOR: "Nearest Neighbor",
@@ -57,14 +57,18 @@ def write_academic_artifacts(report: BenchmarkReport, output_dir: Path) -> tuple
             y_max=1.0,
         )
     )
-    artifacts.append(
-        _write_line_chart(
-            charts_dir / "mean-feasible-cost-by-scale.svg",
-            title="Mean optimizer cost by scale (feasible runs only)",
-            y_label="Optimizer cost (BRL)",
-            series=cost,
+    obsolete_cost_chart = charts_dir / "mean-feasible-cost-by-scale.svg"
+    if obsolete_cost_chart.exists():
+        obsolete_cost_chart.unlink()
+    if paired_cost:
+        artifacts.append(
+            _write_line_chart(
+                charts_dir / "paired-pruning-repair-cost-by-scale.svg",
+                title="Paired cost by scale: pruning variants",
+                y_label="Optimizer cost (BRL)",
+                series=paired_cost,
+            )
         )
-    )
     artifacts.append(
         _write_line_chart(
             charts_dir / "runtime-by-scale.svg",
@@ -113,10 +117,6 @@ def _aggregate_by_scale(
             continue
         if metric == "feasibility":
             value = 1.0 if run.feasible else 0.0
-        elif metric == "cost":
-            if not run.feasible:
-                continue
-            value = run.cost_brl
         elif metric == "runtime":
             value = run.runtime_seconds
         elif metric == "hard_violations":
@@ -129,6 +129,56 @@ def _aggregate_by_scale(
     for method in BenchmarkMethod:
         if method not in allowed:
             continue
+        points = [
+            (size, fmean(values))
+            for (group_method, size), values in grouped.items()
+            if group_method is method and values
+        ]
+        if points:
+            result[method] = sorted(points)
+    return result
+
+
+def _paired_pruning_repair_cost_by_scale(
+    report: BenchmarkReport,
+) -> dict[BenchmarkMethod, list[tuple[int, float]]]:
+    runs_by_key = {
+        (run.scenario_name, run.seed, run.method): run
+        for run in report.runs
+        if run.seed is not None
+        and run.method in (
+            BenchmarkMethod.GA_PRUNING,
+            BenchmarkMethod.GA_PRUNING_REPAIR,
+        )
+    }
+    grouped: dict[tuple[BenchmarkMethod, int], list[float]] = defaultdict(list)
+    scenario_seed_keys = {
+        (scenario_name, seed)
+        for scenario_name, seed, _method in runs_by_key
+    }
+    for scenario_name, seed in scenario_seed_keys:
+        pruning = runs_by_key.get(
+            (scenario_name, seed, BenchmarkMethod.GA_PRUNING)
+        )
+        repair = runs_by_key.get(
+            (scenario_name, seed, BenchmarkMethod.GA_PRUNING_REPAIR)
+        )
+        if pruning is None or repair is None:
+            continue
+        if not pruning.feasible or not repair.feasible:
+            continue
+        grouped[(BenchmarkMethod.GA_PRUNING, pruning.delivery_count)].append(
+            pruning.cost_brl
+        )
+        grouped[(BenchmarkMethod.GA_PRUNING_REPAIR, repair.delivery_count)].append(
+            repair.cost_brl
+        )
+
+    result: dict[BenchmarkMethod, list[tuple[int, float]]] = {}
+    for method in (
+        BenchmarkMethod.GA_PRUNING,
+        BenchmarkMethod.GA_PRUNING_REPAIR,
+    ):
         points = [
             (size, fmean(values))
             for (group_method, size), values in grouped.items()
@@ -175,6 +225,16 @@ def _scenario_difficulty_key(name: str) -> tuple[int, int, str]:
     parts = name.split("-")
     size = next((int(part) for part in parts if part.isdigit()), 0)
     return profile_rank, size, name
+
+
+def _x_tick_values(values: list[int], *, max_ticks: int = 8) -> list[int]:
+    if len(values) <= max_ticks:
+        return values
+    indexes = {
+        round(index * (len(values) - 1) / (max_ticks - 1))
+        for index in range(max_ticks)
+    }
+    return [values[index] for index in sorted(indexes)]
 
 
 def _write_line_chart(
@@ -245,7 +305,7 @@ def _write_line_chart(
             f"{value:.2f}</text>"
         )
 
-    for x in x_values:
+    for x in _x_tick_values(x_values):
         x_pos = px(x)
         svg.append(
             f'<text x="{x_pos:.2f}" y="{top + plot_height + 24}" text-anchor="middle" '
@@ -312,7 +372,7 @@ def _write_academic_table(report: BenchmarkReport, path: Path) -> Path:
             list(BenchmarkMethod).index(summary.method),
         ),
     )
-    overall: dict[BenchmarkMethod, list[object]] = defaultdict(list)
+    overall: dict[BenchmarkMethod, list[BenchmarkRun]] = defaultdict(list)
     for run in report.runs:
         overall[run.method].append(run)
 

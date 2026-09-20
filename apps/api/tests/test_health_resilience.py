@@ -61,3 +61,24 @@ def test_database_error_handler_can_be_called_directly() -> None:
     )
 
     assert response.status_code == 503
+
+
+
+def test_postgres_engine_uses_bounded_connect_timeout(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_create_engine(url: str, **kwargs: object) -> object:
+        captured["url"] = url
+        captured["kwargs"] = kwargs
+        return object()
+
+    monkeypatch.setenv("DATABASE_CONNECT_TIMEOUT_SECONDS", "2")
+    monkeypatch.setattr(database, "create_engine", fake_create_engine)
+
+    database.create_database_engine("postgresql+psycopg://fluxmed:fluxmed@localhost/fluxmed")
+
+    assert captured["url"] == "postgresql+psycopg://fluxmed:fluxmed@localhost/fluxmed"
+    assert captured["kwargs"] == {
+        "pool_pre_ping": True,
+        "connect_args": {"connect_timeout": 2},
+    }

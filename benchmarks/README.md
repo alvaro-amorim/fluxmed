@@ -74,3 +74,18 @@ python scripts\benchmark_optimizer.py \
 
 The final academic matrix targets all four profiles and 20/40/60/80 deliveries with an explicitly
 recorded GA seed set. Do not use `--quick` for final evidence.
+
+
+## Convergence evidence
+
+Each GA benchmark now records the optimizer's real progress callback. In addition to the raw run
+CSV and JSON report, the runner emits:
+
+- `benchmark-summaries.csv`: report-ready summary statistics;
+- `benchmark-convergence.csv`: generation-by-generation best fitness, feasibility, diversity,
+  adaptive mutation and elapsed time.
+
+`candidate_evaluations` counts individuals passed through the optimizer evaluation step:
+two internal baseline evaluations plus the configured population for generation zero and every
+completed generation. `time_to_best_seconds` is measured from optimizer start to the progress
+event that last improved the final best solution.

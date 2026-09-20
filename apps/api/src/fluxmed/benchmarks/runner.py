@@ -6,6 +6,7 @@ from statistics import fmean, pstdev
 from time import perf_counter
 
 from fluxmed.benchmarks.models import (
+    BenchmarkConvergencePoint,
     BenchmarkMethod,
     BenchmarkProblem,
     BenchmarkReport,
@@ -23,6 +24,7 @@ from fluxmed.optimization.models import (
     DecodedSolution,
     FitnessVector,
     OptimizationDelivery,
+    OptimizationProgress,
     TravelMatrix,
 )
 
@@ -46,6 +48,7 @@ class OptimizerBenchmarkRunner:
             raise ValueError("At least one GA seed is required.")
 
         runs: list[BenchmarkRun] = []
+        convergence: list[BenchmarkConvergencePoint] = []
         runs.append(
             self._run_baseline(
                 problem,
@@ -89,11 +92,19 @@ class OptimizerBenchmarkRunner:
         )
         for method, config in variants:
             for seed in seeds:
-                runs.append(self._run_ga(problem, method=method, config=config, seed=seed))
+                run, points = self._run_ga(
+                    problem,
+                    method=method,
+                    config=config,
+                    seed=seed,
+                )
+                runs.append(run)
+                convergence.extend(points)
 
         return BenchmarkReport(
             runs=tuple(runs),
             summaries=self._summaries(problem, runs),
+            convergence=tuple(convergence),
         )
 
     def _run_baseline(
@@ -135,9 +146,44 @@ class OptimizerBenchmarkRunner:
         method: BenchmarkMethod,
         config: GeneticOptimizerConfig,
         seed: int,
-    ) -> BenchmarkRun:
+    ) -> tuple[BenchmarkRun, tuple[BenchmarkConvergencePoint, ...]]:
         optimizer = GeneticOptimizer(config)
         started = perf_counter()
+        points: list[BenchmarkConvergencePoint] = []
+        best_generation = 0
+        time_to_best_seconds = 0.0
+
+        def on_progress(progress: OptimizationProgress) -> None:
+            nonlocal best_generation, time_to_best_seconds
+            elapsed = perf_counter() - started
+            generation = progress.generation
+            if progress.improved:
+                best_generation = generation
+                time_to_best_seconds = elapsed
+            fitness = progress.best.fitness
+            points.append(
+                BenchmarkConvergencePoint(
+                    scenario_name=problem.scenario_name,
+                    delivery_count=problem.delivery_count,
+                    method=method,
+                    seed=seed,
+                    generation=generation,
+                    elapsed_seconds=elapsed,
+                    improved=progress.improved,
+                    feasible=fitness.feasible,
+                    hard_violations=fitness.hard_violations,
+                    service_penalty=float(fitness.service_penalty),
+                    cost_brl=float(fitness.total_cost_brl),
+                    makespan_minutes=float(fitness.makespan_minutes),
+                    distance_km=float(fitness.distance_km),
+                    vehicles_used=fitness.vehicles_used,
+                    diversity_ratio=progress.diversity_ratio,
+                    effective_mutation_rate=progress.effective_mutation_rate,
+                    immigrants_added=progress.immigrants_added,
+                    pruning_counts=dict(progress.pruning_counts),
+                )
+            )
+
         result = optimizer.optimize(
             deliveries=problem.deliveries,
             vehicles=problem.vehicles,
@@ -145,9 +191,11 @@ class OptimizerBenchmarkRunner:
             random_seed=seed,
             operation_start_at=problem.operation_start_at,
             operation_end_at=problem.operation_end_at,
+            on_progress=on_progress,
         )
         runtime = perf_counter() - started
-        return self._record(
+        candidate_evaluations = 2 + config.population_size * (result.generations_completed + 1)
+        run = self._record(
             problem,
             method=method,
             seed=seed,
@@ -155,9 +203,13 @@ class OptimizerBenchmarkRunner:
             fitness=result.best.fitness,
             solution=result.best.solution,
             pruning_counts=result.pruning_counts,
+            candidate_evaluations=candidate_evaluations,
+            best_generation=best_generation,
+            time_to_best_seconds=time_to_best_seconds,
             generations_completed=result.generations_completed,
             stop_reason=result.stop_reason,
         )
+        return run, tuple(points)
 
     @staticmethod
     def _record(
@@ -169,6 +221,9 @@ class OptimizerBenchmarkRunner:
         fitness: FitnessVector,
         solution: DecodedSolution,
         pruning_counts: dict[str, int],
+        candidate_evaluations: int | None = None,
+        best_generation: int | None = None,
+        time_to_best_seconds: float | None = None,
         generations_completed: int | None = None,
         stop_reason: str | None = None,
     ) -> BenchmarkRun:
@@ -185,6 +240,9 @@ class OptimizerBenchmarkRunner:
             hard_violations=fitness.hard_violations,
             unassigned_delivery_count=len(solution.unassigned_delivery_ids),
             route_hard_violation_counts=dict(route_hard_violation_counts),
+            candidate_evaluations=candidate_evaluations,
+            best_generation=best_generation,
+            time_to_best_seconds=time_to_best_seconds,
             service_penalty=float(fitness.service_penalty),
             critical_risk=float(fitness.critical_risk),
             cost_brl=float(fitness.total_cost_brl),
@@ -210,6 +268,16 @@ class OptimizerBenchmarkRunner:
             feasible = [run for run in method_runs if run.feasible]
             costs = [run.cost_brl for run in feasible]
             makespans = [run.makespan_minutes for run in feasible]
+            evaluations = [
+                float(run.candidate_evaluations)
+                for run in method_runs
+                if run.candidate_evaluations is not None
+            ]
+            times_to_best = [
+                run.time_to_best_seconds
+                for run in method_runs
+                if run.time_to_best_seconds is not None
+            ]
             summaries.append(
                 BenchmarkSummary(
                     scenario_name=problem.scenario_name,
@@ -223,6 +291,12 @@ class OptimizerBenchmarkRunner:
                     std_cost_brl=pstdev(costs) if len(costs) > 1 else (0.0 if costs else None),
                     worst_cost_brl=max(costs) if costs else None,
                     mean_runtime_seconds=fmean(run.runtime_seconds for run in method_runs),
+                    mean_candidate_evaluations=(
+                        fmean(evaluations) if evaluations else None
+                    ),
+                    mean_time_to_best_seconds=(
+                        fmean(times_to_best) if times_to_best else None
+                    ),
                     best_makespan_minutes=min(makespans) if makespans else None,
                     mean_makespan_minutes=fmean(makespans) if makespans else None,
                 )

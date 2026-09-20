@@ -95,9 +95,23 @@ Third increment:
 - added matrix orchestration, progress output and a machine-readable manifest;
 - added city-scoped scenario address pools so benchmark generation cannot mix cities.
 
+Validation completed:
+
+- NORMAL validated from 20 to 80 deliveries;
+- BUSY, HIGH_PRESSURE and EMERGENCY validated at 20/40/60/80;
+- infeasibility diagnostics distinguish unassigned deliveries from route hard violations;
+- runtime remains practical for an evidence run.
+
+Fourth increment:
+
+- convergence series captured from the real GA progress callback;
+- candidate-evaluation count recorded per GA run;
+- best generation and time-to-best recorded;
+- dedicated summary and convergence CSV artifacts added.
+
 Next:
 
-1. validate one NORMAL x 20 matrix cell locally;
-2. measure routing-matrix cost before attempting the full 4x4 matrix;
-3. persist convergence/evaluation/time-to-best series;
-4. generate academic charts and report-ready tables.
+1. validate convergence artifacts on one matrix cell;
+2. add reproducible academic SVG charts and report-ready tables;
+3. define the final evidence preset and GA seed set;
+4. execute and archive the final benchmark matrix.

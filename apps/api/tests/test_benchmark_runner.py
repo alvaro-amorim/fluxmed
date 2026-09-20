@@ -77,6 +77,13 @@ def test_benchmark_runner_compares_baselines_and_three_ga_variants() -> None:
     assert counts[BenchmarkMethod.GA_PRUNING_REPAIR] == 2
     assert len(report.summaries) == 5
     assert all(summary.feasible_rate == 1.0 for summary in report.summaries)
+    ga_runs = [run for run in report.runs if run.seed is not None]
+    assert all(run.candidate_evaluations is not None for run in ga_runs)
+    assert all(run.best_generation is not None for run in ga_runs)
+    assert all(run.time_to_best_seconds is not None for run in ga_runs)
+    assert report.convergence
+    assert all(point.method is not BenchmarkMethod.NEAREST_NEIGHBOR for point in report.convergence)
+    assert all(point.method is not BenchmarkMethod.BEST_INSERTION for point in report.convergence)
 
 
 def test_decoder_can_measure_advanced_pruning_without_hiding_infeasibility() -> None:

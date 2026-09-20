@@ -224,6 +224,8 @@ def main() -> None:
     print(f"Benchmark complete: {len(report.runs)} runs")
     print(f"JSON: {json_path}")
     print(f"CSV: {csv_path}")
+    print(f"Summary CSV: {output_dir / 'benchmark-summaries.csv'}")
+    print(f"Convergence CSV: {output_dir / 'benchmark-convergence.csv'}")
     for summary in report.summaries:
         print(
             f"{summary.scenario_name} · {summary.method.value}: "

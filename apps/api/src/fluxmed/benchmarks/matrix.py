@@ -16,6 +16,7 @@ from fluxmed.application.optimization.problem_inputs import (
 from fluxmed.application.optimization.routing_matrix import RoutingMatrixBuilder
 from fluxmed.application.resources import ResourceService
 from fluxmed.benchmarks.models import (
+    BenchmarkConvergencePoint,
     BenchmarkProblem,
     BenchmarkReport,
     BenchmarkRun,
@@ -186,6 +187,7 @@ class ScenarioMatrixBenchmarkRunner:
 
         all_runs: list[BenchmarkRun] = []
         all_summaries: list[BenchmarkSummary] = []
+        all_convergence: list[BenchmarkConvergencePoint] = []
         cells: list[ScenarioMatrixCell] = []
         for profile in profiles:
             for size in sizes:
@@ -207,6 +209,7 @@ class ScenarioMatrixBenchmarkRunner:
                     cells.append(cell)
                     all_runs.extend(report.runs)
                     all_summaries.extend(report.summaries)
+                    all_convergence.extend(report.convergence)
 
         return ScenarioMatrixResult(
             template_operation_code=template_operation_code,
@@ -214,6 +217,7 @@ class ScenarioMatrixBenchmarkRunner:
             report=BenchmarkReport(
                 runs=tuple(all_runs),
                 summaries=tuple(all_summaries),
+                convergence=tuple(all_convergence),
             ),
         )
 

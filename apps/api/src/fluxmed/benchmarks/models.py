@@ -32,6 +32,28 @@ class BenchmarkProblem:
 
 
 @dataclass(frozen=True, slots=True)
+class BenchmarkConvergencePoint:
+    scenario_name: str
+    delivery_count: int
+    method: BenchmarkMethod
+    seed: int
+    generation: int
+    elapsed_seconds: float
+    improved: bool
+    feasible: bool
+    hard_violations: int
+    service_penalty: float
+    cost_brl: float
+    makespan_minutes: float
+    distance_km: float
+    vehicles_used: int
+    diversity_ratio: float
+    effective_mutation_rate: float
+    immigrants_added: int
+    pruning_counts: dict[str, int]
+
+
+@dataclass(frozen=True, slots=True)
 class BenchmarkRun:
     scenario_name: str
     delivery_count: int
@@ -42,6 +64,9 @@ class BenchmarkRun:
     hard_violations: int
     unassigned_delivery_count: int
     route_hard_violation_counts: dict[str, int]
+    candidate_evaluations: int | None
+    best_generation: int | None
+    time_to_best_seconds: float | None
     service_penalty: float
     critical_risk: float
     cost_brl: float
@@ -67,6 +92,8 @@ class BenchmarkSummary:
     std_cost_brl: float | None
     worst_cost_brl: float | None
     mean_runtime_seconds: float
+    mean_candidate_evaluations: float | None
+    mean_time_to_best_seconds: float | None
     best_makespan_minutes: float | None
     mean_makespan_minutes: float | None
 
@@ -75,3 +102,4 @@ class BenchmarkSummary:
 class BenchmarkReport:
     runs: tuple[BenchmarkRun, ...]
     summaries: tuple[BenchmarkSummary, ...]
+    convergence: tuple[BenchmarkConvergencePoint, ...]

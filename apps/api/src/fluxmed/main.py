@@ -1,9 +1,11 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
+from sqlalchemy.exc import SQLAlchemyError
 
-from fluxmed.api.errors import ApiError, api_error_handler
+from fluxmed.api.errors import ApiError, api_error_handler, database_error_handler
 from fluxmed.api.v1.assistant import router as assistant_router
 from fluxmed.api.v1.auth import router as auth_router
 from fluxmed.api.v1.cities import router as cities_router
@@ -16,13 +18,18 @@ from fluxmed.api.v1.reports import router as reports_router
 from fluxmed.api.v1.resources import router as resources_router
 from fluxmed.api.v1.routing import router as routing_router
 from fluxmed.application.optimization.trace import OptimizationTraceService
-from fluxmed.infrastructure.database import session_scope
+from fluxmed.infrastructure.database import database_is_ready, session_scope
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    with session_scope() as session:
-        OptimizationTraceService(session).recover_interrupted_runs()
+    try:
+        with session_scope() as session:
+            OptimizationTraceService(session).recover_interrupted_runs()
+    except SQLAlchemyError:
+        logger.error("Database unavailable during startup recovery")
     yield
 
 
@@ -34,6 +41,7 @@ app = FastAPI(
 )
 
 app.add_exception_handler(ApiError, api_error_handler)
+app.add_exception_handler(SQLAlchemyError, database_error_handler)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(cities_router, prefix="/api/v1")
 app.include_router(operations_router, prefix="/api/v1")
@@ -51,3 +59,16 @@ app.include_router(assistant_router, prefix="/api/v1")
 async def health_live() -> dict[str, str]:
     """Return process liveness without checking external dependencies."""
     return {"status": "ok"}
+
+
+
+@app.get("/health/ready", tags=["health"])
+async def health_ready(response: Response) -> dict[str, object]:
+    """Report whether the process can currently reach its required database."""
+    database_ready = database_is_ready()
+    if not database_ready:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return {
+        "status": "ready" if database_ready else "degraded",
+        "checks": {"database": "ok" if database_ready else "unavailable"},
+    }

@@ -2,8 +2,9 @@ import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 NAMING_CONVENTION = {
@@ -32,6 +33,17 @@ def create_database_engine(database_url: str | None = None) -> Engine:
 
 engine = create_database_engine()
 SessionFactory = sessionmaker(bind=engine, class_=Session, expire_on_commit=False)
+
+
+def database_is_ready() -> bool:
+    session = SessionFactory()
+    try:
+        session.execute(text("SELECT 1"))
+        return True
+    except SQLAlchemyError:
+        return False
+    finally:
+        session.close()
 
 
 @contextmanager

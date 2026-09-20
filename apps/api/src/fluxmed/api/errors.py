@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class ApiError(Exception):
@@ -30,6 +31,20 @@ async def api_error_handler(_request: Request, exc: Exception) -> JSONResponse:
                 "code": exc.code,
                 "message": exc.message,
                 "details": exc.details,
+            }
+        },
+    )
+
+
+
+async def database_error_handler(_request: Request, _exc: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=503,
+        content={
+            "error": {
+                "code": "DATABASE_UNAVAILABLE",
+                "message": "Serviço de dados temporariamente indisponível.",
+                "details": {},
             }
         },
     )

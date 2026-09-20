@@ -65,6 +65,9 @@ with `npm ci`.
 
 ### Backend
 
+- database failures now return a sanitized 503 response instead of exposing driver exceptions;
+- add liveness/readiness separation so a database outage does not make the API process itself unobservable;
+- startup trace recovery no longer prevents process startup when PostgreSQL is temporarily unavailable;
 - review error taxonomy and transaction boundaries;
 - review idempotency and write retries;
 - review audit events, log redaction and health endpoints;

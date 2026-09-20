@@ -1,0 +1,74 @@
+# FluxMed — Phase 18 Hardening Plan
+
+**Branch:** `chore/v1-hardening`  
+**Goal:** make the V1 stable, safe and presentation-ready without changing the academic optimizer evidence.
+
+## Execution rule
+
+Phase 18 is split into small, locally validated increments. Avoid microcommits and avoid rerunning
+the expensive Phase 17 benchmark unless optimizer behavior changes.
+
+The hardening branch is stacked on `feat/academic-benchmarks` while the earlier phase branches
+remain pending merge because GitHub Actions account quota/billing has prevented runners from
+starting. Merge order remains Phase 16 -> Phase 17 -> Phase 18.
+
+## Increment 1 — Assistant UX
+
+- render a safe Markdown subset without raw HTML;
+- preserve structured-source provenance;
+- auto-scroll to the newest response;
+- Enter sends and Shift+Enter inserts a newline;
+- improve thinking/loading feedback;
+- keep the composer visible while reading long answers;
+- honor reduced-motion preferences;
+- preserve the existing copy-history Markdown export.
+
+No new frontend dependency is introduced in this increment.
+
+## Remaining Phase 18 work
+
+### Frontend
+
+- audit spacing, typography, tables, empty/loading/error states and responsive behavior;
+- audit maps and route colors for presentation consistency;
+- review keyboard navigation, focus treatment and accessible labels;
+- remove stale demo/development copy where it harms the final presentation.
+
+### Backend
+
+- review error taxonomy and transaction boundaries;
+- review idempotency and write retries;
+- review audit events, log redaction and health endpoints;
+- add bounded request/rate protections where appropriate;
+- verify failures do not leak provider secrets or operational payloads.
+
+### Resilience
+
+Validate explicit failure behavior for:
+
+- LLM unavailable;
+- database unavailable;
+- report generation failure;
+- SSE disconnect/reconnect;
+- optimizer failure/cancellation;
+- persisted-result validation mismatch.
+
+### Security
+
+- version the frontend lockfile intentionally and move CI to `npm ci`;
+- enable dependency/security scanning with an economical CI policy;
+- review upload/import validation;
+- review CORS/session/cookie production settings;
+- run secret and static-analysis checks before release.
+
+### Final E2E
+
+Revalidate:
+
+`login -> operation -> deliveries -> resources -> closure -> optimization -> result -> assistant -> report -> dispatch`.
+
+## Acceptance
+
+Phase 18 closes when there are no known blocking bugs, the presentation flows are stable, local
+lint/type/test/build checks are green, and any unavailable GitHub Actions evidence is documented as
+infrastructure/account limitation rather than silently ignored.

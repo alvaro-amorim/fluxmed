@@ -1,5 +1,5 @@
-from decimal import Decimal
 import uuid
+from decimal import Decimal
 
 from fluxmed.benchmarks import OptimizerBenchmarkRunner, write_academic_artifacts
 from fluxmed.benchmarks.models import BenchmarkProblem

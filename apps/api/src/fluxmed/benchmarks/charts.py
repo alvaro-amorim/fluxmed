@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import csv
 import html
 from collections import defaultdict
 from pathlib import Path
@@ -305,8 +304,10 @@ def _write_academic_table(report: BenchmarkReport, path: Path) -> Path:
     lines = [
         "# FluxMed benchmark academic summary",
         "",
-        "Costs are reported only for feasible runs. Runtime includes the optimizer execution for the "
-        "method, excluding scenario generation and chart export.",
+        (
+            "Costs are reported only for feasible runs. Runtime includes the optimizer "
+            "execution for the method, excluding scenario generation and chart export."
+        ),
         "",
         "| Scenario | Method | Feasible | Mean cost | Std cost | Mean runtime (s) | "
         "Mean evals | Mean time-to-best (s) |",

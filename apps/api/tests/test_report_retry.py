@@ -83,7 +83,6 @@ def test_retry_rejects_report_that_did_not_fail() -> None:
         ReportRetryService(session).retry(report.id, actor_user_id=uuid.uuid4())
 
 
-
 def test_retry_generation_failure_is_sanitized_and_preserves_source(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

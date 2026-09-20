@@ -3,7 +3,13 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-from fluxmed.benchmarks.models import (\n    BenchmarkConvergencePoint,\n    BenchmarkMethod,\n    BenchmarkReport,\n    BenchmarkRun,\n    BenchmarkSummary,\n)
+from fluxmed.benchmarks.models import (
+    BenchmarkConvergencePoint,
+    BenchmarkMethod,
+    BenchmarkReport,
+    BenchmarkRun,
+    BenchmarkSummary,
+)
 
 
 def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[Path, Path]:

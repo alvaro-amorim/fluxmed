@@ -102,6 +102,7 @@ Validate explicit failure behavior for:
 - frontend lockfile is versioned and PR CI uses `npm ci`;
 - enable dependency/security scanning with an economical CI policy;
 - upload/import validation — bounded upload size and filename normalization implemented;
+- integration tests now refuse to run against a non-test database, preventing destructive seed/cleanup operations from touching demo data;
 - CORS/session/cookie production settings — Secure cookies are forced in production; cross-origin cookie auth is intentionally not enabled in V1;
 - run secret and static-analysis checks before release.
 

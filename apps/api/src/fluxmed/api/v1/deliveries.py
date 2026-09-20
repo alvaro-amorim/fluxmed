@@ -24,7 +24,6 @@ from fluxmed.application.deliveries import (
     UnsupportedImportFormatError,
 )
 from fluxmed.domain.deliveries import DeliveryValidationError
-from fluxmed.security.http import delivery_import_max_bytes
 from fluxmed.domain.enums import (
     CargoProfile,
     DeliveryPriority,
@@ -34,6 +33,7 @@ from fluxmed.domain.enums import (
     TemperatureClass,
     TimeWindowPolicy,
 )
+from fluxmed.security.http import delivery_import_max_bytes
 
 router = APIRouter(tags=["deliveries"])
 
@@ -68,7 +68,7 @@ async def _read_import_upload(file: UploadFile) -> bytes:
         content.extend(chunk)
         if len(content) > limit:
             raise ApiError(
-                status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status.HTTP_413_CONTENT_TOO_LARGE,
                 "IMPORT_FILE_TOO_LARGE",
                 "Arquivo de importação excede o limite permitido.",
             )

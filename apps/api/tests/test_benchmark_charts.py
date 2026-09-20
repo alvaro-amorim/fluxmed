@@ -77,7 +77,6 @@ def test_dense_chart_axis_uses_readable_tick_count() -> None:
     assert ticks[-1] == 120
 
 
-
 def test_convergence_carries_early_stopped_seed_forward() -> None:
     points = [
         BenchmarkConvergencePoint(

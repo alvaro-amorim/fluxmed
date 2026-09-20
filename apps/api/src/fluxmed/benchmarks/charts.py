@@ -157,27 +157,24 @@ def _paired_pruning_repair_cost_by_scale(
         if run.seed is not None and run.method in paired_methods
     }
     grouped: dict[tuple[BenchmarkMethod, int], list[float]] = defaultdict(list)
-    scenario_seed_keys = {
-        (scenario_name, seed)
-        for scenario_name, seed, _method in runs_by_key
-    }
+    scenario_seed_keys: set[tuple[str, int]] = set()
+    for scenario_name, seed, _method in runs_by_key:
+        scenario_seed_keys.add((scenario_name, seed))
+
     for scenario_name, seed in scenario_seed_keys:
-        pruning = runs_by_key.get(
-            (scenario_name, seed, BenchmarkMethod.GA_PRUNING)
-        )
-        repair = runs_by_key.get(
-            (scenario_name, seed, BenchmarkMethod.GA_PRUNING_REPAIR)
-        )
+        pruning_key = (scenario_name, seed, BenchmarkMethod.GA_PRUNING)
+        repair_key = (scenario_name, seed, BenchmarkMethod.GA_PRUNING_REPAIR)
+        pruning = runs_by_key.get(pruning_key)
+        repair = runs_by_key.get(repair_key)
         if pruning is None or repair is None:
             continue
         if not pruning.feasible or not repair.feasible:
             continue
-        grouped[(BenchmarkMethod.GA_PRUNING, pruning.delivery_count)].append(
-            pruning.cost_brl
-        )
-        grouped[(BenchmarkMethod.GA_PRUNING_REPAIR, repair.delivery_count)].append(
-            repair.cost_brl
-        )
+
+        pruning_group = (BenchmarkMethod.GA_PRUNING, pruning.delivery_count)
+        repair_group = (BenchmarkMethod.GA_PRUNING_REPAIR, repair.delivery_count)
+        grouped[pruning_group].append(pruning.cost_brl)
+        grouped[repair_group].append(repair.cost_brl)
 
     result: dict[BenchmarkMethod, list[tuple[int, float]]] = {}
     for method in (
@@ -265,10 +262,10 @@ def _scenario_difficulty_key(name: str) -> tuple[int, int, str]:
 def _x_tick_values(values: list[int], *, max_ticks: int = 8) -> list[int]:
     if len(values) <= max_ticks:
         return values
-    indexes = {
-        round(index * (len(values) - 1) / (max_ticks - 1))
-        for index in range(max_ticks)
-    }
+    indexes: set[int] = set()
+    for index in range(max_ticks):
+        scaled_index = round(index * (len(values) - 1) / (max_ticks - 1))
+        indexes.add(scaled_index)
     return [values[index] for index in sorted(indexes)]
 
 

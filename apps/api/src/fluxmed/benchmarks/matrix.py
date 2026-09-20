@@ -254,7 +254,6 @@ def write_matrix_manifest(
     return path
 
 
-
 def enrich_matrix_manifest(path: Path) -> Path:
     payload = json.loads(path.read_text(encoding="utf-8"))
     ga_config = GeneticOptimizerConfig(**payload["ga_config"])

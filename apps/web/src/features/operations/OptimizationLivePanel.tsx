@@ -96,7 +96,7 @@ function phaseLabel(
   if (status === 'INTERRUPTED') return 'Execução interrompida'
   if (status === 'QUEUED') return 'Aguardando worker'
 
-  const latest = events.at(-1)
+  const latest = events[events.length - 1]
   if (!latest) return 'Conectando ao cálculo'
   if (latest.event_type === 'optimization_started') return 'Preparando otimização'
   if (latest.event_type === 'final_comparison') return 'Finalizando resultado'
@@ -202,7 +202,7 @@ export function OptimizationLivePanel({
         }
         if (mode === 'replay') return
 
-        const lastSequence = trace.at(-1)?.sequence ?? 0
+        const lastSequence = trace[trace.length - 1]?.sequence ?? 0
         setConnectionState('connecting')
         unsubscribe = subscribeOptimizationEvents(
           runId,
@@ -294,7 +294,7 @@ export function OptimizationLivePanel({
   const latestPruning = [...shownEvents]
     .reverse()
     .find((event) => event.event_type === 'pruning_summary')
-  const latestEvent = shownEvents.at(-1)
+  const latestEvent = shownEvents[shownEvents.length - 1]
   const routes: LiveRoute[] = latestBest?.payload.routes ?? []
   const deliveries: LiveDeliveryPoint[] = started?.payload.deliveries ?? []
   const pruning = latestPruning?.payload.counts ?? latestSnapshot?.payload.pruning_counts ?? {}

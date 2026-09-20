@@ -137,3 +137,89 @@ describe('optimization replay', () => {
     expect(screen.getByText('1 / 3 eventos')).toBeInTheDocument()
   })
 })
+
+
+describe('optimization live reconnect', () => {
+  it('marks the stream as reconnecting and rehydrates persisted events after a disconnect', async () => {
+    type Listener = (event: Event) => void
+
+    class EventSourceMock {
+      static instance: EventSourceMock | null = null
+      readonly listeners = new Map<string, Listener>()
+      onopen: ((event: Event) => void) | null = null
+      onerror: ((event: Event) => void) | null = null
+
+      constructor(
+        readonly url: string,
+        readonly options?: EventSourceInit,
+      ) {
+        EventSourceMock.instance = this
+      }
+
+      addEventListener(type: string, listener: EventListenerOrEventListenerObject) {
+        this.listeners.set(type, listener as Listener)
+      }
+
+      close() {}
+
+      emit(type: string, payload: OptimizationTraceEvent) {
+        this.listeners.get(type)?.(
+          new MessageEvent(type, {
+            data: JSON.stringify(payload),
+          }),
+        )
+      }
+    }
+
+    let traceCalls = 0
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const path = typeof input === 'string' ? input : input.toString()
+      if (path.endsWith('/optimization-runs/run-live/trace')) {
+        traceCalls += 1
+        return response(traceCalls === 1 ? [events[0]] : events.slice(0, 2))
+      }
+      if (path.endsWith('/optimization-runs/run-live')) {
+        return response({
+          id: 'run-live',
+          operation_id: 'operation-1',
+          status: 'RUNNING',
+          random_seed: 42,
+          generations_completed: 0,
+          stop_reason: 'RUNNING',
+          validated: false,
+          error_code: null,
+          error_message: null,
+          latest_sequence: 2,
+          created_at: '2026-09-14T19:00:00Z',
+          started_at: '2026-09-14T19:00:00Z',
+          completed_at: null,
+          cancel_requested_at: null,
+        })
+      }
+      return response({}, 404)
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    vi.stubGlobal('EventSource', EventSourceMock)
+
+    render(<OptimizationLivePanel runId="run-live" />)
+
+    await waitFor(() => expect(EventSourceMock.instance).not.toBeNull())
+    const source = EventSourceMock.instance
+    expect(source?.url).toContain('/optimization-runs/run-live/events?after=1')
+    expect(source?.options).toEqual({ withCredentials: true })
+
+    source?.onopen?.(new Event('open'))
+    expect(await screen.findByText('Snapshots reais emitidos pelo otimizador e persistidos para auditoria.')).toBeInTheDocument()
+
+    source?.onerror?.(new Event('error'))
+    expect(await screen.findByText('Conexão perdida. Recuperando eventos persistidos…')).toBeInTheDocument()
+
+    await waitFor(() => expect(traceCalls).toBe(2))
+    await waitFor(() => expect(screen.getByText('2 eventos')).toBeInTheDocument())
+
+    source?.emit('generation_snapshot', events[2])
+    await waitFor(() => expect(screen.getByText('3 eventos')).toBeInTheDocument())
+    expect(screen.getByText('4')).toBeInTheDocument()
+  })
+})

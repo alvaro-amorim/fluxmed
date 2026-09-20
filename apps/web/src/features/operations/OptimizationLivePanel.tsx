@@ -203,7 +203,7 @@ export function OptimizationLivePanel({
         if (mode === 'replay') return
 
         const lastSequence = trace.at(-1)?.sequence ?? 0
-        setConnectionState('connected')
+        setConnectionState('connecting')
         unsubscribe = subscribeOptimizationEvents(
           runId,
           lastSequence,
@@ -218,13 +218,24 @@ export function OptimizationLivePanel({
           () => {
             if (!active) return
             setConnectionState('reconnecting')
-            void getOptimizationRun(runId)
-              .then((latest) => {
+            void Promise.all([getOptimizationTrace(runId), getOptimizationRun(runId)])
+              .then(async ([persistedTrace, latest]) => {
                 if (!active) return
+                setEvents((current) => mergeEvents(current, persistedTrace))
+                const traceTerminal =
+                  [...persistedTrace].reverse().map(eventStatus).find(Boolean) ?? null
+                if (traceTerminal) {
+                  await reportTerminal(traceTerminal)
+                  return
+                }
                 setStatus(latest.status)
-                if (TERMINAL.has(latest.status)) void reportTerminal(latest.status)
+                if (TERMINAL.has(latest.status)) await reportTerminal(latest.status)
               })
               .catch(() => undefined)
+          },
+          () => {
+            if (!active) return
+            setConnectionState('connected')
           },
         )
       } catch (requestError) {

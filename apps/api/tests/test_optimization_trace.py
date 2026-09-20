@@ -183,6 +183,7 @@ def test_trace_api_replays_persisted_events_and_resumes_from_last_event_id() -> 
                 headers={"Last-Event-ID": "1"},
             )
             assert stream.status_code == 200
+            assert "retry: 1000" in stream.text
             assert "event: optimization_started" not in stream.text
             assert "id: 2" in stream.text
             assert "event: generation_snapshot" in stream.text

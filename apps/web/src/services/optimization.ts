@@ -52,6 +52,7 @@ export function subscribeOptimizationEvents(
   afterSequence: number,
   onEvent: (event: OptimizationTraceEvent) => void,
   onConnectionError?: () => void,
+  onConnectionOpen?: () => void,
 ): () => void {
   const query = afterSequence > 0 ? `?after=${afterSequence}` : ''
   const source = new EventSource(apiUrl(`/api/v1/optimization-runs/${runId}/events${query}`), {
@@ -66,6 +67,7 @@ export function subscribeOptimizationEvents(
     }
   }
   TRACE_EVENT_TYPES.forEach((eventType) => source.addEventListener(eventType, handler))
+  source.onopen = () => onConnectionOpen?.()
   source.onerror = () => onConnectionError?.()
   return () => source.close()
 }

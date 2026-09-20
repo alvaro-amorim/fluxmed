@@ -347,6 +347,7 @@ def stream_events(
     def event_stream() -> Iterator[str]:
         nonlocal cursor
         idle_ticks = 0
+        yield "retry: 1000\n\n"
         while True:
             poll = SessionFactory()
             try:

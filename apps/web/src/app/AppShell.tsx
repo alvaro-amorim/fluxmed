@@ -57,8 +57,8 @@ export function AppShell() {
         </nav>
 
         <div className="sidebar-footer">
-          <span className="sidebar-environment">Ambiente demo</span>
-          <span>FluxMed V1 · desenvolvimento</span>
+          <span className="sidebar-environment">Santa Aurora</span>
+          <span>FluxMed V1 · planejamento operacional</span>
         </div>
       </aside>
 

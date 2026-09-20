@@ -29,12 +29,21 @@ intact.
 
 No new frontend dependency is introduced in this increment.
 
-## Increment 2 — frontend shell and accessibility
+## Increment 2 — frontend shell and accessibility — validated
+
+Local lint, typecheck, unit tests and production build are green. React Router future warnings are
+no longer emitted by the test suite.
 
 - opt into the React Router v7 transition flags already supported by the current v6 release;
 - remove stale phase-specific copy from the assistant surface;
 - extend keyboard focus styling and inherited typography to textareas/selects;
 - keep behavior unchanged while reducing presentation/test warnings.
+
+## Increment 3 — frontend toolchain hygiene
+
+- pin TypeScript to the newest line supported by the current @typescript-eslint parser;
+- remove development-only footer copy from the presentation shell;
+- next: version the npm lockfile intentionally and move CI to reproducible installs.
 
 ## Remaining Phase 18 work
 

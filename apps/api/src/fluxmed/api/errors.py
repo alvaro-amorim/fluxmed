@@ -36,8 +36,7 @@ async def api_error_handler(_request: Request, exc: Exception) -> JSONResponse:
     )
 
 
-
-async def database_error_handler(_request: Request, _exc: Exception) -> JSONResponse:
+async def database_error_handler(_request: Request, _exc: SQLAlchemyError) -> JSONResponse:
     return JSONResponse(
         status_code=503,
         content={

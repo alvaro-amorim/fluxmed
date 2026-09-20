@@ -269,14 +269,9 @@ def _write_line_chart(
     for method, points in series.items():
         color = _METHOD_COLORS[method]
         polyline = " ".join(f"{px(x):.2f},{py(y):.2f}" for x, y in points)
-        svg.append(
-            f'<polyline points="{polyline}" fill="none" stroke="{color}" '
-            'stroke-width="2.5"/>'
-        )
+        svg.append(f'<polyline points="{polyline}" fill="none" stroke="{color}" stroke-width="2.5"/>')
         for x, y in points:
-            svg.append(
-                f'<circle cx="{px(x):.2f}" cy="{py(y):.2f}" r="4" fill="{color}"/>'
-            )
+            svg.append(f'<circle cx="{px(x):.2f}" cy="{py(y):.2f}" r="4" fill="{color}"/>')
         svg.append(
             f'<line x1="{legend_x}" y1="{legend_y}" x2="{legend_x + 24}" '
             f'y2="{legend_y}" stroke="{color}" stroke-width="3"/>'

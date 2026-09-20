@@ -61,7 +61,6 @@ async def health_live() -> dict[str, str]:
     return {"status": "ok"}
 
 
-
 @app.get("/health/ready", tags=["health"])
 async def health_ready(response: Response) -> dict[str, object]:
     """Report whether the process can currently reach its required database."""

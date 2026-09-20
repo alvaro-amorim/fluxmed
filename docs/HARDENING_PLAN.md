@@ -75,6 +75,8 @@ PostgreSQL comes back without restarting the API.
 - startup trace recovery no longer prevents process startup when PostgreSQL is temporarily unavailable;
 - report generation/retry failures now preserve history while exposing only sanitized public errors;
 - SSE recovery rehydrates persisted trace data after connection loss and de-duplicates events by sequence;
+- optimizer runtime failures now expose stable public error codes/messages without persisting raw exception text;
+- completed-but-unvalidated runs are rejected by the result read boundary;
 - review error taxonomy and transaction boundaries;
 - review idempotency and write retries;
 - review audit events, log redaction and health endpoints;
@@ -89,8 +91,8 @@ Validate explicit failure behavior for:
 - database unavailable — validated manually with stop/restart recovery;
 - report generation failure — sanitized failure state and retry history covered by automated tests;
 - SSE disconnect/reconnect — browser reconnect uses persisted event IDs, a one-second retry hint, and REST rehydration closes any event gap;
-- optimizer failure/cancellation;
-- persisted-result validation mismatch.
+- optimizer failure/cancellation — failures are sanitized, cancellation restores the operation and cancelled runs cannot expose a result;
+- persisted-result validation mismatch — only COMPLETED + validated runs are readable as persisted optimization results.
 
 ### Security
 

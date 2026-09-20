@@ -73,6 +73,7 @@ PostgreSQL comes back without restarting the API.
 - PostgreSQL connection attempts are bounded by a short configurable timeout so readiness checks fail fast instead of hanging;
 - add liveness/readiness separation so a database outage does not make the API process itself unobservable;
 - startup trace recovery no longer prevents process startup when PostgreSQL is temporarily unavailable;
+- report generation/retry failures now preserve history while exposing only sanitized public errors;
 - review error taxonomy and transaction boundaries;
 - review idempotency and write retries;
 - review audit events, log redaction and health endpoints;
@@ -85,7 +86,7 @@ Validate explicit failure behavior for:
 
 - LLM unavailable;
 - database unavailable — validated manually with stop/restart recovery;
-- report generation failure;
+- report generation failure — sanitized failure state and retry history covered by automated tests;
 - SSE disconnect/reconnect;
 - optimizer failure/cancellation;
 - persisted-result validation mismatch.

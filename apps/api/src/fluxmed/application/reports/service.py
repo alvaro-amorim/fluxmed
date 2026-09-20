@@ -1,5 +1,6 @@
 import csv
 import io
+import logging
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -37,6 +38,9 @@ REPORT_TYPE = "DAILY_OPERATION"
 REPORT_FORMATS = {"PDF", "XLSX", "CSV"}
 REPORT_TIMEZONE_NAME = "America/Sao_Paulo"
 REPORT_TIMEZONE = ZoneInfo(REPORT_TIMEZONE_NAME)
+REPORT_GENERATION_FAILED_MESSAGE = "Não foi possível gerar o arquivo do relatório."
+
+logger = logging.getLogger(__name__)
 
 
 class ReportNotFoundError(LookupError):
@@ -121,8 +125,14 @@ class ReportService:
             report.status = "COMPLETED"
             report.completed_at = datetime.now(UTC)
         except Exception as exc:  # pragma: no cover - defensive persistence boundary
+            logger.warning(
+                "Report generation failed report_id=%s format=%s error=%s",
+                report.id,
+                normalized_format,
+                type(exc).__name__,
+            )
             report.status = "FAILED"
-            report.error_message = str(exc)[:2000]
+            report.error_message = REPORT_GENERATION_FAILED_MESSAGE
             report.completed_at = datetime.now(UTC)
         self._session.flush()
         return self._view(report)

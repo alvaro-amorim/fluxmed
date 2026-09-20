@@ -287,10 +287,10 @@ export function AssistantPage() {
       <div className="assistant-layout">
         <aside className="assistant-suggestions" aria-label="Perguntas sugeridas">
           <p className="eyebrow eyebrow--dark">Comece por aqui</p>
-          <h2>Demonstração da Fase 16</h2>
+          <h2>Perguntas sugeridas</h2>
           <p>
-            As sugestões exercitam pergunta factual, explicação, instruções, relatório e simulação
-            sem aplicar mudanças ao plano.
+            Use exemplos rápidos para consultar dados, entender decisões, gerar instruções e
+            simular cenários sem aplicar mudanças ao plano.
           </p>
           <div className="assistant-suggestion-list">
             {suggestedQuestions.map((question) => (

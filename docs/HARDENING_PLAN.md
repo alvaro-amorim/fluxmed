@@ -12,7 +12,11 @@ The hardening branch is stacked on `feat/academic-benchmarks` while the earlier 
 remain pending merge because GitHub Actions account quota/billing has prevented runners from
 starting. Merge order remains Phase 16 -> Phase 17 -> Phase 18.
 
-## Increment 1 — Assistant UX
+## Increment 1 — Assistant UX — validated
+
+Manual validation with the real Gemini provider confirmed improved readability for long operational
+answers, lists, emphasis and inline code. Keyboard behavior and the copy-history workflow remain
+intact.
 
 - render a safe Markdown subset without raw HTML;
 - preserve structured-source provenance;
@@ -24,6 +28,13 @@ starting. Merge order remains Phase 16 -> Phase 17 -> Phase 18.
 - preserve the existing copy-history Markdown export.
 
 No new frontend dependency is introduced in this increment.
+
+## Increment 2 — frontend shell and accessibility
+
+- opt into the React Router v7 transition flags already supported by the current v6 release;
+- remove stale phase-specific copy from the assistant surface;
+- extend keyboard focus styling and inherited typography to textareas/selects;
+- keep behavior unchanged while reducing presentation/test warnings.
 
 ## Remaining Phase 18 work
 

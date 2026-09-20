@@ -1,7 +1,7 @@
 import json
 import uuid
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -17,6 +17,7 @@ from fluxmed.application.optimization.routing_matrix import RoutingMatrixBuilder
 from fluxmed.application.resources import ResourceService
 from fluxmed.benchmarks.models import (
     BenchmarkConvergencePoint,
+    BenchmarkMethod,
     BenchmarkProblem,
     BenchmarkReport,
     BenchmarkRun,
@@ -237,6 +238,7 @@ def write_matrix_manifest(
         "quick": quick,
         "ga_seeds": list(ga_seeds),
         "ga_config": asdict(ga_config),
+        "method_configurations": _method_configurations(ga_config),
         "cells": [
             {
                 **asdict(cell),
@@ -250,3 +252,51 @@ def write_matrix_manifest(
         encoding="utf-8",
     )
     return path
+
+
+
+def enrich_matrix_manifest(path: Path) -> Path:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    ga_config = GeneticOptimizerConfig(**payload["ga_config"])
+    payload["method_configurations"] = _method_configurations(ga_config)
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    return path
+
+
+def _method_configurations(
+    ga_config: GeneticOptimizerConfig,
+) -> dict[str, object]:
+    return {
+        BenchmarkMethod.NEAREST_NEIGHBOR.value: {
+            "kind": "deterministic_baseline",
+            "runs_per_scenario": 1,
+        },
+        BenchmarkMethod.BEST_INSERTION.value: {
+            "kind": "deterministic_baseline",
+            "runs_per_scenario": 1,
+        },
+        BenchmarkMethod.GA_BASIC.value: asdict(
+            replace(
+                ga_config,
+                advanced_pruning_enabled=False,
+                repair_enabled=False,
+            )
+        ),
+        BenchmarkMethod.GA_PRUNING.value: asdict(
+            replace(
+                ga_config,
+                advanced_pruning_enabled=True,
+                repair_enabled=False,
+            )
+        ),
+        BenchmarkMethod.GA_PRUNING_REPAIR.value: asdict(
+            replace(
+                ga_config,
+                advanced_pruning_enabled=True,
+                repair_enabled=True,
+            )
+        ),
+    }

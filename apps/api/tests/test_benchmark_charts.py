@@ -2,8 +2,15 @@ import uuid
 from decimal import Decimal
 
 from fluxmed.benchmarks import OptimizerBenchmarkRunner, write_academic_artifacts
-from fluxmed.benchmarks.charts import _x_tick_values
-from fluxmed.benchmarks.models import BenchmarkProblem
+from fluxmed.benchmarks.charts import (
+    _carry_forward_hard_violation_mean,
+    _x_tick_values,
+)
+from fluxmed.benchmarks.models import (
+    BenchmarkConvergencePoint,
+    BenchmarkMethod,
+    BenchmarkProblem,
+)
 from fluxmed.optimization import (
     GeneticOptimizerConfig,
     OptimizationDelivery,
@@ -68,3 +75,93 @@ def test_dense_chart_axis_uses_readable_tick_count() -> None:
     assert len(ticks) <= 8
     assert ticks[0] == 0
     assert ticks[-1] == 120
+
+
+
+def test_convergence_carries_early_stopped_seed_forward() -> None:
+    points = [
+        BenchmarkConvergencePoint(
+            scenario_name="EMERGENCY-80-S20260917",
+            delivery_count=80,
+            method=BenchmarkMethod.GA_PRUNING_REPAIR,
+            seed=101,
+            generation=0,
+            elapsed_seconds=0.0,
+            improved=True,
+            feasible=False,
+            hard_violations=5,
+            service_penalty=0.0,
+            cost_brl=0.0,
+            makespan_minutes=0.0,
+            distance_km=0.0,
+            vehicles_used=0,
+            diversity_ratio=1.0,
+            effective_mutation_rate=0.22,
+            immigrants_added=0,
+            pruning_counts={},
+        ),
+        BenchmarkConvergencePoint(
+            scenario_name="EMERGENCY-80-S20260917",
+            delivery_count=80,
+            method=BenchmarkMethod.GA_PRUNING_REPAIR,
+            seed=101,
+            generation=1,
+            elapsed_seconds=1.0,
+            improved=True,
+            feasible=False,
+            hard_violations=1,
+            service_penalty=0.0,
+            cost_brl=0.0,
+            makespan_minutes=0.0,
+            distance_km=0.0,
+            vehicles_used=0,
+            diversity_ratio=0.9,
+            effective_mutation_rate=0.22,
+            immigrants_added=0,
+            pruning_counts={},
+        ),
+        BenchmarkConvergencePoint(
+            scenario_name="EMERGENCY-80-S20260917",
+            delivery_count=80,
+            method=BenchmarkMethod.GA_PRUNING_REPAIR,
+            seed=202,
+            generation=0,
+            elapsed_seconds=0.0,
+            improved=True,
+            feasible=False,
+            hard_violations=7,
+            service_penalty=0.0,
+            cost_brl=0.0,
+            makespan_minutes=0.0,
+            distance_km=0.0,
+            vehicles_used=0,
+            diversity_ratio=1.0,
+            effective_mutation_rate=0.22,
+            immigrants_added=0,
+            pruning_counts={},
+        ),
+        BenchmarkConvergencePoint(
+            scenario_name="EMERGENCY-80-S20260917",
+            delivery_count=80,
+            method=BenchmarkMethod.GA_PRUNING_REPAIR,
+            seed=202,
+            generation=2,
+            elapsed_seconds=2.0,
+            improved=True,
+            feasible=True,
+            hard_violations=0,
+            service_penalty=0.0,
+            cost_brl=100.0,
+            makespan_minutes=100.0,
+            distance_km=100.0,
+            vehicles_used=5,
+            diversity_ratio=0.8,
+            effective_mutation_rate=0.22,
+            immigrants_added=0,
+            pruning_counts={},
+        ),
+    ]
+
+    result = _carry_forward_hard_violation_mean(points, max_generation=2)
+
+    assert result == [(0, 6.0), (1, 4.0), (2, 0.5)]

@@ -5,7 +5,12 @@ from collections import defaultdict
 from pathlib import Path
 from statistics import fmean
 
-from fluxmed.benchmarks.models import BenchmarkMethod, BenchmarkReport, BenchmarkRun
+from fluxmed.benchmarks.models import (
+    BenchmarkConvergencePoint,
+    BenchmarkMethod,
+    BenchmarkReport,
+    BenchmarkRun,
+)
 
 _METHOD_LABELS = {
     BenchmarkMethod.NEAREST_NEIGHBOR: "Nearest Neighbor",
@@ -152,16 +157,27 @@ def _paired_pruning_repair_cost_by_scale(
         if run.seed is not None and run.method in paired_methods
     }
     grouped: dict[tuple[BenchmarkMethod, int], list[float]] = defaultdict(list)
-    scenario_seed_keys = {(scenario_name, seed) for scenario_name, seed, _method in runs_by_key}
+    scenario_seed_keys = {
+        (scenario_name, seed)
+        for scenario_name, seed, _method in runs_by_key
+    }
     for scenario_name, seed in scenario_seed_keys:
-        pruning = runs_by_key.get((scenario_name, seed, BenchmarkMethod.GA_PRUNING))
-        repair = runs_by_key.get((scenario_name, seed, BenchmarkMethod.GA_PRUNING_REPAIR))
+        pruning = runs_by_key.get(
+            (scenario_name, seed, BenchmarkMethod.GA_PRUNING)
+        )
+        repair = runs_by_key.get(
+            (scenario_name, seed, BenchmarkMethod.GA_PRUNING_REPAIR)
+        )
         if pruning is None or repair is None:
             continue
         if not pruning.feasible or not repair.feasible:
             continue
-        grouped[(BenchmarkMethod.GA_PRUNING, pruning.delivery_count)].append(pruning.cost_brl)
-        grouped[(BenchmarkMethod.GA_PRUNING_REPAIR, repair.delivery_count)].append(repair.cost_brl)
+        grouped[(BenchmarkMethod.GA_PRUNING, pruning.delivery_count)].append(
+            pruning.cost_brl
+        )
+        grouped[(BenchmarkMethod.GA_PRUNING_REPAIR, repair.delivery_count)].append(
+            repair.cost_brl
+        )
 
     result: dict[BenchmarkMethod, list[tuple[int, float]]] = {}
     for method in (
@@ -186,11 +202,10 @@ def _convergence_for_hardest_scenario(
 
     scenario_names = {point.scenario_name for point in report.convergence}
     scenario_name = max(scenario_names, key=_scenario_difficulty_key)
-    grouped: dict[tuple[BenchmarkMethod, int], list[float]] = defaultdict(list)
-    for point in report.convergence:
-        if point.scenario_name != scenario_name:
-            continue
-        grouped[(point.method, point.generation)].append(float(point.hard_violations))
+    scenario_points = [
+        point for point in report.convergence if point.scenario_name == scenario_name
+    ]
+    max_generation = max(point.generation for point in scenario_points)
 
     series: dict[BenchmarkMethod, list[tuple[int, float]]] = {}
     for method in (
@@ -198,14 +213,45 @@ def _convergence_for_hardest_scenario(
         BenchmarkMethod.GA_PRUNING,
         BenchmarkMethod.GA_PRUNING_REPAIR,
     ):
-        points = [
-            (generation, fmean(values))
-            for (group_method, generation), values in grouped.items()
-            if group_method is method and values
-        ]
-        if points:
-            series[method] = sorted(points)
+        method_points = [point for point in scenario_points if point.method is method]
+        if not method_points:
+            continue
+        series[method] = _carry_forward_hard_violation_mean(
+            method_points,
+            max_generation=max_generation,
+        )
     return series
+
+
+def _carry_forward_hard_violation_mean(
+    points: list[BenchmarkConvergencePoint],
+    *,
+    max_generation: int,
+) -> list[tuple[int, float]]:
+    by_seed: dict[int, list[tuple[int, float]]] = defaultdict(list)
+    for point in points:
+        by_seed[point.seed].append((point.generation, float(point.hard_violations)))
+
+    values_by_seed: dict[int, dict[int, float]] = {}
+    for seed, seed_points in by_seed.items():
+        ordered = sorted(seed_points)
+        current = ordered[0][1]
+        index = 0
+        carried: dict[int, float] = {}
+        for generation in range(max_generation + 1):
+            while index + 1 < len(ordered) and ordered[index + 1][0] <= generation:
+                index += 1
+                current = ordered[index][1]
+            carried[generation] = current
+        values_by_seed[seed] = carried
+
+    return [
+        (
+            generation,
+            fmean(values[generation] for values in values_by_seed.values()),
+        )
+        for generation in range(max_generation + 1)
+    ]
 
 
 def _scenario_difficulty_key(name: str) -> tuple[int, int, str]:
@@ -219,7 +265,10 @@ def _scenario_difficulty_key(name: str) -> tuple[int, int, str]:
 def _x_tick_values(values: list[int], *, max_ticks: int = 8) -> list[int]:
     if len(values) <= max_ticks:
         return values
-    indexes = {round(index * (len(values) - 1) / (max_ticks - 1)) for index in range(max_ticks)}
+    indexes = {
+        round(index * (len(values) - 1) / (max_ticks - 1))
+        for index in range(max_ticks)
+    }
     return [values[index] for index in sorted(indexes)]
 
 

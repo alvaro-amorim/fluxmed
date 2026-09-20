@@ -291,12 +291,8 @@ class OptimizerBenchmarkRunner:
                     std_cost_brl=pstdev(costs) if len(costs) > 1 else (0.0 if costs else None),
                     worst_cost_brl=max(costs) if costs else None,
                     mean_runtime_seconds=fmean(run.runtime_seconds for run in method_runs),
-                    mean_candidate_evaluations=(
-                        fmean(evaluations) if evaluations else None
-                    ),
-                    mean_time_to_best_seconds=(
-                        fmean(times_to_best) if times_to_best else None
-                    ),
+                    mean_candidate_evaluations=(fmean(evaluations) if evaluations else None),
+                    mean_time_to_best_seconds=(fmean(times_to_best) if times_to_best else None),
                     best_makespan_minutes=min(makespans) if makespans else None,
                     mean_makespan_minutes=fmean(makespans) if makespans else None,
                 )

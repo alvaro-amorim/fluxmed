@@ -19,8 +19,7 @@ def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[P
             {**asdict(summary), "method": summary.method.value} for summary in report.summaries
         ],
         "convergence": [
-            {**asdict(point), "method": point.method.value}
-            for point in report.convergence
+            {**asdict(point), "method": point.method.value} for point in report.convergence
         ],
     }
     json_path.write_text(

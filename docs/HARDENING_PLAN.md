@@ -65,6 +65,10 @@ with `npm ci`.
 
 ### Backend
 
+Database outage handling has been manually validated end to end: liveness stays at HTTP 200 while
+readiness returns HTTP 503 with a sanitized payload, and readiness recovers to HTTP 200 after
+PostgreSQL comes back without restarting the API.
+
 - database failures now return a sanitized 503 response instead of exposing driver exceptions;
 - PostgreSQL connection attempts are bounded by a short configurable timeout so readiness checks fail fast instead of hanging;
 - add liveness/readiness separation so a database outage does not make the API process itself unobservable;
@@ -80,7 +84,7 @@ with `npm ci`.
 Validate explicit failure behavior for:
 
 - LLM unavailable;
-- database unavailable;
+- database unavailable — validated manually with stop/restart recovery;
 - report generation failure;
 - SSE disconnect/reconnect;
 - optimizer failure/cancellation;

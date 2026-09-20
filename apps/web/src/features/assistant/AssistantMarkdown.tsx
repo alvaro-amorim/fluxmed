@@ -5,7 +5,7 @@ interface AssistantMarkdownProps {
 }
 
 function inlineContent(text: string, keyPrefix: string): ReactNode[] {
-  const tokenPattern = /(\`[^\`]+\`|\*\*[^*]+\*\*|\*[^*\n]+\*)/g
+  const tokenPattern = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*\n]+\*)/g
   const nodes: ReactNode[] = []
   let lastIndex = 0
 

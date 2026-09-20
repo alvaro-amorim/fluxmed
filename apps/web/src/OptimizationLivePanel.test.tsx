@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -209,16 +209,28 @@ describe('optimization live reconnect', () => {
     expect(source?.url).toContain('/optimization-runs/run-live/events?after=1')
     expect(source?.options).toEqual({ withCredentials: true })
 
-    source?.onopen?.(new Event('open'))
-    expect(await screen.findByText('Snapshots reais emitidos pelo otimizador e persistidos para auditoria.')).toBeInTheDocument()
+    act(() => {
+      source?.onopen?.(new Event('open'))
+    })
+    expect(
+      await screen.findByText(
+        'Snapshots reais emitidos pelo otimizador e persistidos para auditoria.',
+      ),
+    ).toBeInTheDocument()
 
-    source?.onerror?.(new Event('error'))
-    expect(await screen.findByText('Conexão perdida. Recuperando eventos persistidos…')).toBeInTheDocument()
+    await act(async () => {
+      source?.onerror?.(new Event('error'))
+    })
+    expect(
+      await screen.findByText('Conexão perdida. Recuperando eventos persistidos…'),
+    ).toBeInTheDocument()
 
     await waitFor(() => expect(traceCalls).toBe(2))
     await waitFor(() => expect(screen.getByText('2 eventos')).toBeInTheDocument())
 
-    source?.emit('generation_snapshot', events[2])
+    act(() => {
+      source?.emit('generation_snapshot', events[2])
+    })
     await waitFor(() => expect(screen.getByText('3 eventos')).toBeInTheDocument())
     expect(screen.getByText('4')).toBeInTheDocument()
   })

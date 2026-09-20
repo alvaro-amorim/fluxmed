@@ -39,7 +39,12 @@ no longer emitted by the test suite.
 - extend keyboard focus styling and inherited typography to textareas/selects;
 - keep behavior unchanged while reducing presentation/test warnings.
 
-## Increment 3 — frontend toolchain hygiene
+## Increment 3 — frontend toolchain hygiene — validated
+
+Local lint, typecheck, 23 frontend tests and production build are green after the dependency
+updates. Both `npm audit --omit=dev` and the full `npm audit` report zero known vulnerabilities.
+The generated `package-lock.json` is versioned and CI now installs exactly that dependency graph
+with `npm ci`.
 
 - pin TypeScript to the newest line supported by the current @typescript-eslint parser;
 - remove development-only footer copy from the presentation shell;
@@ -47,7 +52,7 @@ no longer emitted by the test suite.
 - production audit is clean after the runtime dependency updates;
 - update Vite/Vitest to patched development-toolchain lines and revalidate lint, typecheck, tests, build and audit;
 - validate the resulting lockfile and runtime before versioning it;
-- next: move CI to reproducible installs with `npm ci`.
+- version the lockfile and move frontend CI to reproducible `npm ci` installs.
 
 ## Remaining Phase 18 work
 
@@ -79,7 +84,7 @@ Validate explicit failure behavior for:
 
 ### Security
 
-- version the frontend lockfile intentionally and move CI to `npm ci`;
+- frontend lockfile is versioned and PR CI uses `npm ci`;
 - enable dependency/security scanning with an economical CI policy;
 - review upload/import validation;
 - review CORS/session/cookie production settings;

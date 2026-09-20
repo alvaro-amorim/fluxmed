@@ -200,14 +200,12 @@ def test_trace_api_replays_persisted_events_and_resumes_from_last_event_id() -> 
             session.execute(delete(UserModel).where(UserModel.id == user_id))
 
 
-
 def test_cancelled_run_restores_operation_and_never_exposes_a_result() -> None:
     if not os.getenv("TEST_DATABASE_URL"):
         pytest.skip("TEST_DATABASE_URL is not configured")
 
     user_id: uuid.UUID
     operation_id: uuid.UUID
-    run_id: uuid.UUID
     with session_scope() as session:
         user = UserModel(
             email=f"trace-cancel-{uuid.uuid4().hex}@example.test",
@@ -234,7 +232,6 @@ def test_cancelled_run_restores_operation_and_never_exposes_a_result() -> None:
         run = _run(operation, status=OptimizationRunStatus.RUNNING)
         session.add(run)
         session.flush()
-        run_id = run.id
 
         trace = OptimizationTraceService(session)
         trace.request_cancel(run.id)

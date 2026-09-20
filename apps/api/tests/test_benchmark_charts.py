@@ -1,7 +1,8 @@
 import uuid
 from decimal import Decimal
 
-from fluxmed.benchmarks import OptimizerBenchmarkRunner, write_academic_artifacts\nfrom fluxmed.benchmarks.charts import _x_tick_values
+from fluxmed.benchmarks import OptimizerBenchmarkRunner, write_academic_artifacts
+from fluxmed.benchmarks.charts import _x_tick_values
 from fluxmed.benchmarks.models import BenchmarkProblem
 from fluxmed.optimization import (
     GeneticOptimizerConfig,

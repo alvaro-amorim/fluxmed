@@ -43,7 +43,9 @@ no longer emitted by the test suite.
 
 - pin TypeScript to the newest line supported by the current @typescript-eslint parser;
 - remove development-only footer copy from the presentation shell;
-- next: version the npm lockfile intentionally and move CI to reproducible installs.
+- address production dependency advisories with minimum patched MapLibre and React Router releases;
+- validate the resulting lockfile and runtime before versioning it;
+- next: move CI to reproducible installs with `npm ci`.
 
 ## Remaining Phase 18 work
 

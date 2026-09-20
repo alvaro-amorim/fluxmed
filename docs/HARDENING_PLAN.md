@@ -79,6 +79,9 @@ PostgreSQL comes back without restarting the API.
 - completed-but-unvalidated runs are rejected by the result read boundary;
 - review error taxonomy and transaction boundaries;
 - review idempotency and write retries;
+- production mode now forces Secure session cookies and restricts SameSite to lax/strict;
+- V1 keeps browser sessions same-origin by design instead of enabling permissive credentialed CORS;
+- delivery imports now use a bounded streaming read and normalized filenames before parsing;
 - review audit events, log redaction and health endpoints;
 - add bounded request/rate protections where appropriate;
 - verify failures do not leak provider secrets or operational payloads.
@@ -98,8 +101,8 @@ Validate explicit failure behavior for:
 
 - frontend lockfile is versioned and PR CI uses `npm ci`;
 - enable dependency/security scanning with an economical CI policy;
-- review upload/import validation;
-- review CORS/session/cookie production settings;
+- upload/import validation — bounded upload size and filename normalization implemented;
+- CORS/session/cookie production settings — Secure cookies are forced in production; cross-origin cookie auth is intentionally not enabled in V1;
 - run secret and static-analysis checks before release.
 
 ### Final E2E

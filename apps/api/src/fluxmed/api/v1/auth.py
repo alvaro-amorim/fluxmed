@@ -1,4 +1,3 @@
-import os
 from datetime import timedelta
 
 from fastapi import APIRouter, Request, Response, status
@@ -18,15 +17,9 @@ from fluxmed.application.auth import (
     InvalidCredentialsError,
 )
 from fluxmed.domain.enums import UserRole
+from fluxmed.security.http import session_cookie_samesite, session_cookie_secure
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-def _env_bool(name: str, default: bool = False) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 class LoginRequest(BaseModel):
@@ -77,8 +70,8 @@ def login(payload: LoginRequest, response: Response, session: DbSession) -> Logi
         value=result.token,
         max_age=SESSION_TTL_HOURS * 60 * 60,
         httponly=True,
-        secure=_env_bool("SESSION_COOKIE_SECURE"),
-        samesite="lax",
+        secure=session_cookie_secure(),
+        samesite=session_cookie_samesite(),
         path="/",
     )
     return LoginResponse(user=_user_response(result.user))
@@ -94,7 +87,13 @@ def logout(
     del current_user
     auth_service = AuthService(session, timedelta(hours=SESSION_TTL_HOURS))
     auth_service.logout(request.cookies.get(SESSION_COOKIE_NAME))
-    response.delete_cookie(SESSION_COOKIE_NAME, path="/")
+    response.delete_cookie(
+        SESSION_COOKIE_NAME,
+        path="/",
+        secure=session_cookie_secure(),
+        httponly=True,
+        samesite=session_cookie_samesite(),
+    )
     response.status_code = status.HTTP_204_NO_CONTENT
     return response
 

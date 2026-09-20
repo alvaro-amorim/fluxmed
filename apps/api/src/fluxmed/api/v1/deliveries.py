@@ -24,6 +24,7 @@ from fluxmed.application.deliveries import (
     UnsupportedImportFormatError,
 )
 from fluxmed.domain.deliveries import DeliveryValidationError
+from fluxmed.security.http import delivery_import_max_bytes
 from fluxmed.domain.enums import (
     CargoProfile,
     DeliveryPriority,
@@ -35,6 +36,42 @@ from fluxmed.domain.enums import (
 )
 
 router = APIRouter(tags=["deliveries"])
+
+IMPORT_READ_CHUNK_BYTES = 64 * 1024
+MAX_IMPORT_FILENAME_CHARS = 180
+
+
+def _safe_import_filename(filename: str | None) -> str:
+    if filename is None:
+        raise ApiError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "IMPORT_FILENAME_INVALID",
+            "Nome do arquivo é obrigatório.",
+        )
+    cleaned = filename.replace("\\", "/").rsplit("/", 1)[-1].strip()
+    if not cleaned or len(cleaned) > MAX_IMPORT_FILENAME_CHARS:
+        raise ApiError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "IMPORT_FILENAME_INVALID",
+            "Nome do arquivo de importação inválido.",
+        )
+    return cleaned
+
+
+async def _read_import_upload(file: UploadFile) -> bytes:
+    limit = delivery_import_max_bytes()
+    content = bytearray()
+    while True:
+        chunk = await file.read(IMPORT_READ_CHUNK_BYTES)
+        if not chunk:
+            return bytes(content)
+        content.extend(chunk)
+        if len(content) > limit:
+            raise ApiError(
+                status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                "IMPORT_FILE_TOO_LARGE",
+                "Arquivo de importação excede o limite permitido.",
+            )
 
 
 class DeliveryCreateRequest(BaseModel):
@@ -406,13 +443,12 @@ async def create_delivery_import(
     file: Annotated[UploadFile, File()],
 ) -> DeliveryImportResponse:
     try:
-        content = await file.read()
-        if not file.filename:
-            raise ValueError("Nome do arquivo é obrigatório.")
+        filename = _safe_import_filename(file.filename)
+        content = await _read_import_upload(file)
         view = DeliveryService(session).create_import_preview(
             operation_id,
             created_by_user_id=current_user.id,
-            filename=file.filename,
+            filename=filename,
             content=content,
         )
         return _import_response(view)

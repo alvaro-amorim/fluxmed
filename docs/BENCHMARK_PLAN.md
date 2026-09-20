@@ -109,9 +109,22 @@ Fourth increment:
 - best generation and time-to-best recorded;
 - dedicated summary and convergence CSV artifacts added.
 
+Validation completed:
+
+- convergence artifacts validated on NORMAL x 20;
+- lint, format, mypy and targeted benchmark tests are green.
+
+Fifth increment:
+
+- dependency-free SVG charts generated from benchmark evidence;
+- report-ready Markdown summary table generated automatically;
+- matrix manifest records the exact GA configuration;
+- final evidence preset fixed at all four profiles x 20/40/60/80;
+- final GA seeds fixed at 101/202/303/404/505 with scenario seed 20260917.
+
 Next:
 
-1. validate convergence artifacts on one matrix cell;
-2. add reproducible academic SVG charts and report-ready tables;
-3. define the final evidence preset and GA seed set;
-4. execute and archive the final benchmark matrix.
+1. validate chart/table generation on one quick cell;
+2. run the full final preset with the production GA configuration;
+3. inspect statistical summaries and convergence charts;
+4. archive the evidence used by the report and presentation.

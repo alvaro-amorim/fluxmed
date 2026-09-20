@@ -28,7 +28,7 @@ from fluxmed.domain.enums import WorkerRole
 from fluxmed.infrastructure.models.city import CityModel
 from fluxmed.infrastructure.models.operation import OperationModel
 from fluxmed.infrastructure.repositories.delivery_repository import DeliveryRepository
-from fluxmed.optimization import OptimizationDelivery
+from fluxmed.optimization import GeneticOptimizerConfig, OptimizationDelivery
 
 
 @dataclass(frozen=True, slots=True)
@@ -228,6 +228,7 @@ def write_matrix_manifest(
     *,
     ga_seeds: tuple[int, ...],
     quick: bool,
+    ga_config: GeneticOptimizerConfig,
 ) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / "matrix-manifest.json"
@@ -235,6 +236,7 @@ def write_matrix_manifest(
         "template_operation_code": result.template_operation_code,
         "quick": quick,
         "ga_seeds": list(ga_seeds),
+        "ga_config": asdict(ga_config),
         "cells": [
             {
                 **asdict(cell),

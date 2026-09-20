@@ -13,6 +13,7 @@ from fluxmed.benchmarks import (
     SantaAuroraScenarioProblemFactory,
     ScenarioMatrixBenchmarkRunner,
     ScenarioMatrixCell,
+    write_academic_artifacts,
     write_benchmark_report,
     write_matrix_manifest,
 )
@@ -66,6 +67,11 @@ def _smoke_problem() -> BenchmarkProblem:
         vehicles=vehicles,
         travel_matrix=TravelMatrix(metrics),
     )
+
+
+FINAL_GA_SEEDS = (101, 202, 303, 404, 505)
+FINAL_SCENARIO_SEEDS = (20260917,)
+FINAL_SIZES = (20, 40, 60, 80)
 
 
 def _config(*, quick: bool) -> GeneticOptimizerConfig:
@@ -136,6 +142,12 @@ def main() -> None:
         help="Seeds used to generate each synthetic scenario cell.",
     )
     parser.add_argument(
+        "--preset",
+        choices=["final"],
+        default=None,
+        help="Apply a reproducible academic benchmark preset.",
+    )
+    parser.add_argument(
         "--quick",
         action="store_true",
         help="Use a reduced GA configuration for development validation.",
@@ -154,6 +166,22 @@ def main() -> None:
         help="Directory for JSON and CSV outputs.",
     )
     args = parser.parse_args()
+
+    if args.preset == "final":
+        if not args.matrix_template_code:
+            parser.error("--preset final requires --matrix-template-code.")
+        if args.quick:
+            parser.error("--preset final cannot be combined with --quick.")
+        args.profiles = [profile.value for profile in ScenarioProfile]
+        args.sizes = list(FINAL_SIZES)
+        args.scenario_seeds = list(FINAL_SCENARIO_SEEDS)
+        args.seeds = list(FINAL_GA_SEEDS)
+        if args.output is None:
+            args.output = Path("benchmarks/results/final-evidence-20260917")
+        print(
+            "Preset final: profiles=ALL sizes=20,40,60,80 "
+            "scenario_seed=20260917 ga_seeds=101,202,303,404,505"
+        )
 
     config = _config(quick=args.quick)
     if args.smoke:
@@ -214,6 +242,7 @@ def main() -> None:
                 output_dir,
                 ga_seeds=tuple(args.seeds),
                 quick=args.quick,
+                ga_config=config,
             )
         finally:
             session.rollback()
@@ -221,11 +250,13 @@ def main() -> None:
         print(f"Matrix manifest: {manifest_path}")
 
     json_path, csv_path = write_benchmark_report(report, output_dir)
+    academic_artifacts = write_academic_artifacts(report, output_dir)
     print(f"Benchmark complete: {len(report.runs)} runs")
     print(f"JSON: {json_path}")
     print(f"CSV: {csv_path}")
     print(f"Summary CSV: {output_dir / 'benchmark-summaries.csv'}")
     print(f"Convergence CSV: {output_dir / 'benchmark-convergence.csv'}")
+    print(f"Academic artifacts: {len(academic_artifacts)} files")
     for summary in report.summaries:
         print(
             f"{summary.scenario_name} · {summary.method.value}: "

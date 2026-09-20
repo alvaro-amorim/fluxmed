@@ -1,3 +1,4 @@
+from fluxmed.benchmarks.charts import write_academic_artifacts
 from fluxmed.benchmarks.export import write_benchmark_report
 from fluxmed.benchmarks.loader import (
     BenchmarkOperationNotFoundError,
@@ -36,6 +37,7 @@ __all__ = [
     "ScenarioMatrixBenchmarkRunner",
     "ScenarioMatrixCell",
     "ScenarioMatrixResult",
+    "write_academic_artifacts",
     "write_benchmark_report",
     "write_matrix_manifest",
 ]

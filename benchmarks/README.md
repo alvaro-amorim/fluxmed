@@ -89,3 +89,28 @@ CSV and JSON report, the runner emits:
 two internal baseline evaluations plus the configured population for generation zero and every
 completed generation. `time_to_best_seconds` is measured from optimizer start to the progress
 event that last improved the final best solution.
+
+
+## Reproducible academic artifacts
+
+Every benchmark export now creates `charts/` with dependency-free SVG charts and an
+`academic-summary.md` table. The charts aggregate only compatible optimizer metrics:
+
+- feasibility rate by delivery count;
+- mean optimizer cost for feasible runs;
+- runtime by scale;
+- GA hard-violation ablation by scale;
+- convergence of hard violations on the hardest scenario present in the report.
+
+The final evidence preset is intentionally explicit and reproducible:
+
+```powershell
+python scripts\benchmark_optimizer.py \
+  --matrix-template-code OP-20260915-001 \
+  --preset final
+```
+
+It runs NORMAL/BUSY/HIGH_PRESSURE/EMERGENCY at 20/40/60/80 deliveries, one deterministic
+scenario seed (`20260917`) and five GA seeds (`101 202 303 404 505`). It uses the production
+GA configuration, never `--quick`, and writes to
+`benchmarks/results/final-evidence-20260917` unless `--output` is supplied.

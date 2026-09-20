@@ -138,9 +138,7 @@ def read_benchmark_report(path: Path) -> BenchmarkReport:
         for item in payload["summaries"]
     )
     convergence = tuple(
-        BenchmarkConvergencePoint(
-            **{**item, "method": BenchmarkMethod(item["method"])}
-        )
+        BenchmarkConvergencePoint(**{**item, "method": BenchmarkMethod(item["method"])})
         for item in payload["convergence"]
     )
     return BenchmarkReport(

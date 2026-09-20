@@ -142,37 +142,26 @@ def _aggregate_by_scale(
 def _paired_pruning_repair_cost_by_scale(
     report: BenchmarkReport,
 ) -> dict[BenchmarkMethod, list[tuple[int, float]]]:
+    paired_methods = (
+        BenchmarkMethod.GA_PRUNING,
+        BenchmarkMethod.GA_PRUNING_REPAIR,
+    )
     runs_by_key = {
         (run.scenario_name, run.seed, run.method): run
         for run in report.runs
-        if run.seed is not None
-        and run.method in (
-            BenchmarkMethod.GA_PRUNING,
-            BenchmarkMethod.GA_PRUNING_REPAIR,
-        )
+        if run.seed is not None and run.method in paired_methods
     }
     grouped: dict[tuple[BenchmarkMethod, int], list[float]] = defaultdict(list)
-    scenario_seed_keys = {
-        (scenario_name, seed)
-        for scenario_name, seed, _method in runs_by_key
-    }
+    scenario_seed_keys = {(scenario_name, seed) for scenario_name, seed, _method in runs_by_key}
     for scenario_name, seed in scenario_seed_keys:
-        pruning = runs_by_key.get(
-            (scenario_name, seed, BenchmarkMethod.GA_PRUNING)
-        )
-        repair = runs_by_key.get(
-            (scenario_name, seed, BenchmarkMethod.GA_PRUNING_REPAIR)
-        )
+        pruning = runs_by_key.get((scenario_name, seed, BenchmarkMethod.GA_PRUNING))
+        repair = runs_by_key.get((scenario_name, seed, BenchmarkMethod.GA_PRUNING_REPAIR))
         if pruning is None or repair is None:
             continue
         if not pruning.feasible or not repair.feasible:
             continue
-        grouped[(BenchmarkMethod.GA_PRUNING, pruning.delivery_count)].append(
-            pruning.cost_brl
-        )
-        grouped[(BenchmarkMethod.GA_PRUNING_REPAIR, repair.delivery_count)].append(
-            repair.cost_brl
-        )
+        grouped[(BenchmarkMethod.GA_PRUNING, pruning.delivery_count)].append(pruning.cost_brl)
+        grouped[(BenchmarkMethod.GA_PRUNING_REPAIR, repair.delivery_count)].append(repair.cost_brl)
 
     result: dict[BenchmarkMethod, list[tuple[int, float]]] = {}
     for method in (
@@ -230,10 +219,7 @@ def _scenario_difficulty_key(name: str) -> tuple[int, int, str]:
 def _x_tick_values(values: list[int], *, max_ticks: int = 8) -> list[int]:
     if len(values) <= max_ticks:
         return values
-    indexes = {
-        round(index * (len(values) - 1) / (max_ticks - 1))
-        for index in range(max_ticks)
-    }
+    indexes = {round(index * (len(values) - 1) / (max_ticks - 1)) for index in range(max_ticks)}
     return [values[index] for index in sorted(indexes)]
 
 

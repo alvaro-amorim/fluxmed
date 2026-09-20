@@ -60,3 +60,11 @@ def test_academic_artifacts_generate_svg_and_markdown(tmp_path) -> None:
     svg_paths = [path for path in artifacts if path.suffix == ".svg"]
     assert len(svg_paths) >= 4
     assert all("<svg" in path.read_text(encoding="utf-8") for path in svg_paths)
+
+
+def test_dense_chart_axis_uses_readable_tick_count() -> None:
+    ticks = _x_tick_values(list(range(121)))
+
+    assert len(ticks) <= 8
+    assert ticks[0] == 0
+    assert ticks[-1] == 120

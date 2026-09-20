@@ -3,7 +3,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-from fluxmed.benchmarks.models import BenchmarkReport
+from fluxmed.benchmarks.models import (\n    BenchmarkConvergencePoint,\n    BenchmarkMethod,\n    BenchmarkReport,\n    BenchmarkRun,\n    BenchmarkSummary,\n)
 
 
 def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[Path, Path]:
@@ -119,3 +119,26 @@ def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[P
             writer.writerow(row)
 
     return json_path, csv_path
+
+
+def read_benchmark_report(path: Path) -> BenchmarkReport:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    runs = tuple(
+        BenchmarkRun(**{**item, "method": BenchmarkMethod(item["method"])})
+        for item in payload["runs"]
+    )
+    summaries = tuple(
+        BenchmarkSummary(**{**item, "method": BenchmarkMethod(item["method"])})
+        for item in payload["summaries"]
+    )
+    convergence = tuple(
+        BenchmarkConvergencePoint(
+            **{**item, "method": BenchmarkMethod(item["method"])}
+        )
+        for item in payload["convergence"]
+    )
+    return BenchmarkReport(
+        runs=runs,
+        summaries=summaries,
+        convergence=convergence,
+    )

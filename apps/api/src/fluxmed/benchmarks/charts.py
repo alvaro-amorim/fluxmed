@@ -35,7 +35,7 @@ def write_academic_artifacts(report: BenchmarkReport, output_dir: Path) -> tuple
 
     artifacts: list[Path] = []
     feasibility = _aggregate_by_scale(report, metric="feasibility")
-    cost = _aggregate_by_scale(report, metric="cost")
+    paired_cost = _paired_pruning_repair_cost_by_scale(report)
     runtime = _aggregate_by_scale(report, metric="runtime")
     hard_violations = _aggregate_by_scale(
         report,

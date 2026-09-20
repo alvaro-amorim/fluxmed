@@ -63,7 +63,6 @@ def test_database_error_handler_can_be_called_directly() -> None:
     assert response.status_code == 503
 
 
-
 def test_postgres_engine_uses_bounded_connect_timeout(monkeypatch) -> None:
     captured: dict[str, object] = {}
 

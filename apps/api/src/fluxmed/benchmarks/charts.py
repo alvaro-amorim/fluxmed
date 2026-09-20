@@ -312,18 +312,53 @@ def _write_academic_table(report: BenchmarkReport, path: Path) -> Path:
             list(BenchmarkMethod).index(summary.method),
         ),
     )
+    overall: dict[BenchmarkMethod, list[object]] = defaultdict(list)
+    for run in report.runs:
+        overall[run.method].append(run)
+
     lines = [
         "# FluxMed benchmark academic summary",
         "",
         (
-            "Costs are reported only for feasible runs. Runtime includes the optimizer "
-            "execution for the method, excluding scenario generation and chart export."
+            "Baselines are deterministic and run once per scenario. GA variants use the "
+            "explicit seed set recorded in the matrix manifest."
+        ),
+        (
+            "Costs are reported only for feasible runs and should be compared within the "
+            "same scenario. The paired pruning/repair chart uses only matched feasible "
+            "scenario+seed pairs."
+        ),
+        (
+            "Runtime includes optimizer execution only, excluding scenario generation and "
+            "artifact export."
         ),
         "",
-        "| Scenario | Method | Feasible | Mean cost | Std cost | Mean runtime (s) | "
-        "Mean evals | Mean time-to-best (s) |",
-        "|---|---|---:|---:|---:|---:|---:|---:|",
+        "## Overall feasibility",
+        "",
+        "| Method | Feasible | Rate | Mean runtime (s) |",
+        "|---|---:|---:|---:|",
     ]
+    for method in BenchmarkMethod:
+        method_runs = overall.get(method, [])
+        if not method_runs:
+            continue
+        feasible_runs = sum(1 for run in method_runs if run.feasible)
+        rate = feasible_runs / len(method_runs)
+        mean_runtime = fmean(run.runtime_seconds for run in method_runs)
+        lines.append(
+            f"| {_METHOD_LABELS[method]} | {feasible_runs}/{len(method_runs)} | "
+            f"{rate:.2%} | {mean_runtime:.3f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Scenario-level results",
+            "",
+            "| Scenario | Method | Feasible | Mean cost | Std cost | Mean runtime (s) | "
+            "Mean evals | Mean time-to-best (s) |",
+            "|---|---|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
     for summary in rows:
         cost = "" if summary.mean_cost_brl is None else f"{summary.mean_cost_brl:.2f}"
         std = "" if summary.std_cost_brl is None else f"{summary.std_cost_brl:.2f}"

@@ -77,7 +77,6 @@ class AssistantStatusResponse(BaseModel):
 @router.get("/assistant/status", response_model=AssistantStatusResponse)
 def assistant_status(_current_user: CurrentUser) -> AssistantStatusResponse:
     settings = LLMSettings.from_env()
-    _enforce_rate_limit(settings, current_user.id)
     try:
         provider = build_llm_provider(settings)
     except LLMProviderUnavailableError:
@@ -102,6 +101,7 @@ def assistant_message(
     request_id = uuid.uuid4()
     started = time.perf_counter()
     settings = LLMSettings.from_env()
+    _enforce_rate_limit(settings, current_user.id)
     try:
         provider = build_llm_provider(settings)
     except LLMProviderUnavailableError as exc:

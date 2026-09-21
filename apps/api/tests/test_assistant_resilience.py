@@ -123,7 +123,6 @@ def test_assistant_provider_failures_map_to_sanitized_api_errors(
     assert "secret" not in error.message
 
 
-
 def test_assistant_rate_limit_blocks_provider_call(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

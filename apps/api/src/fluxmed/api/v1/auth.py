@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from fastapi import APIRouter, Request, Response, status
@@ -18,6 +19,8 @@ from fluxmed.application.auth import (
 )
 from fluxmed.domain.enums import UserRole
 from fluxmed.security.http import session_cookie_samesite, session_cookie_secure
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -53,18 +56,25 @@ def login(payload: LoginRequest, response: Response, session: DbSession) -> Logi
     try:
         result = auth_service.login(payload.email, payload.password)
     except InvalidCredentialsError as exc:
+        logger.warning("auth_login_failed reason=invalid_credentials")
         raise ApiError(
             status.HTTP_401_UNAUTHORIZED,
             "AUTH_INVALID_CREDENTIALS",
             "E-mail ou senha inválidos.",
         ) from exc
     except InactiveUserError as exc:
+        logger.warning("auth_login_failed reason=inactive_user")
         raise ApiError(
             status.HTTP_403_FORBIDDEN,
             "USER_INACTIVE",
             "Este usuário está inativo.",
         ) from exc
 
+    logger.info(
+        "auth_login_succeeded user_id=%s role=%s",
+        result.user.id,
+        result.user.role.value,
+    )
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value=result.token,
@@ -84,9 +94,9 @@ def logout(
     session: DbSession,
     current_user: CurrentUser,
 ) -> Response:
-    del current_user
     auth_service = AuthService(session, timedelta(hours=SESSION_TTL_HOURS))
     auth_service.logout(request.cookies.get(SESSION_COOKIE_NAME))
+    logger.info("auth_logout user_id=%s", current_user.id)
     response.delete_cookie(
         SESSION_COOKIE_NAME,
         path="/",

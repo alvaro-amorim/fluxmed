@@ -82,9 +82,13 @@ PostgreSQL comes back without restarting the API.
 - production mode now forces Secure session cookies and restricts SameSite to lax/strict;
 - V1 keeps browser sessions same-origin by design instead of enabling permissive credentialed CORS;
 - delivery imports now use a bounded streaming read and normalized filenames before parsing;
-- review audit events, log redaction and health endpoints;
+- request logs now carry a server-generated correlation ID, log only method/path/status/duration, and omit query strings and bodies;
+- authentication audit logs record success/failure/logout without email, password or session token values;
+- unexpected errors return a generic 500 payload with a correlation ID instead of exception details;
+- health endpoints remain intentionally payload-minimal;
+- review audit events, log redaction and health endpoints — core request/auth/error paths covered;
 - add bounded request/rate protections where appropriate;
-- verify failures do not leak provider secrets or operational payloads.
+- verify failures do not leak provider secrets or operational payloads — provider/report/optimizer/generic error paths use sanitized public messages.
 
 ### Resilience
 

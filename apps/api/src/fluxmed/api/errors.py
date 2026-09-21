@@ -1,8 +1,11 @@
+import logging
 from collections.abc import Mapping
 from typing import Any
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
 
 
 class ApiError(Exception):
@@ -43,6 +46,26 @@ async def database_error_handler(_request: Request, _exc: Exception) -> JSONResp
                 "code": "DATABASE_UNAVAILABLE",
                 "message": "Serviço de dados temporariamente indisponível.",
                 "details": {},
+            }
+        },
+    )
+
+
+
+async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", None)
+    logger.error(
+        "Unhandled application error request_id=%s error=%s",
+        request_id or "unavailable",
+        type(exc).__name__,
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "Erro interno inesperado.",
+                "details": {"request_id": request_id} if request_id else {},
             }
         },
     )

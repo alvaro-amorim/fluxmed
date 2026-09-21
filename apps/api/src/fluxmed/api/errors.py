@@ -51,7 +51,6 @@ async def database_error_handler(_request: Request, _exc: Exception) -> JSONResp
     )
 
 
-
 async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
     request_id = getattr(request.state, "request_id", None)
     logger.error(

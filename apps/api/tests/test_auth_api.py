@@ -94,9 +94,7 @@ def test_login_rejects_wrong_password(
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "AUTH_INVALID_CREDENTIALS"
     auth_logs = "\n".join(
-        record.getMessage()
-        for record in caplog.records
-        if record.name == "fluxmed.api.v1.auth"
+        record.getMessage() for record in caplog.records if record.name == "fluxmed.api.v1.auth"
     )
     assert "auth_login_failed reason=invalid_credentials" in auth_logs
     assert email not in auth_logs

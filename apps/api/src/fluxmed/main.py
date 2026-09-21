@@ -6,6 +6,7 @@ from time import perf_counter
 
 from fastapi import FastAPI, Request, Response, status
 from sqlalchemy.exc import SQLAlchemyError
+from starlette.middleware.base import RequestResponseEndpoint
 
 from fluxmed.api.errors import (
     ApiError,
@@ -47,8 +48,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 @app.middleware("http")
-async def request_observability(request: Request, call_next):
+async def request_observability(
+    request: Request,
+    call_next: RequestResponseEndpoint,
+) -> Response:
     request_id = uuid.uuid4().hex
     request.state.request_id = request_id
     started_at = perf_counter()

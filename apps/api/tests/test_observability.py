@@ -23,9 +23,7 @@ def test_request_observability_adds_request_id_without_logging_query_secrets(
     assert re.fullmatch(r"[0-9a-f]{32}", request_id)
 
     application_logs = "\n".join(
-        record.getMessage()
-        for record in caplog.records
-        if record.name == "fluxmed.main"
+        record.getMessage() for record in caplog.records if record.name == "fluxmed.main"
     )
     assert "request_complete" in application_logs
     assert "path=/health/live" in application_logs

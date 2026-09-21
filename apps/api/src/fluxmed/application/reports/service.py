@@ -568,20 +568,25 @@ class ReportService:
         operation = data["operation"]
         metrics = data["metrics"]
         summary_rows = [
-            ["Operação", operation["operation_code"], "Data", operation["operation_date"]],
+            [
+                "Operação",
+                operation["operation_code"],
+                "Data",
+                ReportService._display_date(operation["operation_date"]),
+            ],
             ["Cidade", operation["city_name"], "Revisão", operation["revision_number"]],
             ["Entregas", metrics["delivery_count"], "Veículos", metrics["vehicles_used"]],
             [
                 "Custo total",
-                f"R$ {metrics['total_cost_brl']}",
+                ReportService._display_brl(metrics["total_cost_brl"]),
                 "Distância",
-                f"{metrics['distance_km']} km",
+                f"{ReportService._display_decimal(metrics['distance_km'], 3)} km",
             ],
             [
                 "Makespan",
-                f"{metrics['makespan_minutes']} min",
+                f"{ReportService._display_decimal(metrics['makespan_minutes'], 2)} min",
                 "No prazo",
-                f"{metrics['on_time_percentage']}%",
+                f"{ReportService._display_decimal(metrics['on_time_percentage'], 2)}%",
             ],
             ["Atrasos críticos", metrics["critical_delays"], "Status", operation["status"]],
         ]
@@ -612,9 +617,9 @@ class ReportService:
                     route["route_code"],
                     route["vehicle"]["plate"],
                     route["delivery_count"],
-                    f"{route['distance_km']} km",
-                    f"{route['duration_minutes']} min",
-                    f"R$ {route['cost']['total_brl']}",
+                    f"{ReportService._display_decimal(route['distance_km'], 3)} km",
+                    f"{ReportService._display_decimal(route['duration_minutes'], 2)} min",
+                    ReportService._display_brl(route["cost"]["total_brl"]),
                 ]
             )
         route_table = Table(route_rows, repeatRows=1)
@@ -658,10 +663,11 @@ class ReportService:
 
         conclusion = (
             f"Plano validado para {metrics['delivery_count']} entregas distribuídas em "
-            f"{metrics['vehicles_used']} veículos, com {metrics['on_time_percentage']}% no prazo, "
+            f"{metrics['vehicles_used']} veículos, com "
+            f"{ReportService._display_decimal(metrics['on_time_percentage'], 2)}% no prazo, "
             f"{metrics['critical_delays']} atrasos críticos, "
-            f"{metrics['distance_km']} km de distância total e "
-            f"custo de R$ {metrics['total_cost_brl']}."
+            f"{ReportService._display_decimal(metrics['distance_km'], 3)} km de distância total e "
+            f"custo de {ReportService._display_brl(metrics['total_cost_brl'])}."
         )
         story.extend(
             [
@@ -723,6 +729,24 @@ class ReportService:
             name = worker.get("name")
             return str(name) if name else "Incluído no contrato"
         return "Não necessário"
+
+    @staticmethod
+    def _display_date(value: object) -> str:
+        try:
+            parsed = datetime.fromisoformat(str(value))
+        except ValueError:
+            return str(value)
+        return parsed.strftime("%d/%m/%Y")
+
+    @staticmethod
+    def _display_decimal(value: object, places: int) -> str:
+        number = ReportService._number(value)
+        formatted = f"{number:,.{places}f}"
+        return formatted.replace(",", "_").replace(".", ",").replace("_", ".")
+
+    @staticmethod
+    def _display_brl(value: object) -> str:
+        return f"R$ {ReportService._display_decimal(value, 2)}"
 
     @staticmethod
     def _number(value: object) -> float:

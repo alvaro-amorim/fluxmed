@@ -1,6 +1,8 @@
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
 
+from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from fluxmed.infrastructure.database import SessionFactory
@@ -26,6 +28,25 @@ class AssistantTelemetryInput:
 
 class AssistantTelemetryRecorder:
     """Persists metadata only; prompts, tool payloads and assistant text are never stored."""
+
+    @staticmethod
+    def count_since(user_id: uuid.UUID, since: datetime) -> int | None:
+        session = SessionFactory()
+        try:
+            value = session.scalar(
+                select(func.count())
+                .select_from(AssistantTelemetryModel)
+                .where(
+                    AssistantTelemetryModel.user_id == user_id,
+                    AssistantTelemetryModel.created_at >= since,
+                )
+            )
+            return int(value or 0)
+        except SQLAlchemyError:
+            session.rollback()
+            return None
+        finally:
+            session.close()
 
     @staticmethod
     def record(payload: AssistantTelemetryInput) -> bool:

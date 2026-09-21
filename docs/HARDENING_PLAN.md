@@ -78,7 +78,8 @@ PostgreSQL comes back without restarting the API.
 - optimizer runtime failures now expose stable public error codes/messages without persisting raw exception text;
 - completed-but-unvalidated runs are rejected by the result read boundary;
 - review error taxonomy and transaction boundaries;
-- review idempotency and write retries;
+- optimization start rejects duplicate active runs, cancellation is terminal-safe, and report retry is append-only and restricted to failed reports;
+- report creation remains append-only by design; callers that require network-retry idempotency should add an explicit idempotency key in a future API version;
 - production mode now forces Secure session cookies and restricts SameSite to lax/strict;
 - V1 keeps browser sessions same-origin by design instead of enabling permissive credentialed CORS;
 - delivery imports now use a bounded streaming read and normalized filenames before parsing;
@@ -87,7 +88,7 @@ PostgreSQL comes back without restarting the API.
 - unexpected errors return a generic 500 payload with a correlation ID instead of exception details;
 - health endpoints remain intentionally payload-minimal;
 - review audit events, log redaction and health endpoints — core request/auth/error paths covered;
-- add bounded request/rate protections where appropriate;
+- expensive assistant calls now have a database-backed per-user rolling-window rate guard, shared across application instances;
 - verify failures do not leak provider secrets or operational payloads — provider/report/optimizer/generic error paths use sanitized public messages.
 
 ### Resilience
@@ -108,6 +109,7 @@ Validate explicit failure behavior for:
 - upload/import validation — bounded upload size and filename normalization implemented;
 - integration tests now refuse to run against a non-test database, preventing destructive seed/cleanup operations from touching demo data;
 - CORS/session/cookie production settings — Secure cookies are forced in production; cross-origin cookie auth is intentionally not enabled in V1;
+- assistant provider spend is protected by a configurable database-backed per-user request limit;
 - run secret and static-analysis checks before release.
 
 ### Final E2E

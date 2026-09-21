@@ -121,3 +121,59 @@ def test_assistant_provider_failures_map_to_sanitized_api_errors(
     assert error.status_code == expected_status
     assert error.code == expected_code
     assert "secret" not in error.message
+
+
+
+def test_assistant_rate_limit_blocks_provider_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings = _settings()
+    monkeypatch.setattr(
+        assistant_api.LLMSettings,
+        "from_env",
+        classmethod(lambda cls: settings),
+    )
+    monkeypatch.setattr(
+        assistant_api.AssistantTelemetryRecorder,
+        "count_since",
+        staticmethod(lambda _user_id, _since: settings.rate_limit_requests),
+    )
+    provider_builder = Mock()
+    monkeypatch.setattr(assistant_api, "build_llm_provider", provider_builder)
+
+    with pytest.raises(ApiError) as captured:
+        assistant_api.assistant_message(_payload(), Mock(), _current_user())
+
+    error = captured.value
+    assert error.status_code == 429
+    assert error.code == "ASSISTANT_RATE_LIMITED"
+    provider_builder.assert_not_called()
+
+
+def test_assistant_rate_limit_fails_open_when_telemetry_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings = _settings()
+    monkeypatch.setattr(
+        assistant_api.LLMSettings,
+        "from_env",
+        classmethod(lambda cls: settings),
+    )
+    monkeypatch.setattr(
+        assistant_api.AssistantTelemetryRecorder,
+        "count_since",
+        staticmethod(lambda _user_id, _since: None),
+    )
+    monkeypatch.setattr(
+        assistant_api,
+        "build_llm_provider",
+        lambda _settings: (_ for _ in ()).throw(
+            LLMProviderUnavailableError("provider unavailable")
+        ),
+    )
+    monkeypatch.setattr(assistant_api, "_record_failure", lambda **_kwargs: None)
+
+    with pytest.raises(ApiError) as captured:
+        assistant_api.assistant_message(_payload(), Mock(), _current_user())
+
+    assert captured.value.code == "LLM_PROVIDER_UNAVAILABLE"

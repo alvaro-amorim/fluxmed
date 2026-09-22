@@ -1,7 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { getOperation, updateOperation } from '../../services/operations'
+import { dispatchOperation, getOperation, updateOperation } from '../../services/operations'
 import type { Operation, TrafficMode } from '../../types/operations'
 import { SantaAuroraMap } from '../city/SantaAuroraMap'
 import { OperationResourcesPanel } from '../resources/OperationResourcesPanel'
@@ -26,6 +26,7 @@ export function OperationDetailPage() {
   const [trafficMode, setTrafficMode] = useState<TrafficMode>('AUTOMATIC')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [dispatching, setDispatching] = useState(false)
 
   const loadOperation = useCallback(async () => {
     if (!operationId) return
@@ -83,6 +84,25 @@ export function OperationDetailPage() {
     }
   }
 
+  async function dispatch() {
+    if (!operationId || operation?.status !== 'APPROVED') return
+    setDispatching(true)
+    setError(null)
+    try {
+      const updated = await dispatchOperation(operationId)
+      setOperation(updated)
+      setEditing(false)
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Não foi possível despachar a operação.',
+      )
+    } finally {
+      setDispatching(false)
+    }
+  }
+
   if (loading) {
     return (
       <main className="content-page">
@@ -128,6 +148,16 @@ export function OperationDetailPage() {
               Relatórios
             </Link>
           ) : null}
+          {operation.status === 'APPROVED' ? (
+            <button
+              className="button button--primary"
+              type="button"
+              disabled={dispatching}
+              onClick={() => void dispatch()}
+            >
+              {dispatching ? 'Despachando…' : 'Despachar operação'}
+            </button>
+          ) : null}
           {!immutable ? (
             <button
               className="button button--secondary"
@@ -139,6 +169,13 @@ export function OperationDetailPage() {
           ) : null}
         </div>
       </header>
+
+      {immutable ? (
+        <div className="result-approved">
+          <strong>Operação despachada</strong>
+          <span>A revisão atual foi congelada e não pode mais ser alterada.</span>
+        </div>
+      ) : null}
 
       <nav className="operation-section-nav" aria-label="Seções da operação">
         <button

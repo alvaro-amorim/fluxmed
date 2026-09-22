@@ -3,7 +3,7 @@ import logging
 import re
 import time
 from collections.abc import Mapping
-from typing import Protocol, cast
+from typing import Any, NoReturn, Protocol, cast
 
 import httpx
 from google import genai
@@ -113,7 +113,9 @@ class GeminiProvider:
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
             max_output_tokens=2048,
-            thinking_config=types.ThinkingConfig(thinking_level=self._thinking_level),
+            thinking_config=types.ThinkingConfig(
+                thinking_level=cast(Any, self._thinking_level)
+            ),
             http_options=types.HttpOptions(
                 timeout=max(1, int(self._timeout_seconds * 1000)),
                 retry_options=types.HttpRetryOptions(
@@ -137,7 +139,6 @@ class GeminiProvider:
                 tool_count=0,
                 system_chars=system_chars,
             )
-            raise AssertionError("unreachable")
 
         raw_content = getattr(response, "text", None)
         content = raw_content.strip() if isinstance(raw_content, str) else ""
@@ -214,7 +215,6 @@ class GeminiProvider:
                 tool_count=tool_count,
                 system_chars=system_chars,
             )
-            raise AssertionError("unreachable")
 
         calls = self._tool_calls(interaction)
         raw_content = getattr(interaction, "output_text", None)
@@ -253,7 +253,7 @@ class GeminiProvider:
         api: str,
         tool_count: int,
         system_chars: int,
-    ) -> None:
+    ) -> NoReturn:
         elapsed_ms = int((time.perf_counter() - request_started) * 1000)
         if isinstance(exc, httpx.TimeoutException):
             logger.warning(
@@ -293,7 +293,9 @@ class GeminiProvider:
         if code == 429 or error_name == "RateLimitError":
             cooldown = self._retry_after_seconds(safe_message)
             self._rate_limited_until = time.monotonic() + cooldown
-            raise LLMProviderRateLimitError("Gemini limitou temporariamente as requisições.") from exc
+            raise LLMProviderRateLimitError(
+                "Gemini limitou temporariamente as requisições."
+            ) from exc
         if code == 408 or error_name in {"APITimeoutError", "TimeoutError"}:
             raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.") from exc
         if code in {400, 404, 422} or error_name == "BadRequestError":

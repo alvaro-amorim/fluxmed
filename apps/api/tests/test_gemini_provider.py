@@ -15,9 +15,15 @@ from fluxmed.llm.providers import GeminiProvider
 
 
 @dataclass
-class _FakeUsage:
+class _FakeInteractionUsage:
     total_input_tokens: int = 21
     total_output_tokens: int = 9
+
+
+@dataclass
+class _FakeGenerateUsage:
+    prompt_token_count: int = 21
+    candidates_token_count: int = 9
 
 
 @dataclass
@@ -30,54 +36,72 @@ class _FakeFunctionCallStep:
 
 @dataclass
 class _FakeInteraction:
-    output_text: str = "O custo total da operação é R$ 400,38."
-    usage: _FakeUsage = field(default_factory=_FakeUsage)
+    output_text: str = ""
+    usage: _FakeInteractionUsage = field(default_factory=_FakeInteractionUsage)
     steps: list[object] = field(default_factory=list)
 
 
+@dataclass
+class _FakeGenerateResponse:
+    text: str = "O custo total da operação é R$ 400,38."
+    usage_metadata: _FakeGenerateUsage = field(default_factory=_FakeGenerateUsage)
+
+
 class _FakeInteractions:
-    def __init__(self, interaction: object | None = None) -> None:
+    def __init__(self, interaction: object | None = None, error: Exception | None = None) -> None:
         self.requests: list[dict[str, object]] = []
         self._interaction = interaction or _FakeInteraction()
+        self._error = error
 
     def create(self, **kwargs: object) -> object:
         self.requests.append(dict(kwargs))
+        if self._error is not None:
+            raise self._error
         return self._interaction
 
 
+class _FakeModels:
+    def __init__(self, response: object | None = None, error: Exception | None = None) -> None:
+        self.requests: list[dict[str, object]] = []
+        self._response = response or _FakeGenerateResponse()
+        self._error = error
+
+    def generate_content(
+        self,
+        *,
+        model: str,
+        contents: object,
+        config: object | None = None,
+    ) -> object:
+        self.requests.append({"model": model, "contents": contents, "config": config})
+        if self._error is not None:
+            raise self._error
+        return self._response
+
+
 class _FakeClient:
-    def __init__(self, interaction: object | None = None) -> None:
-        self._interactions = _FakeInteractions(interaction)
+    def __init__(
+        self,
+        *,
+        interaction: object | None = None,
+        response: object | None = None,
+        interaction_error: Exception | None = None,
+        model_error: Exception | None = None,
+    ) -> None:
+        self._interactions = _FakeInteractions(interaction, interaction_error)
+        self._models = _FakeModels(response, model_error)
         self.closed = False
 
     @property
     def interactions(self) -> _FakeInteractions:
         return self._interactions
 
+    @property
+    def models(self) -> _FakeModels:
+        return self._models
+
     def close(self) -> None:
         self.closed = True
-
-
-class _FailingInteractions:
-    def __init__(self, error: Exception) -> None:
-        self._error = error
-        self.calls = 0
-
-    def create(self, **_kwargs: object) -> object:
-        self.calls += 1
-        raise self._error
-
-
-class _FailingClient:
-    def __init__(self, error: Exception) -> None:
-        self._interactions = _FailingInteractions(error)
-
-    @property
-    def interactions(self) -> _FailingInteractions:
-        return self._interactions
-
-    def close(self) -> None:
-        return None
 
 
 class BadRequestError(Exception):
@@ -112,7 +136,7 @@ def _request() -> ProviderRequest:
     )
 
 
-def test_gemini_provider_generates_once_from_grounded_context() -> None:
+def test_gemini_provider_uses_generate_content_for_grounded_reply() -> None:
     client = _FakeClient()
     provider = GeminiProvider(
         api_key="test-key",
@@ -128,21 +152,21 @@ def test_gemini_provider_generates_once_from_grounded_context() -> None:
     assert turn.tool_calls == ()
     assert turn.input_tokens == 21
     assert turn.output_tokens == 9
-    assert len(client.interactions.requests) == 1
-    sent = client.interactions.requests[0]
+    assert len(client.models.requests) == 1
+    assert client.interactions.requests == []
+    sent = client.models.requests[0]
     assert sent["model"] == "gemini-3.5-flash-lite"
-    assert sent["input"] == "Qual o custo total da operação?"
-    assert sent["timeout"] == 20
-    assert sent["store"] is False
-    assert sent["generation_config"] == {
-        "thinking_level": "minimal",
-        "max_output_tokens": 4096,
-    }
-    assert "tools" not in sent
-    system_instruction = sent["system_instruction"]
-    assert isinstance(system_instruction, str)
-    assert "backend já executou as consultas autorizadas" in system_instruction
-    assert '"total_cost_brl":"400.38"' in system_instruction
+    assert sent["contents"] == "Qual o custo total da operação?"
+    config = sent["config"]
+    assert isinstance(config, types.GenerateContentConfig)
+    assert config.max_output_tokens == 2048
+    assert config.system_instruction is not None
+    assert "backend já executou as consultas autorizadas" in str(config.system_instruction)
+    assert '"total_cost_brl":"400.38"' in str(config.system_instruction)
+    assert config.http_options is not None
+    assert config.http_options.timeout == 20000
+    assert config.http_options.retry_options is not None
+    assert config.http_options.retry_options.attempts == 1
     assert client.closed is False
 
 
@@ -162,6 +186,7 @@ def test_gemini_provider_logs_only_safe_latency_metadata(
 
     assert "gemini_request_started" in caplog.text
     assert "gemini_request_completed" in caplog.text
+    assert "api=generate_content" in caplog.text
     assert "system_chars=" in caplog.text
     assert "user_chars=" in caplog.text
     assert "elapsed_ms=" in caplog.text
@@ -175,7 +200,7 @@ def test_gemini_provider_exposes_function_tools_and_parses_selection_call() -> N
         output_text="",
         steps=[_FakeFunctionCallStep()],
     )
-    client = _FakeClient(interaction)
+    client = _FakeClient(interaction=interaction)
     provider = GeminiProvider(
         api_key="test-key",
         model="gemini-3.5-flash-lite",
@@ -210,6 +235,7 @@ def test_gemini_provider_exposes_function_tools_and_parses_selection_call() -> N
     assert len(turn.tool_calls) == 1
     assert turn.tool_calls[0].name == "select_assistant_context"
     assert turn.tool_calls[0].arguments == {"tools": ["get_cost_breakdown"]}
+    assert client.models.requests == []
     sent = client.interactions.requests[0]
     assert sent["tools"] == [
         {
@@ -221,7 +247,7 @@ def test_gemini_provider_exposes_function_tools_and_parses_selection_call() -> N
     ]
     assert sent["generation_config"] == {
         "thinking_level": "minimal",
-        "max_output_tokens": 4096,
+        "max_output_tokens": 1024,
         "tool_choice": {
             "allowed_tools": {
                 "mode": "any",
@@ -234,12 +260,12 @@ def test_gemini_provider_exposes_function_tools_and_parses_selection_call() -> N
     assert "Contexto confiável desta etapa de planejamento" in system_instruction
 
 
-def test_gemini_provider_maps_interactions_bad_request() -> None:
+def test_gemini_provider_maps_generate_content_bad_request() -> None:
     provider = GeminiProvider(
         api_key="test-key",
         model="gemini-2.5-flash",
         timeout_seconds=20,
-        client=_FailingClient(BadRequestError()),
+        client=_FakeClient(model_error=BadRequestError()),
     )
 
     with pytest.raises(LLMProviderResponseError, match="HTTP 400"):
@@ -251,7 +277,7 @@ def test_gemini_provider_maps_sdk_timeout() -> None:
         api_key="test-key",
         model="gemini-2.5-flash",
         timeout_seconds=20,
-        client=_FailingClient(APITimeoutError()),
+        client=_FakeClient(model_error=APITimeoutError()),
     )
 
     with pytest.raises(LLMProviderTimeoutError):
@@ -259,7 +285,7 @@ def test_gemini_provider_maps_sdk_timeout() -> None:
 
 
 def test_gemini_provider_maps_rate_limit_and_opens_local_cooldown() -> None:
-    client = _FailingClient(RateLimitError())
+    client = _FakeClient(model_error=RateLimitError())
     provider = GeminiProvider(
         api_key="test-key",
         model="gemini-2.5-flash",
@@ -270,14 +296,14 @@ def test_gemini_provider_maps_rate_limit_and_opens_local_cooldown() -> None:
     with pytest.raises(LLMProviderRateLimitError):
         provider.generate(_request())
     assert provider.cooldown_remaining_seconds > 0
-    assert client.interactions.calls == 1
+    assert len(client.models.requests) == 1
 
     with pytest.raises(LLMProviderRateLimitError, match="cooldown"):
         provider.generate(_request())
-    assert client.interactions.calls == 1
+    assert len(client.models.requests) == 1
 
 
-def test_gemini_provider_builds_v1beta_client_without_retrying_429(
+def test_gemini_provider_builds_v1beta_client_with_single_attempt_retry_policy(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, object] = {}
@@ -303,6 +329,7 @@ def test_gemini_provider_builds_v1beta_client_without_retrying_429(
     assert http_options.api_version == "v1beta"
     retry_options = http_options.retry_options
     assert retry_options is not None
+    assert retry_options.attempts == 1
     status_codes = retry_options.http_status_codes or []
     assert 429 not in status_codes
 

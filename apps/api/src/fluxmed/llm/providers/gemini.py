@@ -80,10 +80,24 @@ class GeminiProvider:
             "thinking_level": self._thinking_level,
             "max_output_tokens": 4096,
         }
+        system_instruction = self._system_instruction(request)
+        request_started = time.perf_counter()
+        tool_count = len(request.tools)
+        system_chars = len(system_instruction)
+        user_chars = len(request.user_message)
+        logger.info(
+            "gemini_request_started model=%s tools=%d timeout_seconds=%.1f "
+            "system_chars=%d user_chars=%d",
+            self._model,
+            tool_count,
+            self._timeout_seconds,
+            system_chars,
+            user_chars,
+        )
         create_kwargs: dict[str, object] = {
             "model": self._model,
             "input": request.user_message,
-            "system_instruction": self._system_instruction(request),
+            "system_instruction": system_instruction,
             "generation_config": generation_config,
             "store": False,
             "timeout": self._timeout_seconds,
@@ -100,19 +114,38 @@ class GeminiProvider:
         try:
             interaction = client.interactions.create(**create_kwargs)
         except httpx.TimeoutException as exc:
-            logger.warning("Gemini timeout during grounded generation")
+            elapsed_ms = int((time.perf_counter() - request_started) * 1000)
+            logger.warning(
+                "gemini_request_timeout model=%s elapsed_ms=%d timeout_seconds=%.1f "
+                "tools=%d system_chars=%d",
+                self._model,
+                elapsed_ms,
+                self._timeout_seconds,
+                tool_count,
+                system_chars,
+            )
             raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.") from exc
         except (TimeoutError, ConnectionError) as exc:
-            logger.warning("Gemini transport error: %s", type(exc).__name__)
+            elapsed_ms = int((time.perf_counter() - request_started) * 1000)
+            logger.warning(
+                "gemini_request_transport_error model=%s elapsed_ms=%d error=%s",
+                self._model,
+                elapsed_ms,
+                type(exc).__name__,
+            )
             raise LLMProviderError("Falha de comunicação com Gemini.") from exc
         except Exception as exc:
+            elapsed_ms = int((time.perf_counter() - request_started) * 1000)
             code = self._exception_status_code(exc)
             error_name = type(exc).__name__
             safe_message = self._safe_exception_message(exc)
             logger.warning(
-                "Gemini SDK error %s (HTTP %s): %s",
+                "Gemini SDK error %s (HTTP %s) after %d ms tools=%d system_chars=%d: %s",
                 error_name,
                 code or "desconhecido",
+                elapsed_ms,
+                tool_count,
+                system_chars,
                 safe_message,
             )
             if code == 429 or error_name == "RateLimitError":
@@ -138,6 +171,19 @@ class GeminiProvider:
         usage = getattr(interaction, "usage", None)
         input_tokens = self._int(getattr(usage, "total_input_tokens", 0))
         output_tokens = self._int(getattr(usage, "total_output_tokens", 0))
+        elapsed_ms = int((time.perf_counter() - request_started) * 1000)
+        logger.info(
+            "gemini_request_completed model=%s elapsed_ms=%d tools=%d system_chars=%d "
+            "input_tokens=%d output_tokens=%d output_chars=%d tool_calls=%d",
+            self._model,
+            elapsed_ms,
+            tool_count,
+            system_chars,
+            input_tokens,
+            output_tokens,
+            len(content),
+            len(calls),
+        )
         return ProviderTurn(
             content=content,
             tool_calls=calls,

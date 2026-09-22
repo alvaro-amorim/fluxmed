@@ -1,12 +1,13 @@
 import os
 import uuid
 from collections.abc import Iterator
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import delete
 
-from fluxmed.domain.enums import OperationStatus, UserRole
+from fluxmed.domain.enums import OperationStatus, RevisionStatus, UserRole
 from fluxmed.infrastructure.database import session_scope
 from fluxmed.infrastructure.models.auth_session import AuthSessionModel
 from fluxmed.infrastructure.models.operation import OperationModel
@@ -105,6 +106,52 @@ def test_rejects_invalid_operation_end_time(authenticated_client: TestClient) ->
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "INVALID_OPERATION_SCHEDULE"
+
+
+def test_dispatch_requires_approved_current_revision(authenticated_client: TestClient) -> None:
+    created = authenticated_client.post("/api/v1/operations", json=_payload())
+    assert created.status_code == 201
+    operation_id = uuid.UUID(created.json()["id"])
+
+    blocked = authenticated_client.post(f"/api/v1/operations/{operation_id}/dispatch")
+
+    assert blocked.status_code == 409
+    assert blocked.json()["error"]["code"] == "OPERATION_DISPATCH_BLOCKED"
+
+    with session_scope() as session:
+        operation = session.get(OperationModel, operation_id)
+        assert operation is not None
+        operation.status = OperationStatus.APPROVED
+        operation.current_revision_number = 1
+        session.add(
+            OperationRevisionModel(
+                operation_id=operation.id,
+                revision_number=1,
+                status=RevisionStatus.APPROVED,
+                operation_date=operation.operation_date,
+                operation_start_time=operation.operation_start_time,
+                operation_end_time=operation.operation_end_time,
+                traffic_mode=operation.traffic_mode,
+                created_by_user_id=operation.created_by_user_id,
+                approved_at=datetime.now(UTC),
+            )
+        )
+
+    dispatched = authenticated_client.post(f"/api/v1/operations/{operation_id}/dispatch")
+
+    assert dispatched.status_code == 200
+    assert dispatched.json()["status"] == "DISPATCHED"
+
+    with session_scope() as session:
+        operation = session.get(OperationModel, operation_id)
+        assert operation is not None
+        assert operation.status is OperationStatus.DISPATCHED
+        revision = session.query(OperationRevisionModel).filter_by(
+            operation_id=operation_id,
+            revision_number=1,
+        ).one()
+        assert revision.status is RevisionStatus.DISPATCHED
+        assert revision.dispatched_at is not None
 
 
 def test_dispatched_operation_is_immutable(authenticated_client: TestClient) -> None:

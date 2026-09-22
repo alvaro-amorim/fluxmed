@@ -113,9 +113,7 @@ class GeminiProvider:
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
             max_output_tokens=2048,
-            thinking_config=types.ThinkingConfig(
-                thinking_level=cast(Any, self._thinking_level)
-            ),
+            thinking_config=types.ThinkingConfig(thinking_level=cast(Any, self._thinking_level)),
             http_options=types.HttpOptions(
                 timeout=max(1, int(self._timeout_seconds * 1000)),
                 retry_options=types.HttpRetryOptions(

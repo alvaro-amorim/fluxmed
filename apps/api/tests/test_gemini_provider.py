@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass, field
 
+import httpx
 import pytest
 from google.genai import types
 
@@ -21,12 +22,6 @@ class _FakeInteractionUsage:
 
 
 @dataclass
-class _FakeGenerateUsage:
-    prompt_token_count: int = 21
-    candidates_token_count: int = 9
-
-
-@dataclass
 class _FakeFunctionCallStep:
     id: str = "call-1"
     name: str = "select_assistant_context"
@@ -39,12 +34,6 @@ class _FakeInteraction:
     output_text: str = ""
     usage: _FakeInteractionUsage = field(default_factory=_FakeInteractionUsage)
     steps: list[object] = field(default_factory=list)
-
-
-@dataclass
-class _FakeGenerateResponse:
-    text: str = "O custo total da operação é R$ 400,38."
-    usage_metadata: _FakeGenerateUsage = field(default_factory=_FakeGenerateUsage)
 
 
 class _FakeInteractions:
@@ -60,62 +49,74 @@ class _FakeInteractions:
         return self._interaction
 
 
-class _FakeModels:
-    def __init__(self, response: object | None = None, error: Exception | None = None) -> None:
-        self.requests: list[dict[str, object]] = []
-        self._response = response or _FakeGenerateResponse()
-        self._error = error
-
-    def generate_content(
-        self,
-        *,
-        model: str,
-        contents: object,
-        config: object | None = None,
-    ) -> object:
-        self.requests.append({"model": model, "contents": contents, "config": config})
-        if self._error is not None:
-            raise self._error
-        return self._response
-
-
 class _FakeClient:
     def __init__(
         self,
         *,
         interaction: object | None = None,
-        response: object | None = None,
         interaction_error: Exception | None = None,
-        model_error: Exception | None = None,
     ) -> None:
         self._interactions = _FakeInteractions(interaction, interaction_error)
-        self._models = _FakeModels(response, model_error)
         self.closed = False
 
     @property
     def interactions(self) -> _FakeInteractions:
         return self._interactions
 
-    @property
-    def models(self) -> _FakeModels:
-        return self._models
-
     def close(self) -> None:
         self.closed = True
 
 
-class BadRequestError(Exception):
-    status_code = 400
-    message = "invalid request"
+class _FakeHttpResponse:
+    def __init__(
+        self,
+        *,
+        status_code: int = 200,
+        payload: object | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
+        self.status_code = status_code
+        self._payload = payload if payload is not None else _success_payload()
+        self.headers = httpx.Headers(headers or {})
+
+    def json(self) -> object:
+        return self._payload
 
 
-class RateLimitError(Exception):
-    status_code = 429
-    message = "quota exceeded; Please retry in 8.5s"
+def _success_payload() -> dict[str, object]:
+    return {
+        "candidates": [
+            {
+                "content": {
+                    "parts": [
+                        {"text": "O custo total da operação é R$ 400,38."},
+                    ]
+                }
+            }
+        ],
+        "usageMetadata": {
+            "promptTokenCount": 21,
+            "candidatesTokenCount": 9,
+        },
+    }
 
 
-class APITimeoutError(Exception):
-    message = "Request timed out"
+def _install_http_post(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    response: _FakeHttpResponse | None = None,
+    error: Exception | None = None,
+) -> list[dict[str, object]]:
+    requests: list[dict[str, object]] = []
+
+    def fake_post(url: str, **kwargs: object) -> _FakeHttpResponse:
+        requests.append({"url": url, **kwargs})
+        if error is not None:
+            raise error
+        return response or _FakeHttpResponse()
+
+    monkeypatch.setattr("fluxmed.llm.providers.gemini.httpx.post", fake_post)
+    return requests
 
 
 def _request() -> ProviderRequest:
@@ -136,14 +137,15 @@ def _request() -> ProviderRequest:
     )
 
 
-def test_gemini_provider_uses_generate_content_for_grounded_reply() -> None:
-    client = _FakeClient()
+def test_gemini_provider_uses_direct_rest_for_grounded_reply(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requests = _install_http_post(monkeypatch)
     provider = GeminiProvider(
         api_key="test-key",
         model="gemini-3.5-flash-lite",
         timeout_seconds=20,
         thinking_level="minimal",
-        client=client,
     )
 
     turn = provider.generate(_request())
@@ -152,41 +154,48 @@ def test_gemini_provider_uses_generate_content_for_grounded_reply() -> None:
     assert turn.tool_calls == ()
     assert turn.input_tokens == 21
     assert turn.output_tokens == 9
-    assert len(client.models.requests) == 1
-    assert client.interactions.requests == []
-    sent = client.models.requests[0]
-    assert sent["model"] == "gemini-3.5-flash-lite"
-    assert sent["contents"] == "Qual o custo total da operação?"
-    config = sent["config"]
-    assert isinstance(config, types.GenerateContentConfig)
-    assert config.max_output_tokens == 2048
-    assert config.system_instruction is not None
-    assert "backend já executou as consultas autorizadas" in str(config.system_instruction)
-    assert '"total_cost_brl":"400.38"' in str(config.system_instruction)
-    assert config.http_options is not None
-    assert config.http_options.timeout == 20000
-    assert config.http_options.retry_options is not None
-    assert config.http_options.retry_options.attempts == 1
-    assert client.closed is False
+    assert len(requests) == 1
+    sent = requests[0]
+    assert sent["url"] == (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        "gemini-3.5-flash-lite:generateContent"
+    )
+    headers = sent["headers"]
+    assert isinstance(headers, dict)
+    assert headers["x-goog-api-key"] == "test-key"
+    payload = sent["json"]
+    assert isinstance(payload, dict)
+    assert payload["generationConfig"] == {
+        "maxOutputTokens": 2048,
+        "thinkingConfig": {"thinkingLevel": "minimal"},
+    }
+    system_instruction = payload["systemInstruction"]
+    assert isinstance(system_instruction, dict)
+    assert "backend já executou as consultas autorizadas" in str(system_instruction)
+    assert '"total_cost_brl":"400.38"' in str(system_instruction)
+    timeout = sent["timeout"]
+    assert isinstance(timeout, httpx.Timeout)
+    assert timeout.read == 20
 
 
 def test_gemini_provider_logs_only_safe_latency_metadata(
+    monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
+    _install_http_post(monkeypatch)
     caplog.set_level(logging.INFO, logger="fluxmed.llm.providers.gemini")
     provider = GeminiProvider(
         api_key="test-key",
         model="gemini-3.5-flash-lite",
         timeout_seconds=20,
         thinking_level="minimal",
-        client=_FakeClient(),
     )
 
     provider.generate(_request())
 
     assert "gemini_request_started" in caplog.text
     assert "gemini_request_completed" in caplog.text
-    assert "api=generate_content" in caplog.text
+    assert "api=rest_generate_content" in caplog.text
     assert "system_chars=" in caplog.text
     assert "user_chars=" in caplog.text
     assert "elapsed_ms=" in caplog.text
@@ -235,7 +244,6 @@ def test_gemini_provider_exposes_function_tools_and_parses_selection_call() -> N
     assert len(turn.tool_calls) == 1
     assert turn.tool_calls[0].name == "select_assistant_context"
     assert turn.tool_calls[0].arguments == {"tools": ["get_cost_breakdown"]}
-    assert client.models.requests == []
     sent = client.interactions.requests[0]
     assert sent["tools"] == [
         {
@@ -260,47 +268,54 @@ def test_gemini_provider_exposes_function_tools_and_parses_selection_call() -> N
     assert "Contexto confiável desta etapa de planejamento" in system_instruction
 
 
-def test_gemini_provider_maps_generate_content_bad_request() -> None:
+def test_gemini_provider_maps_rest_bad_request(monkeypatch: pytest.MonkeyPatch) -> None:
+    _install_http_post(monkeypatch, response=_FakeHttpResponse(status_code=400))
     provider = GeminiProvider(
         api_key="test-key",
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash-lite",
         timeout_seconds=20,
-        client=_FakeClient(model_error=BadRequestError()),
     )
 
     with pytest.raises(LLMProviderResponseError, match="HTTP 400"):
         provider.generate(_request())
 
 
-def test_gemini_provider_maps_sdk_timeout() -> None:
+def test_gemini_provider_maps_rest_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    _install_http_post(monkeypatch, error=httpx.ReadTimeout("timed out"))
     provider = GeminiProvider(
         api_key="test-key",
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash-lite",
         timeout_seconds=20,
-        client=_FakeClient(model_error=APITimeoutError()),
     )
 
     with pytest.raises(LLMProviderTimeoutError):
         provider.generate(_request())
 
 
-def test_gemini_provider_maps_rate_limit_and_opens_local_cooldown() -> None:
-    client = _FakeClient(model_error=RateLimitError())
+def test_gemini_provider_maps_rest_rate_limit_and_opens_local_cooldown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requests = _install_http_post(
+        monkeypatch,
+        response=_FakeHttpResponse(
+            status_code=429,
+            headers={"retry-after": "8.5"},
+        ),
+    )
     provider = GeminiProvider(
         api_key="test-key",
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash-lite",
         timeout_seconds=20,
-        client=client,
     )
 
     with pytest.raises(LLMProviderRateLimitError):
         provider.generate(_request())
     assert provider.cooldown_remaining_seconds > 0
-    assert len(client.models.requests) == 1
+    assert len(requests) == 1
 
     with pytest.raises(LLMProviderRateLimitError, match="cooldown"):
         provider.generate(_request())
-    assert len(client.models.requests) == 1
+    assert len(requests) == 1
 
 
 def test_gemini_provider_builds_v1beta_client_with_single_attempt_retry_policy(

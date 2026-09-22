@@ -1,8 +1,8 @@
-# FluxMed — Implementação do Assistente IA (Fase 16)
+# FluxMed — Implementação do Assistente IA
 
 ## 1. Objetivo
 
-A Fase 16 adiciona linguagem natural sobre dados operacionais já calculados e validados pelo FluxMed.
+A Fase 16 adicionou linguagem natural sobre dados operacionais já calculados e validados pelo FluxMed. A Fase 18 endureceu grounding, latência, tratamento de erros e comportamento do provider real.
 
 A LLM não substitui:
 
@@ -14,7 +14,7 @@ A LLM não substitui:
 
 A fonte de verdade continua no backend. O modelo interpreta e redige a partir de grounding estruturado autorizado.
 
-## 2. Arquitetura final da Fase 16
+## 2. Arquitetura final da V1
 
 ```text
 React /assistant
@@ -62,7 +62,7 @@ O FluxMed usa Structured RAG: o backend recupera dados oficiais antes da geraç�
 `GroundingPlan` separa:
 
 - `retrieval_tools`: consultas necessárias para resolver dependências e IDs;
-- `exposed_tools`: subconjunto mínimo enviado à LLM.
+- `exposed_tools`: subconjunto mínimo enviado à LLM quando function calling é realmente necessário.
 
 Exemplo de custo:
 
@@ -101,11 +101,11 @@ Perguntas com intenção operacional inequívoca usam roteamento determinístico
 ```text
 pergunta conhecida
     -> GroundingPlan determinístico
-    -> backend executa tools
-    -> uma chamada de geração
+    -> backend executa fontes autorizadas
+    -> geração final grounded
 ```
 
-Isso preserva baixa latência e previsibilidade.
+Perguntas agregadas — por exemplo resumo da operação ou máximo global de entregas por rota — recebem o conjunto estruturado necessário para que a resposta não seja inferida a partir de subconjunto incompleto.
 
 ### Intenção ambígua
 
@@ -127,7 +127,7 @@ O semantic planner:
 - não inventa IDs;
 - não executa as tools;
 - não pode selecionar tools de escrita;
-- não pode selecionar simulações;
+- não pode selecionar simulações não autorizadas;
 - usa histórico somente para resolver referentes conversacionais.
 
 O backend valida os nomes escolhidos contra a allowlist antes de executar qualquer consulta.
@@ -164,12 +164,14 @@ O segundo turno precisa reconfirmar o dado na fonte correta (`get_comparison_res
 
 ## 6. Context minimization
 
-O contexto enviado ao provider é minimizado.
+O contexto enviado ao provider é minimizado sem remover dados necessários para agregações corretas.
 
 Exemplos:
 
-- pergunta de custo não recebe paradas completas;
-- explicação de veículo não recebe toda a operação;
+- pergunta de custo não recebe paradas completas quando elas não são necessárias;
+- explicação de veículo não recebe toda a operação sem necessidade;
+- resumo multi-métrica recebe o resumo operacional completo;
+- perguntas sobre máximo/mínimo entre rotas recebem o conjunto de rotas relevante;
 - instruções ao motorista recebem contexto narrativo já enriquecido;
 - histórico é bounded;
 - o semantic planner recebe somente descrições curtas das fontes candidatas.
@@ -204,20 +206,31 @@ LLM_MAX_OUTPUT_CHARS=6000
 LLM_MAX_CONTEXT_CHARS=30000
 ```
 
-O Gemini usa o SDK oficial `google-genai` e a Interactions API.
+### Caminho Gemini na V1 endurecida
 
-## 8. Reuso de cliente, retries e cooldown
+O provider usa dois caminhos distintos:
 
-O provider Gemini reutiliza cliente/conexões enquanto a configuração do processo não muda.
+1. **resposta final já grounded e sem tools**: chamada direta ao endpoint `generateContent` via `httpx`, com payload controlado pelo backend, timeout explícito e sem cadeia automática de retries do SDK;
+2. **seleção semântica/function calling**: uso controlado do SDK oficial `google-genai`/Interactions para a etapa em que tools são realmente necessárias.
 
-Política de erro:
+Essa separação evita usar uma camada de function calling em respostas que já chegam ao provider com grounding resolvido.
 
-- retries limitados para `408` e `5xx`;
-- `429` não é retentado automaticamente;
-- `429` abre cooldown local respeitando o retry indicado pelo provider quando disponível;
-- timeout é classificado separadamente de indisponibilidade genérica.
+## 8. Timeout, retries, cooldown e observabilidade
 
-Não existe fallback silencioso na Fase 16.
+Durante o hardening da Fase 18 foi identificado que o caminho anterior baseado integralmente no SDK podia exceder o timeout configurado por vários minutos por causa do comportamento interno de retry/timeout da camada usada.
+
+A V1 final trata o problema assim:
+
+- grounded replies sem tools usam REST direto com `httpx`;
+- `LLM_TIMEOUT_SECONDS` é aplicado diretamente à chamada HTTP;
+- não há retry automático no caminho final grounded;
+- function calling continua isolado no caminho que realmente precisa do SDK;
+- `429` abre cooldown local respeitando o `Retry-After` quando disponível;
+- timeout é classificado separadamente de indisponibilidade genérica;
+- logs de latência registram somente metadados seguros, sem prompt, grounding integral ou secret;
+- falhas públicas são sanitizadas.
+
+Não existe fallback silencioso entre providers na V1.
 
 ## 9. Tools de leitura
 
@@ -285,7 +298,7 @@ Regras principais:
 - não misturar métricas de escopos diferentes;
 - custo oficial persistido e `cost_brl` de fitness/comparação não são automaticamente a mesma métrica;
 - não afirmar folga/pressão temporal sem evidência explícita de slack/janelas/margens;
-- não afirmar máximo/mínimo global a partir de um subconjunto incompleto;
+- não afirmar máximo/mínimo global a partir de subconjunto incompleto;
 - não aplicar alterações;
 - não executar SQL livre;
 - não expor secrets;
@@ -326,21 +339,41 @@ Tela `/assistant`:
 - identificação de provider/model;
 - fontes estruturadas usadas em cada resposta;
 - degraded mode;
+- renderização segura de Markdown;
+- Enter envia e Shift+Enter quebra linha;
+- scroll para resposta mais recente;
 - botão `Copiar histórico` para exportar a conversa em Markdown de validação.
 
-Polish visual de Markdown, scroll e fluidez do chat permanece para a Fase 18.
+Esses pontos de UX foram validados no hardening da Fase 18.
 
 ## 15. Validação manual com Gemini real
 
-A validação final cobriu:
+A validação funcional cobriu:
 
 ### Fluxos acadêmicos principais
 
-1. custo total da operação;
+1. custo/resumo total da operação;
 2. explicação de veículo;
 3. instruções para motorista;
 4. relatório diário;
 5. simulação de remoção de ajudante.
+
+### Perguntas agregadas validadas no E2E final
+
+Foram validadas, entre outras:
+
+```text
+Resuma a operação e informe total de entregas, veículos utilizados,
+custo total, distância, makespan, atrasos críticos e percentual no prazo.
+```
+
+E, em follow-up:
+
+```text
+Qual rota possui mais entregas e quantas entregas ela possui?
+```
+
+A segunda pergunta foi respondida a partir do conjunto completo das rotas do resumo operacional, evitando concluir um máximo global a partir de uma entrega ou rota isolada.
 
 ### Linguagem aberta / seleção semântica
 
@@ -387,14 +420,13 @@ Validado que o assistente:
 - não confirma aplicação de troca de motorista;
 - não afirma "maior folga" global quando faltam dados completos para calcular o máximo.
 
-### Latência observada
+### Latência e regressão da Fase 18
 
-Em ambiente local com `gemini-3.5-flash-lite` e `thinking_level=minimal`:
+A instrumentação do hardening mostrou que o caminho antigo pelo SDK podia ficar preso por mais de três minutos antes de retornar timeout, apesar de `LLM_TIMEOUT_SECONDS=45`.
 
-- perguntas factuais: geralmente imediatas/poucos segundos;
-- respostas mais pesadas: observadas abaixo de aproximadamente 20 segundos durante a validação manual.
+Depois da separação entre REST direto para grounded replies e SDK para function calling, a validação manual real voltou a responder com sucesso e o E2E completo da V1 foi finalizado com o provider Gemini configurado.
 
-Esses valores são observações de desenvolvimento, não SLA de produção.
+O projeto não publica SLA de latência; os valores observados em desenvolvimento são apenas evidência local.
 
 ## 16. Factualidade de métricas com escopos diferentes
 
@@ -412,11 +444,10 @@ Esses valores possuem escopos diferentes.
 
 Não é permitido escrever `X (ou Y)` como se fossem duas formas da mesma métrica.
 
-## 17. Limitações conscientes após a Fase 16
+## 17. Limitações conscientes da V1
 
-Não são bloqueadores desta fase:
+Não são bloqueadores:
 
-- renderização rica de Markdown no chat;
 - streaming token a token;
 - fallback automático entre providers;
 - analytics avançado de conversa;
@@ -426,9 +457,9 @@ Não são bloqueadores desta fase:
 
 Quando uma pergunta exige uma agregação que o grounding atual não fornece — por exemplo, "maior folga temporal de toda a operação" — o comportamento correto é declarar insuficiência de dados em vez de calcular a partir de um subconjunto.
 
-## 18. Critério de encerramento da Fase 16
+## 18. Estado de encerramento
 
-A parte funcional da LLM é considerada concluída quando há evidência de:
+A parte funcional da LLM está concluída com evidência de:
 
 - provider real funcionando;
 - grounding factual;
@@ -438,10 +469,8 @@ A parte funcional da LLM é considerada concluída quando há evidência de:
 - guardrails contra premissas falsas e prompt injection;
 - simulações sem escrita;
 - telemetria;
-- validação manual dos fluxos acadêmicos.
+- validação manual dos fluxos acadêmicos;
+- regressão específica do provider;
+- E2E final da V1.
 
-Antes do merge ainda é obrigatório:
-
-- executar a suíte local completa;
-- obter CI verde em uma execução que realmente inicialize os jobs;
-- manter a PR e a documentação sincronizadas.
+Após o hardening, a suíte local completa ficou verde. A indisponibilidade de evidência de GitHub Actions por limitação de conta/quota de runners está documentada separadamente em `docs/HARDENING_PLAN.md` e não é tratada como substituto para os checks locais.

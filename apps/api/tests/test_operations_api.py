@@ -1,7 +1,6 @@
 import os
 import uuid
 from collections.abc import Iterator
-from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -108,15 +107,10 @@ def test_rejects_invalid_operation_end_time(authenticated_client: TestClient) ->
     assert response.json()["error"]["code"] == "INVALID_OPERATION_SCHEDULE"
 
 
-def test_dispatch_requires_approved_current_revision(authenticated_client: TestClient) -> None:
+def test_dispatches_only_approved_operation(authenticated_client: TestClient) -> None:
     created = authenticated_client.post("/api/v1/operations", json=_payload())
     assert created.status_code == 201
     operation_id = uuid.UUID(created.json()["id"])
-
-    blocked = authenticated_client.post(f"/api/v1/operations/{operation_id}/dispatch")
-
-    assert blocked.status_code == 409
-    assert blocked.json()["error"]["code"] == "OPERATION_DISPATCH_BLOCKED"
 
     with session_scope() as session:
         operation = session.get(OperationModel, operation_id)
@@ -133,12 +127,10 @@ def test_dispatch_requires_approved_current_revision(authenticated_client: TestC
                 operation_end_time=operation.operation_end_time,
                 traffic_mode=operation.traffic_mode,
                 created_by_user_id=operation.created_by_user_id,
-                approved_at=datetime.now(UTC),
             )
         )
 
     dispatched = authenticated_client.post(f"/api/v1/operations/{operation_id}/dispatch")
-
     assert dispatched.status_code == 200
     assert dispatched.json()["status"] == "DISPATCHED"
 
@@ -146,12 +138,27 @@ def test_dispatch_requires_approved_current_revision(authenticated_client: TestC
         operation = session.get(OperationModel, operation_id)
         assert operation is not None
         assert operation.status is OperationStatus.DISPATCHED
-        revision = session.query(OperationRevisionModel).filter_by(
-            operation_id=operation_id,
-            revision_number=1,
-        ).one()
+        revision = (
+            session.query(OperationRevisionModel)
+            .filter_by(
+                operation_id=operation_id,
+                revision_number=1,
+            )
+            .one()
+        )
         assert revision.status is RevisionStatus.DISPATCHED
         assert revision.dispatched_at is not None
+
+
+def test_dispatch_rejects_non_approved_operation(authenticated_client: TestClient) -> None:
+    created = authenticated_client.post("/api/v1/operations", json=_payload())
+    assert created.status_code == 201
+    operation_id = created.json()["id"]
+
+    response = authenticated_client.post(f"/api/v1/operations/{operation_id}/dispatch")
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "OPERATION_DISPATCH_BLOCKED"
 
 
 def test_dispatched_operation_is_immutable(authenticated_client: TestClient) -> None:

@@ -303,7 +303,7 @@ class GeminiProvider:
                 system_chars,
             )
             raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.") from exc
-        if isinstance(exc, httpx.RequestError) or isinstance(exc, (TimeoutError, ConnectionError)):
+        if isinstance(exc, (httpx.RequestError, TimeoutError, ConnectionError)):
             logger.warning(
                 "gemini_request_transport_error api=%s model=%s elapsed_ms=%d error=%s",
                 api,

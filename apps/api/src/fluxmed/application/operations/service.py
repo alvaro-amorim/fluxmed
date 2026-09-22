@@ -163,7 +163,9 @@ class OperationService:
             )
         )
         if revision is None or revision.status is not RevisionStatus.APPROVED:
-            raise OperationDispatchError("A revisão atual precisa estar aprovada antes do despacho.")
+            raise OperationDispatchError(
+                "A revisão atual precisa estar aprovada antes do despacho."
+            )
 
         model.status = OperationStatus.DISPATCHED
         revision.status = RevisionStatus.DISPATCHED

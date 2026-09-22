@@ -34,7 +34,7 @@ from fluxmed.security.passwords import hash_password
 pytestmark = pytest.mark.integration
 
 
-def test_result_endpoints_return_persisted_plan_and_approve_it() -> None:
+def test_result_endpoints_approve_dispatch_and_freeze_route_team() -> None:
     if not os.getenv("TEST_DATABASE_URL"):
         pytest.skip("TEST_DATABASE_URL is not configured")
 
@@ -175,6 +175,17 @@ def test_result_endpoints_return_persisted_plan_and_approve_it() -> None:
             approval = client.post(f"/api/v1/optimization-runs/{run_id}/approve")
             assert approval.status_code == 200
 
+            dispatch = client.post(f"/api/v1/operations/{operation_id}/dispatch")
+            assert dispatch.status_code == 200
+            assert dispatch.json()["status"] == "DISPATCHED"
+
+            blocked_team_update = client.put(
+                f"/api/v1/routes/{route_id}/team",
+                json={"primary_worker_id": None, "helper_worker_id": None},
+            )
+            assert blocked_team_update.status_code == 409
+            assert blocked_team_update.json()["error"]["code"] == "OPERATION_ALREADY_DISPATCHED"
+
         with session_scope() as session:
             operation = session.get(OperationModel, operation_id)
             revision = session.scalar(
@@ -186,9 +197,10 @@ def test_result_endpoints_return_persisted_plan_and_approve_it() -> None:
                 )
             )
             assert operation is not None
-            assert operation.status is OperationStatus.APPROVED
+            assert operation.status is OperationStatus.DISPATCHED
             assert revision is not None
-            assert revision.status is RevisionStatus.APPROVED
+            assert revision.status is RevisionStatus.DISPATCHED
+            assert revision.dispatched_at is not None
     finally:
         with session_scope() as session:
             session.execute(delete(OperationModel).where(OperationModel.id == operation_id))

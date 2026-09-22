@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass, field
 
 import pytest
@@ -143,6 +144,30 @@ def test_gemini_provider_generates_once_from_grounded_context() -> None:
     assert "backend já executou as consultas autorizadas" in system_instruction
     assert '"total_cost_brl":"400.38"' in system_instruction
     assert client.closed is False
+
+
+def test_gemini_provider_logs_only_safe_latency_metadata(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.INFO, logger="fluxmed.llm.providers.gemini")
+    provider = GeminiProvider(
+        api_key="test-key",
+        model="gemini-3.5-flash-lite",
+        timeout_seconds=20,
+        thinking_level="minimal",
+        client=_FakeClient(),
+    )
+
+    provider.generate(_request())
+
+    assert "gemini_request_started" in caplog.text
+    assert "gemini_request_completed" in caplog.text
+    assert "system_chars=" in caplog.text
+    assert "user_chars=" in caplog.text
+    assert "elapsed_ms=" in caplog.text
+    assert "test-key" not in caplog.text
+    assert "Qual o custo total da operação?" not in caplog.text
+    assert "400.38" not in caplog.text
 
 
 def test_gemini_provider_exposes_function_tools_and_parses_selection_call() -> None:

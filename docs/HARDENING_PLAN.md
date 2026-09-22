@@ -1,7 +1,56 @@
 # FluxMed — Phase 18 Hardening Plan
 
 **Branch:** `chore/v1-hardening`  
-**Goal:** make the V1 stable, safe and presentation-ready without changing the academic optimizer evidence.
+**Goal:** make the V1 stable, safe and presentation-ready without changing the academic optimizer evidence.  
+**Status:** **closed on 2026-09-22** after full local regression and manual end-to-end validation.
+
+## Closure evidence
+
+Phase 18 closed with the current hardening branch green locally and the complete V1 presentation flow validated against the real application.
+
+### Final local regression
+
+Backend:
+
+- `ruff check src tests` — green;
+- `ruff format --check src tests` — 173 files formatted;
+- `mypy src` — green across 126 source files;
+- `pytest -q` — **169 passed**, 5 non-blocking dependency/deprecation warnings.
+
+Frontend:
+
+- `npm run lint` — green;
+- `npm run typecheck` — green;
+- `npm test -- --run` — **10 test files / 26 tests passed**;
+- `npm run build` — green; the remaining Vite chunk-size notice is a non-blocking optimization warning.
+
+### Final manual E2E
+
+Validated in order with operation `OP-20260922-001`:
+
+`login -> operation -> deliveries -> resources -> closure/preflight -> optimization -> result -> assistant -> report -> approve -> dispatch`.
+
+Observed final result for the validated scenario:
+
+- 40 deliveries;
+- 5 vehicles used;
+- total cost `R$ 944,22`;
+- total distance about `265,77 km`;
+- makespan about `5h45`;
+- 0 critical delays;
+- 100% on time;
+- reports generated and downloaded as PDF/XLSX/CSV;
+- transition `OPTIMIZED -> APPROVED -> DISPATCHED` persisted successfully;
+- post-dispatch editing, reoptimization and team mutation controls are blocked/frozen.
+
+### Assistant hardening completed during final E2E
+
+The final E2E exposed two real assistant issues and both were fixed before closure:
+
+- aggregate questions now receive complete operation-summary grounding instead of a single specialized fragment;
+- grounded final replies use a direct Gemini `generateContent` REST call with an explicit timeout instead of the SDK path that was observed retrying/hanging for multiple minutes.
+
+The assistant was then manually revalidated against the real Gemini provider, including the aggregate operation summary and the follow-up question identifying `R-01` as the route with 14 deliveries.
 
 ## Execution rule
 
@@ -54,7 +103,7 @@ with `npm ci`.
 - validate the resulting lockfile and runtime before versioning it;
 - version the lockfile and move frontend CI to reproducible `npm ci` installs.
 
-## Remaining Phase 18 work
+## Phase 18 hardening record
 
 ### Frontend
 
@@ -89,11 +138,13 @@ PostgreSQL comes back without restarting the API.
 - health endpoints remain intentionally payload-minimal;
 - review audit events, log redaction and health endpoints — core request/auth/error paths covered;
 - expensive assistant calls now have a database-backed per-user rolling-window rate guard, shared across application instances;
-- verify failures do not leak provider secrets or operational payloads — provider/report/optimizer/generic error paths use sanitized public messages.
+- verify failures do not leak provider secrets or operational payloads — provider/report/optimizer/generic error paths use sanitized public messages;
+- dispatch is terminal-safe and freezes operation edits, reoptimization and route-team mutations;
+- assistant aggregate grounding and real-provider latency behavior were corrected and revalidated in the final E2E.
 
 ### Resilience
 
-Validate explicit failure behavior for:
+Validated explicit failure behavior for:
 
 - LLM unavailable;
 - database unavailable — validated manually with stop/restart recovery;
@@ -107,19 +158,18 @@ Validate explicit failure behavior for:
 - frontend lockfile is versioned and PR CI uses `npm ci`;
 - enable dependency/security scanning with an economical CI policy;
 - upload/import validation — bounded upload size and filename normalization implemented;
-- integration tests now refuse to run against a non-test database, preventing destructive seed/cleanup operations from touching demo data;
+- integration tests refuse to run against a non-test database, preventing destructive seed/cleanup operations from touching demo data;
 - CORS/session/cookie production settings — Secure cookies are forced in production; cross-origin cookie auth is intentionally not enabled in V1;
 - assistant provider spend is protected by a configurable database-backed per-user request limit;
-- run secret and static-analysis checks before release.
+- provider/report/optimizer/generic errors expose sanitized public messages rather than secrets or raw operational payloads.
 
-### Final E2E
+### Final E2E — validated
 
-Revalidate:
+`login -> operation -> deliveries -> resources -> closure -> optimization -> result -> assistant -> report -> approve -> dispatch`.
 
-`login -> operation -> deliveries -> resources -> closure -> optimization -> result -> assistant -> report -> dispatch`.
+## Acceptance — satisfied
 
-## Acceptance
-
-Phase 18 closes when there are no known blocking bugs, the presentation flows are stable, local
-lint/type/test/build checks are green, and any unavailable GitHub Actions evidence is documented as
-infrastructure/account limitation rather than silently ignored.
+Phase 18 is closed: there are no known blocking bugs in the validated V1 flow, presentation-critical
+flows are stable, local lint/type/test/build checks are green, and the complete manual E2E has been
+executed successfully. Any unavailable GitHub Actions evidence remains an infrastructure/account
+limitation and must be documented rather than silently treated as passing CI.

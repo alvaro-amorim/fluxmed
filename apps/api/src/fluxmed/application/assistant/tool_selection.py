@@ -335,6 +335,4 @@ def _is_referential_follow_up(value: str) -> bool:
         r"\bessa baseline\b",
         r"\bessa solucao\b",
     )
-    return any(
-        re.search(pattern, value) for pattern in patterns
-    )
+    return any(re.search(pattern, value) for pattern in patterns)

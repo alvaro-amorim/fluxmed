@@ -51,8 +51,25 @@ class _FakeToolbox(AssistantToolbox):
                         "operation_code": "OP-1",
                     },
                     "optimization": {
-                        "total_cost_brl": "400.38",
-                        "routes": [{"route_id": str(self.route_id)}],
+                        "delivery_count": 40,
+                        "vehicles_used": 5,
+                        "total_cost_brl": "944.22",
+                        "distance_km": "265.8",
+                        "makespan_minutes": "345",
+                        "critical_delays": 0,
+                        "on_time_percentage": "100.0",
+                        "routes": [
+                            {
+                                "route_id": str(self.route_id),
+                                "route_code": "R-01",
+                                "delivery_count": 14,
+                            },
+                            {
+                                "route_id": str(uuid.uuid4()),
+                                "route_code": "R-02",
+                                "delivery_count": 6,
+                            },
+                        ],
                     },
                 },
             )
@@ -60,7 +77,7 @@ class _FakeToolbox(AssistantToolbox):
             return ToolResult(
                 call_id=call.id,
                 name=call.name,
-                content={"total_cost_brl": "400.38"},
+                content={"total_cost_brl": "944.22"},
             )
         if call.name == "get_route_details":
             return ToolResult(
@@ -91,7 +108,7 @@ class _FakeToolbox(AssistantToolbox):
         return ToolResult(call_id=call.id, name=call.name, content={})
 
 
-def test_grounding_executes_resolver_but_exposes_only_cost_payload() -> None:
+def test_grounding_exposes_summary_and_cost_payload() -> None:
     operation_id = uuid.uuid4()
     route_id = uuid.uuid4()
     vehicle_id = uuid.uuid4()
@@ -111,9 +128,64 @@ def test_grounding_executes_resolver_but_exposes_only_cost_payload() -> None:
     ]
     grounding = bundle.context["grounding"]
     assert isinstance(grounding, list)
-    assert len(grounding) == 1
-    assert grounding[0]["tool"] == "get_cost_breakdown"
-    assert grounding[0]["data"] == {"total_cost_brl": "400.38"}
+    assert [entry["tool"] for entry in grounding] == [
+        "get_operation_summary",
+        "get_cost_breakdown",
+    ]
+    assert grounding[0]["data"]["optimization"]["total_cost_brl"] == "944.22"
+    assert grounding[1]["data"] == {"total_cost_brl": "944.22"}
+
+
+def test_multi_metric_operation_overview_exposes_complete_summary() -> None:
+    operation_id = uuid.uuid4()
+    route_id = uuid.uuid4()
+    vehicle_id = uuid.uuid4()
+    toolbox = _FakeToolbox(operation_id, route_id, vehicle_id)
+
+    bundle = AssistantGroundingBuilder(
+        toolbox,
+        operation_id=operation_id,
+        route_id=None,
+        delivery_id=None,
+    ).build(
+        "Resuma a operação OP-1 e informe o total de entregas, veículos utilizados, "
+        "custo total, distância, makespan, atrasos críticos e percentual de entregas no prazo."
+    )
+
+    assert bundle.plan.intent == AssistantIntent.GENERAL
+    assert [result.name for result in bundle.results] == ["get_operation_summary"]
+    grounding = bundle.context["grounding"]
+    assert isinstance(grounding, list)
+    assert [entry["tool"] for entry in grounding] == ["get_operation_summary"]
+    optimization = grounding[0]["data"]["optimization"]
+    assert optimization["delivery_count"] == 40
+    assert optimization["vehicles_used"] == 5
+    assert optimization["distance_km"] == "265.8"
+    assert optimization["makespan_minutes"] == "345"
+    assert optimization["critical_delays"] == 0
+    assert optimization["on_time_percentage"] == "100.0"
+
+
+def test_route_delivery_extreme_uses_complete_operation_summary() -> None:
+    operation_id = uuid.uuid4()
+    route_id = uuid.uuid4()
+    vehicle_id = uuid.uuid4()
+    toolbox = _FakeToolbox(operation_id, route_id, vehicle_id)
+
+    bundle = AssistantGroundingBuilder(
+        toolbox,
+        operation_id=operation_id,
+        route_id=None,
+        delivery_id=None,
+    ).build("Qual rota possui mais entregas e quantas entregas ela possui?")
+
+    assert bundle.plan.intent == AssistantIntent.GENERAL
+    assert [result.name for result in bundle.results] == ["get_operation_summary"]
+    grounding = bundle.context["grounding"]
+    assert isinstance(grounding, list)
+    routes = grounding[0]["data"]["optimization"]["routes"]
+    assert routes[0]["route_code"] == "R-01"
+    assert routes[0]["delivery_count"] == 14
 
 
 def test_grounding_resolves_first_route_then_vehicle_without_exposing_stops() -> None:
@@ -142,7 +214,12 @@ def test_grounding_resolves_first_route_then_vehicle_without_exposing_stops() ->
     }
     grounding = bundle.context["grounding"]
     assert isinstance(grounding, list)
-    route_entry = grounding[0]
+    assert [entry["tool"] for entry in grounding] == [
+        "get_operation_summary",
+        "get_route_details",
+        "get_vehicle_details",
+    ]
+    route_entry = grounding[1]
     assert route_entry["tool"] == "get_route_details"
     assert "stops" not in route_entry["data"]
 

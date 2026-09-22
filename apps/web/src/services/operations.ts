@@ -32,6 +32,12 @@ export function updateOperation(
   })
 }
 
+export function dispatchOperation(operationId: string): Promise<Operation> {
+  return apiRequest<Operation>(`/api/v1/operations/${operationId}/dispatch`, {
+    method: 'POST',
+  })
+}
+
 export function validateOperation(operationId: string): Promise<PreflightResponse> {
   return apiRequest<PreflightResponse>(`/api/v1/operations/${operationId}/validate`, {
     method: 'POST',

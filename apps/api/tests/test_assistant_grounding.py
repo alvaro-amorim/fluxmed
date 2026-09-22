@@ -244,6 +244,4 @@ def test_driver_instructions_expose_only_final_narrative_context() -> None:
     ]
     grounding = bundle.context["grounding"]
     assert isinstance(grounding, list)
-    assert [entry["tool"] for entry in grounding] == [
-        "generate_driver_instructions"
-    ]
+    assert [entry["tool"] for entry in grounding] == ["generate_driver_instructions"]

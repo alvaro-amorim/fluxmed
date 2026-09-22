@@ -109,6 +109,26 @@ def plan_assistant_grounding(
             exposed_tools=supported("simulate_driver_swap"),
         )
 
+    # Questions that ask for a broad operational overview must see the compact
+    # operation summary directly. A single keyword such as "custo" or "entregas"
+    # must not narrow a multi-metric request to one specialized payload.
+    if _looks_like_operation_overview(normalized):
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.GENERAL,
+            retrieval_tools=supported("get_operation_summary"),
+            exposed_tools=supported("get_operation_summary"),
+        )
+
+    # Global route delivery-count rankings are fully answerable from the route
+    # list already present in the operation summary. Avoid resolving one arbitrary
+    # route/delivery, which would make the provider context partial for an extreme.
+    if _looks_like_route_delivery_aggregate(normalized):
+        return AssistantGroundingPlan(
+            intent=AssistantIntent.GENERAL,
+            retrieval_tools=supported("get_operation_summary"),
+            exposed_tools=supported("get_operation_summary"),
+        )
+
     if _contains_any(
         normalized,
         "custo",
@@ -122,7 +142,7 @@ def plan_assistant_grounding(
         return AssistantGroundingPlan(
             intent=AssistantIntent.COST,
             retrieval_tools=supported("get_operation_summary", "get_cost_breakdown"),
-            exposed_tools=supported("get_cost_breakdown"),
+            exposed_tools=supported("get_operation_summary", "get_cost_breakdown"),
         )
 
     if _contains_any(normalized, "por que", "porque") and _contains_any(
@@ -140,7 +160,11 @@ def plan_assistant_grounding(
                 "get_route_details",
                 "get_vehicle_details",
             ),
-            exposed_tools=supported("get_route_details", "get_vehicle_details"),
+            exposed_tools=supported(
+                "get_operation_summary",
+                "get_route_details",
+                "get_vehicle_details",
+            ),
         )
 
     if _contains_any(
@@ -156,7 +180,7 @@ def plan_assistant_grounding(
         return AssistantGroundingPlan(
             intent=AssistantIntent.ALGORITHM,
             retrieval_tools=supported("get_operation_summary", "get_algorithm_run_summary"),
-            exposed_tools=supported("get_algorithm_run_summary"),
+            exposed_tools=supported("get_operation_summary", "get_algorithm_run_summary"),
         )
 
     if _contains_any(
@@ -170,7 +194,7 @@ def plan_assistant_grounding(
         return AssistantGroundingPlan(
             intent=AssistantIntent.COMPARISON,
             retrieval_tools=supported("get_operation_summary", "get_comparison_results"),
-            exposed_tools=supported("get_comparison_results"),
+            exposed_tools=supported("get_operation_summary", "get_comparison_results"),
         )
 
     if _contains_any(normalized, "entrega", "destinatario", "endereco", "risco"):
@@ -184,7 +208,7 @@ def plan_assistant_grounding(
         return AssistantGroundingPlan(
             intent=AssistantIntent.DELIVERY,
             retrieval_tools=supported(*delivery_retrieval),
-            exposed_tools=supported("get_delivery_details"),
+            exposed_tools=supported("get_operation_summary", "get_delivery_details"),
         )
 
     # Referential follow-ups such as "e ela usou quantos veículos?" must not be
@@ -199,7 +223,11 @@ def plan_assistant_grounding(
                 "get_route_details",
                 "get_vehicle_details",
             ),
-            exposed_tools=supported("get_route_details", "get_vehicle_details"),
+            exposed_tools=supported(
+                "get_operation_summary",
+                "get_route_details",
+                "get_vehicle_details",
+            ),
         )
 
     retrieval: list[str] = ["get_operation_summary"]
@@ -257,6 +285,41 @@ def _normalize(value: str) -> str:
 
 def _contains_any(value: str, *needles: str) -> bool:
     return any(needle in value for needle in needles)
+
+
+def _looks_like_operation_overview(value: str) -> bool:
+    if _contains_any(value, "resuma", "resumo da operacao", "visao geral", "panorama"):
+        return True
+
+    metric_markers = (
+        "total de entrega",
+        "entregas no prazo",
+        "percentual de entrega",
+        "veiculos utiliz",
+        "veiculos usados",
+        "distancia",
+        "makespan",
+        "atrasos crit",
+        "custo total",
+    )
+    return sum(marker in value for marker in metric_markers) >= 3
+
+
+def _looks_like_route_delivery_aggregate(value: str) -> bool:
+    if "rota" not in value or "entrega" not in value:
+        return False
+    if _contains_any(
+        value,
+        "mais entrega",
+        "menos entrega",
+        "maior numero de entrega",
+        "menor numero de entrega",
+        "maior quantidade de entrega",
+        "menor quantidade de entrega",
+        "quantas entrega",
+    ):
+        return True
+    return bool(re.search(r"\b(maior|menor|mais|menos)\b.*\bentreg", value))
 
 
 def _is_referential_follow_up(value: str) -> bool:

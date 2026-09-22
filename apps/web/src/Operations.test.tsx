@@ -160,4 +160,44 @@ describe('operations flow', () => {
     expect(screen.getByText('NO_VEHICLES')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Otimizar rotas' })).toBeDisabled()
   })
+
+  it('dispatches an approved operation and freezes the current revision', async () => {
+    window.history.pushState({}, '', '/operations/operation-id')
+    const approved: Operation = {
+      ...operation,
+      status: 'APPROVED',
+      current_revision_number: 2,
+    }
+    const dispatched: Operation = {
+      ...approved,
+      status: 'DISPATCHED',
+    }
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = typeof input === 'string' ? input : input.toString()
+      const method = init?.method ?? 'GET'
+      if (path.endsWith('/auth/me')) return response(planner)
+      if (path.endsWith('/api/v1/operations/operation-id/dispatch') && method === 'POST') {
+        return response(dispatched)
+      }
+      if (path.endsWith('/api/v1/operations/operation-id') && method === 'GET') {
+        return response(approved)
+      }
+      return response({}, 404)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<App />)
+    const user = userEvent.setup()
+
+    const dispatchButton = await screen.findByRole('button', { name: 'Despachar operação' })
+    await user.click(dispatchButton)
+
+    expect(await screen.findByText('Operação despachada')).toBeInTheDocument()
+    expect(screen.getByText(/revisão atual foi congelada/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Editar operação' })).not.toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/operations/operation-id/dispatch'),
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
 })

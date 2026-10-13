@@ -53,41 +53,45 @@ Também foram validados:
 - transição `OPTIMIZED -> APPROVED -> DISPATCHED`;
 - imutabilidade da revisão/equipe após dispatch.
 
-## Estado Git / PR stack
+## Estado Git / PR stack — concluído em 13/10/2026
 
-A implementação final está empilhada nesta ordem:
+As três PRs foram revisadas, executaram Full CI com sucesso e foram integradas na `main` com commits de merge (sem squash):
 
-1. PR #17 — `feat/llm-assistant` -> `main`;
-2. PR #18 — `feat/academic-benchmarks` -> `feat/llm-assistant`;
-3. PR #19 — `chore/v1-hardening` -> `feat/academic-benchmarks`.
+1. PR #17 — Fase 16 (Assistente IA), merge `0c6ec5af377871b10b043d7bfd478a453e3e4cf2`;
+2. PR #18 — Fase 17 (Benchmarks), merge `1e172f8e77ea44bf3124273173ca3f16c3d5dc70`;
+3. PR #19 — Fase 18 (Hardening), merge `ec51744863cd49dcfada994e6bec8e6a78b28276`.
 
-A relação de ancestry foi verificada: cada branch está estritamente à frente da anterior, sem divergência no stack.
+A `main` foi verificada no commit `ec51744863cd49dcfada994e6bec8e6a78b28276`.
+A branch `chore/v1-release` foi criada exatamente a partir desse commit para iniciar a Fase 19.
 
-Não fazer merge fora dessa ordem.
+## Evidência de CI após os merges
 
-## Limitação conhecida do GitHub Actions
+O GitHub Actions retomou a execução de jobs em 13/10/2026, permitindo a validação real dos três PRs:
 
-Os jobs rápidos do PR #17 chegaram a `failure` antes de qualquer step (`steps=null`), enquanto o Full CI foi corretamente `skipped` pela política de Draft PR.
+- [PR #17 — Full CI verde](https://github.com/alvaro-amorim/fluxmed/actions/runs/38416081953);
+- [PR #18 — Full CI verde](https://github.com/alvaro-amorim/fluxmed/actions/runs/38416715739);
+- [PR #19 — Full CI verde](https://github.com/alvaro-amorim/fluxmed/actions/runs/38417442393).
 
-A limitação de runner/quota/billing está documentada em:
+O último Full CI validou:
 
-- `docs/HARDENING_PLAN.md`;
-- `docs/CI_POLICY.md`.
+- Backend: Ruff, formatação, MyPy strict (126 arquivos), migrations e **169 testes aprovados**;
+- Frontend: lint, typecheck, **26 testes aprovados** e build de produção;
+- E2E automatizado: jornada de login demo com banco real.
 
-Isso não é tratado como evidência de sucesso do CI. A evidência atual de código é a regressão local completa registrada acima.
+Os testes da jornada operacional ponta a ponta registrada acima são evidência de validação manual; o job E2E automatizado do CI cobre especificamente o login demo.
 
-## Gate para iniciar a Fase 19
+O primeiro CI reativado identificou 71 erros de tipagem com SQLAlchemy 2.1.4, que era aceito pela faixa aberta `>=2.0,<3.0`. A dependência foi restringida à série estável `sqlalchemy>=2.0,<2.1` no PR #17 e o Full CI seguinte passou. Falhas históricas anteriores ao início dos jobs eram relacionadas a quota/billing do GitHub Actions, e não constituíam aprovação automática.
 
-Antes de criar `chore/v1-release`:
+## Gate para iniciar a Fase 19 — concluído
 
-- [ ] revisar PR #17;
-- [ ] mergear PR #17 em `main`;
-- [ ] retarget/revisar PR #18 após o merge anterior;
-- [ ] mergear PR #18;
-- [ ] retarget/revisar PR #19;
-- [ ] mergear PR #19;
-- [ ] confirmar `main` contendo a V1 completa;
-- [ ] criar `chore/v1-release` a partir de `main`.
+- [x] revisar PR #17;
+- [x] mergear PR #17 em `main`;
+- [x] retarget/revisar PR #18 após o merge anterior;
+- [x] mergear PR #18;
+- [x] retarget/revisar PR #19;
+- [x] mergear PR #19;
+- [x] confirmar `main` contendo a V1 completa;
+- [x] criar `chore/v1-release` a partir de `main`.
 
 ## Gate técnico da Fase 19
 

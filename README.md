@@ -331,73 +331,25 @@ Consulte [`benchmarks/README.md`](benchmarks/README.md) e [`docs/BENCHMARK_PLAN.
 
 ---
 
-## 8. Como executar localmente
+## 8. Instalação local (recomendada para avaliação)
 
-### Pré-requisitos
+A versão acadêmica é executada **localmente**, sem serviço em nuvem. O Docker Compose prepara PostgreSQL/PostGIS, migrations, a cidade Santa Aurora, backend e frontend.
 
-- Python `>=3.12,<3.14`;
-- Node.js `>=20`;
-- Docker / Docker Compose;
-- Git.
-
-### 8.1 Configuração inicial
-
-Na raiz do repositório:
+Pré-requisitos: Git, Docker Desktop com Compose v2 e acesso ao repositório. Na raiz:
 
 ```powershell
+# Windows PowerShell
 Copy-Item .env.example .env
-
-docker compose up -d db
+docker compose up --build -d
 ```
 
-### 8.2 Backend
+No macOS/Linux, substitua o primeiro comando por `cp .env.example .env`.
 
-```powershell
-cd apps\api
+Abra **http://localhost:5173** e entre com `planner@fluxmed.demo` / `FluxMedDemo2026!`. O primeiro start pode demorar devido ao seed da cidade. A saída `Exited (0)` do container `init` é esperada.
 
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+O Assistente inicia no modo `mock`; o uso de Gemini real exige `GEMINI_API_KEY` no `.env` local e `LLM_PROVIDER=gemini`, sem publicar segredos.
 
-alembic upgrade head
-python -m fluxmed.scripts.seed_demo
-
-uvicorn fluxmed.main:app --app-dir src --reload
-```
-
-Backend local:
-
-```text
-http://127.0.0.1:8000
-```
-
-### 8.3 Frontend
-
-Em outro terminal:
-
-```powershell
-cd apps\web
-npm ci
-npm run dev
-```
-
-Frontend local:
-
-```text
-http://localhost:5173
-```
-
-### 8.4 Conta demonstrativa
-
-Os valores padrão estão em `.env.example` e podem ser substituídos no `.env` local:
-
-```text
-E-mail: planner@fluxmed.demo
-Senha: FluxMedDemo2026!
-```
-
-Nunca versione o `.env` real nem chaves de providers externos.
+**Guia completo de instalação, execução manual, solução de problemas e avaliação:** [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md).
 
 ---
 

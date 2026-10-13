@@ -1,8 +1,6 @@
 # Local academic/demo stack. Run from the repository root after copying .env.example to .env.
 x-api-common: &api-common
   image: fluxmed-api:local
-  build:
-    context: ./apps/api
   env_file:
     - .env
   environment:
@@ -27,6 +25,10 @@ services:
 
   init:
     <<: *api-common
+    # Build the shared API image exactly once (Docker Desktop BuildKit can race
+    # when two Compose services export the same image tag concurrently).
+    build:
+      context: ./apps/api
     restart: "no"
     depends_on:
       db:
@@ -35,6 +37,8 @@ services:
 
   api:
     <<: *api-common
+    # The init service builds this image before containers start; never pull it.
+    pull_policy: never
     depends_on:
       init:
         condition: service_completed_successfully

@@ -93,47 +93,44 @@ O primeiro CI reativado identificou 71 erros de tipagem com SQLAlchemy 2.1.4, qu
 - [x] confirmar `main` contendo a V1 completa;
 - [x] criar `chore/v1-release` a partir de `main`.
 
-## Gate técnico da Fase 19
+## Fase 19 — Finalização e entrega acadêmica local
 
-Na branch de release:
+**Decisão de escopo:** sem deploy em nuvem. O professor executará o projeto a partir do GitHub em sua máquina. A execução em nuvem é opcional no Tech Challenge.
 
-- [ ] decidir o deploy real com base nas limitações medidas do backend/GA;
-- [ ] configurar variáveis de produção sem versionar secrets;
-- [ ] provisionar PostgreSQL/PostGIS;
-- [ ] aplicar migrations em banco limpo;
-- [ ] executar seed da cidade e usuário demo;
-- [ ] validar health/readiness;
-- [ ] configurar provider LLM real para a demonstração;
-- [ ] executar smoke pós-deploy;
-- [ ] executar secret/dependency/static-analysis checks disponíveis;
-- [ ] registrar qualquer limitação de CI/infrastrutura que permaneça externa ao código;
-- [ ] preparar release notes;
-- [ ] criar tag `v1.0.0` somente após smoke verde.
+### Entrega executável
 
-## Smoke mínimo de release
+- [x] auditar dependências, banco, migrações, seed, autenticação e configurações de IA;
+- [x] adicionar Docker Compose para banco + etapa de inicialização + API + frontend;
+- [x] preservar um processo de API para o GA em segundo plano;
+- [x] manter proxy HTTP/SSE com cookies no mesmo domínio do navegador;
+- [x] adicionar Dockerfiles e .dockerignore de API e frontend;
+- [x] escrever guia para clone e execução local;
+- [x] criar workflow de smoke Docker Compose;
+- [ ] confirmar workflow Docker Compose **verde** no GitHub Actions;
+- [ ] executar instalação limpa e validação manual do fluxo completo;
+- [ ] confirmar acesso do avaliador ao repositório (atualmente privado).
+
+### Entregáveis acadêmicos
+
+- [ ] consolidar relatório técnico: GA, representação, operadores, restrições, benchmarks, LLM, resultados e desafios;
+- [ ] documentar a adaptação do código-base TSP do professor, se disponibilizado;
+- [ ] preparar e publicar vídeo demonstrativo de até 15 minutos;
+- [ ] revisar documentação, verificação de segredos e evidências finais;
+- [ ] abrir/revisar PR da release e integrar em main após checks e instalação limpa;
+- [ ] criar tag `v1.0.0` somente após aceite.
+
+### Roteiro de validação local
 
 ```text
-frontend abre
-login funciona
-operações carregam
-Santa Aurora carrega
-criar operação pequena
-adicionar/gerar demanda
-selecionar recursos
-preflight válido
-otimizar cenário pequeno
-abrir resultado
-consultar Assistente IA
-gerar relatório
-aprovar
-despachar
-confirmar imutabilidade
+clone → .env.example → docker compose up --build -d
+PostGIS → migrations → Santa Aurora → login
+operação pequena → demanda → frota/equipe → preflight
+otimização/GA/SSE → resultado → assistente
+PDF/XLSX/CSV → aprovação → dispatch → imutabilidade
 ```
 
-## Regra de congelamento
+O modo `mock` valida o fluxo sem chave externa; a integração real com Gemini deverá ser demonstrada e documentada separadamente, sem expor credenciais.
 
-Durante a Fase 19:
+### Congelamento
 
-> corrigir bloqueadores; não ampliar escopo.
-
-O objetivo da próxima fase é disponibilizar, demonstrar e congelar a V1 acadêmica, não iniciar uma V2.
+Durante a Fase 19, somente corrigir problemas impeditivos de instalação, segurança, testes e entrega — sem introduzir novas funcionalidades.

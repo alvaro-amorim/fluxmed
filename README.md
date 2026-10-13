@@ -452,23 +452,31 @@ O build pode emitir aviso de bundle/chunk grande do mapa; isso é tratado como o
 
 ---
 
-## 12. Configurando o Assistente IA
+## 12. Configurando e avaliando o Assistente IA
 
-Por padrão, o projeto pode operar com provider mock sem consumo externo:
+A instalação local inicia com o **provider simulado**:
 
-```env
+```dotenv
 LLM_PROVIDER=mock
 LLM_MODEL=fluxmed-mock-v1
 ```
 
-Para testar Gemini localmente, configure somente no `.env` não versionado:
+Isso permite testar interface e consultas do backend, mas **não executa uma LLM real** e não comprova a integração Gemini exigida no trabalho acadêmico.
 
-```env
+Para testar o Gemini, o avaliador deve usar uma chave de API **da própria conta**, com acesso/cota disponível. Substitua as linhas correspondentes no arquivo local `.env` (não versionado):
+
+```dotenv
 LLM_PROVIDER=gemini
 LLM_MODEL=gemini-3.5-flash-lite
 LLM_THINKING_LEVEL=minimal
-GEMINI_API_KEY=replace-me
+GEMINI_API_KEY=SUA_CHAVE_PESSOAL_AQUI
 ```
+
+Reinicie só a API com `docker compose up -d --force-recreate api`. Abra uma operação otimizada no Assistente, confirme o provedor/modelo e envie uma pergunta factual para verificar que houve resposta real. Um indicador de saúde por si só não comprova a conectividade com o Google. Não há fallback silencioso para mock quando o Gemini falha.
+
+A chave do autor **não será publicada nem compartilhada**. A prova da integração real será apresentada também no vídeo acadêmico, usando a chave apenas no computador do autor. Quem quiser repetir a chamada real precisará configurar sua própria chave; isso pode estar sujeito a cotas/custos do provedor.
+
+**Instruções, exemplos de perguntas, cuidados com credenciais e roteiro de evidências:** [docs/ASSISTANT_EVALUATION.md](docs/ASSISTANT_EVALUATION.md).
 
 O backend aplica timeout, limite de contexto, limite de saída, sanitização de falhas e rate limiting por usuário.
 

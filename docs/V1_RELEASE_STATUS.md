@@ -106,8 +106,8 @@ O primeiro CI reativado identificou 71 erros de tipagem com SQLAlchemy 2.1.4, qu
 - [x] adicionar Dockerfiles e .dockerignore de API e frontend;
 - [x] escrever guia para clone e execução local;
 - [x] criar workflow de smoke Docker Compose;
-- [ ] confirmar workflow Docker Compose **verde** no GitHub Actions;
-- [ ] executar instalação limpa e validação manual do fluxo completo;
+- [x] confirmar workflow Docker Compose **verde** no GitHub Actions ([smoke após correção de Docker](https://github.com/alvaro-amorim/fluxmed/actions/runs/38481422992));
+- [x] validar clone limpo no Windows: Docker, PostGIS, migrations, seed, frontend e login; otimização de 20 entregas em 3 veículos (100% no prazo), PDF/XLSX/CSV e operação despachada, conforme prints enviados pelo autor;
 - [ ] confirmar acesso do avaliador ao repositório (atualmente privado).
 
 ### Entregáveis acadêmicos
@@ -115,7 +115,7 @@ O primeiro CI reativado identificou 71 erros de tipagem com SQLAlchemy 2.1.4, qu
 - [ ] consolidar relatório técnico: GA, representação, operadores, restrições, benchmarks, LLM, resultados e desafios;
 - [ ] documentar a adaptação do código-base TSP do professor, se disponibilizado;
 - [ ] preparar e publicar vídeo demonstrativo de até 15 minutos;
-- [ ] revisar documentação, verificação de segredos e evidências finais;
+- [ ] concluir verificação final de segredos e das evidências antes da tag (documentação mock/Gemini pronta);
 - [ ] abrir/revisar PR da release e integrar em main após checks e instalação limpa;
 - [ ] criar tag `v1.0.0` somente após aceite.
 
@@ -129,7 +129,11 @@ otimização/GA/SSE → resultado → assistente
 PDF/XLSX/CSV → aprovação → dispatch → imutabilidade
 ```
 
-O modo `mock` valida o fluxo sem chave externa; a integração real com Gemini deverá ser demonstrada e documentada separadamente, sem expor credenciais.
+O modo `mock` permite explorar a interface e o grounding, mas não produz chamadas reais à LLM. A integração Gemini real foi verificada manualmente durante o desenvolvimento e deverá ser demonstrada no vídeo acadêmico, sem expor credenciais.
+
+O avaliador que desejar repetir uma chamada Gemini precisa configurar a própria chave no `.env` local. A documentação reproduzível está em [ASSISTANT_EVALUATION.md](ASSISTANT_EVALUATION.md).
+
+A instalação limpa no Windows confirmou o estado `DISPATCHED` e os três relatórios `Pronto`; a tentativa específica de alteração após despacho não foi novamente evidenciada nos prints desta instalação e permanece coberta pelos testes anteriores.
 
 ### Congelamento
 

@@ -25,6 +25,23 @@ jobs:
         run: cp .env.example .env
       - name: Validate Compose config
         run: docker compose config --quiet
+      - name: Check shared API image builds exactly once
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+
+          config = json.loads(subprocess.check_output(
+              ["docker", "compose", "config", "--format", "json"],
+              text=True,
+          ))
+          api_builders = [
+              name for name, service in config["services"].items()
+              if service.get("image") == "fluxmed-api:local" and "build" in service
+          ]
+          assert api_builders == ["init"], f"Expected one API image builder, got {api_builders}"
+          assert config["services"]["api"].get("pull_policy") == "never"
+          PY
       - name: Build and start all local services
         run: docker compose up --build --detach
       - name: Confirm UI, database readiness, and cookie-based login through Vite proxy

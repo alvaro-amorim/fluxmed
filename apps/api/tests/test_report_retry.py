@@ -7,7 +7,11 @@ import pytest
 from sqlalchemy.orm import Session
 
 from fluxmed.application.reports.retry import ReportRetryService
-from fluxmed.application.reports.service import ReportInputError, ReportService
+from fluxmed.application.reports.service import (
+    REPORT_GENERATION_FAILED_MESSAGE,
+    ReportInputError,
+    ReportService,
+)
 from fluxmed.infrastructure.models.report import ReportModel
 
 
@@ -77,3 +81,37 @@ def test_retry_rejects_report_that_did_not_fail() -> None:
 
     with pytest.raises(ReportInputError, match="Apenas relatórios com falha"):
         ReportRetryService(session).retry(report.id, actor_user_id=uuid.uuid4())
+
+
+def test_retry_generation_failure_is_sanitized_and_preserves_source(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = _failed_report()
+    original_snapshot = deepcopy(source.snapshot)
+    session = MagicMock(spec=Session)
+    session.get.return_value = source
+
+    def failing_generate(
+        _report_format: str,
+        _snapshot: dict[str, object],
+    ) -> tuple[bytes, str, str]:
+        raise RuntimeError("secret=/tmp/private-report-path")
+
+    monkeypatch.setattr(ReportService, "_generate", staticmethod(failing_generate))
+
+    retried = ReportRetryService(session).retry(
+        source.id,
+        actor_user_id=uuid.uuid4(),
+    )
+    retry_model = session.add.call_args.args[0]
+
+    assert isinstance(retry_model, ReportModel)
+    assert retried.status == "FAILED"
+    assert retry_model.status == "FAILED"
+    assert retry_model.error_message == REPORT_GENERATION_FAILED_MESSAGE
+    assert "secret" not in retry_model.error_message
+    assert retry_model.artifact is None
+    assert retry_model.filename is None
+    assert source.status == "FAILED"
+    assert source.error_message == "falha simulada"
+    assert source.snapshot == original_snapshot

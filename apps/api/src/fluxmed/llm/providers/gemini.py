@@ -3,7 +3,8 @@ import logging
 import re
 import time
 from collections.abc import Mapping
-from typing import Protocol, cast
+from typing import NoReturn, Protocol, cast
+from urllib.parse import quote
 
 import httpx
 from google import genai
@@ -37,7 +38,7 @@ class _GeminiClient(Protocol):
 
 
 class GeminiProvider:
-    """Gemini adapter backed by Google's official Gen AI Interactions API."""
+    """Gemini adapter backed by Google's official SDK plus direct REST for grounded replies."""
 
     def __init__(
         self,
@@ -73,61 +74,156 @@ class GeminiProvider:
         if self.cooldown_remaining_seconds > 0:
             raise LLMProviderRateLimitError("Gemini está em cooldown após um rate limit recente.")
 
-        if self._client is None:
-            self._client = self._build_client()
+        if request.tools:
+            if self._client is None:
+                self._client = self._build_client()
+            return self._generate_interaction(request)
+        return self._generate_content(request)
+
+    def _generate_content(self, request: ProviderRequest) -> ProviderTurn:
+        system_instruction = self._system_instruction(request)
+        request_started = time.perf_counter()
+        system_chars = len(system_instruction)
+        user_chars = len(request.user_message)
+        logger.info(
+            "gemini_request_started api=rest_generate_content model=%s tools=0 "
+            "timeout_seconds=%.1f system_chars=%d user_chars=%d",
+            self._model,
+            self._timeout_seconds,
+            system_chars,
+            user_chars,
+        )
+        url = (
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{quote(self._model, safe='')}:generateContent"
+        )
+        payload: dict[str, object] = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": request.user_message}],
+                }
+            ],
+            "systemInstruction": {"parts": [{"text": system_instruction}]},
+            "generationConfig": {
+                "maxOutputTokens": 2048,
+                "thinkingConfig": {"thinkingLevel": self._thinking_level},
+            },
+        }
+
+        try:
+            response = httpx.post(
+                url,
+                headers={
+                    "x-goog-api-key": self._api_key,
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=httpx.Timeout(self._timeout_seconds),
+            )
+        except Exception as exc:
+            self._raise_provider_error(
+                exc,
+                request_started=request_started,
+                api="rest_generate_content",
+                tool_count=0,
+                system_chars=system_chars,
+            )
+
+        if response.status_code >= 400:
+            self._raise_http_response_error(
+                response,
+                request_started=request_started,
+                api="rest_generate_content",
+                system_chars=system_chars,
+            )
+
+        try:
+            raw_body = response.json()
+        except ValueError as exc:
+            raise LLMProviderResponseError("Gemini retornou JSON inválido.") from exc
+        if not isinstance(raw_body, Mapping):
+            raise LLMProviderResponseError("Gemini retornou uma resposta inválida.")
+        body = cast(Mapping[str, object], raw_body)
+
+        content = self._response_text(body)
+        if not content:
+            raise LLMProviderResponseError("Gemini retornou uma resposta vazia ou inválida.")
+
+        usage = body.get("usageMetadata")
+        input_tokens = 0
+        output_tokens = 0
+        if isinstance(usage, Mapping):
+            input_tokens = self._int(usage.get("promptTokenCount", 0))
+            output_tokens = self._int(usage.get("candidatesTokenCount", 0))
+
+        elapsed_ms = int((time.perf_counter() - request_started) * 1000)
+        logger.info(
+            "gemini_request_completed api=rest_generate_content model=%s elapsed_ms=%d tools=0 "
+            "system_chars=%d input_tokens=%d output_tokens=%d output_chars=%d",
+            self._model,
+            elapsed_ms,
+            system_chars,
+            input_tokens,
+            output_tokens,
+            len(content),
+        )
+        return ProviderTurn(
+            content=content,
+            tool_calls=(),
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+
+    def _generate_interaction(self, request: ProviderRequest) -> ProviderTurn:
         client = self._client
+        if client is None:  # pragma: no cover - guarded by generate()
+            raise LLMProviderError("Cliente Gemini indisponível.")
+
         generation_config: dict[str, object] = {
             "thinking_level": self._thinking_level,
-            "max_output_tokens": 4096,
+            "max_output_tokens": 1024,
         }
+        system_instruction = self._system_instruction(request)
+        request_started = time.perf_counter()
+        tool_count = len(request.tools)
+        system_chars = len(system_instruction)
+        user_chars = len(request.user_message)
+        logger.info(
+            "gemini_request_started api=interactions model=%s tools=%d timeout_seconds=%.1f "
+            "system_chars=%d user_chars=%d",
+            self._model,
+            tool_count,
+            self._timeout_seconds,
+            system_chars,
+            user_chars,
+        )
         create_kwargs: dict[str, object] = {
             "model": self._model,
             "input": request.user_message,
-            "system_instruction": self._system_instruction(request),
+            "system_instruction": system_instruction,
             "generation_config": generation_config,
             "store": False,
             "timeout": self._timeout_seconds,
         }
-        if request.tools:
-            create_kwargs["tools"] = [self._tool(tool) for tool in request.tools]
-            generation_config["tool_choice"] = {
-                "allowed_tools": {
-                    "mode": "any",
-                    "tools": [tool.name for tool in request.tools],
-                }
+        create_kwargs["tools"] = [self._tool(tool) for tool in request.tools]
+        generation_config["tool_choice"] = {
+            "allowed_tools": {
+                "mode": "any",
+                "tools": [tool.name for tool in request.tools],
             }
+        }
 
         try:
             interaction = client.interactions.create(**create_kwargs)
-        except httpx.TimeoutException as exc:
-            logger.warning("Gemini timeout during grounded generation")
-            raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.") from exc
-        except (TimeoutError, ConnectionError) as exc:
-            logger.warning("Gemini transport error: %s", type(exc).__name__)
-            raise LLMProviderError("Falha de comunicação com Gemini.") from exc
         except Exception as exc:
-            code = self._exception_status_code(exc)
-            error_name = type(exc).__name__
-            safe_message = self._safe_exception_message(exc)
-            logger.warning(
-                "Gemini SDK error %s (HTTP %s): %s",
-                error_name,
-                code or "desconhecido",
-                safe_message,
+            self._raise_provider_error(
+                exc,
+                request_started=request_started,
+                api="interactions",
+                tool_count=tool_count,
+                system_chars=system_chars,
             )
-            if code == 429 or error_name == "RateLimitError":
-                cooldown = self._retry_after_seconds(safe_message)
-                self._rate_limited_until = time.monotonic() + cooldown
-                raise LLMProviderRateLimitError(
-                    "Gemini limitou temporariamente as requisições."
-                ) from exc
-            if code == 408 or error_name in {"APITimeoutError", "TimeoutError"}:
-                raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.") from exc
-            if code in {400, 404, 422} or error_name == "BadRequestError":
-                raise LLMProviderResponseError(
-                    f"Gemini rejeitou a requisição (HTTP {code or 400})."
-                ) from exc
-            raise LLMProviderError(f"Gemini retornou HTTP {code or 'desconhecido'}.") from exc
 
         calls = self._tool_calls(interaction)
         raw_content = getattr(interaction, "output_text", None)
@@ -138,12 +234,111 @@ class GeminiProvider:
         usage = getattr(interaction, "usage", None)
         input_tokens = self._int(getattr(usage, "total_input_tokens", 0))
         output_tokens = self._int(getattr(usage, "total_output_tokens", 0))
+        elapsed_ms = int((time.perf_counter() - request_started) * 1000)
+        logger.info(
+            "gemini_request_completed api=interactions model=%s elapsed_ms=%d tools=%d "
+            "system_chars=%d input_tokens=%d output_tokens=%d output_chars=%d tool_calls=%d",
+            self._model,
+            elapsed_ms,
+            tool_count,
+            system_chars,
+            input_tokens,
+            output_tokens,
+            len(content),
+            len(calls),
+        )
         return ProviderTurn(
             content=content,
             tool_calls=calls,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
         )
+
+    def _raise_http_response_error(
+        self,
+        response: httpx.Response,
+        *,
+        request_started: float,
+        api: str,
+        system_chars: int,
+    ) -> NoReturn:
+        elapsed_ms = int((time.perf_counter() - request_started) * 1000)
+        code = response.status_code
+        logger.warning(
+            "Gemini HTTP error status=%d api=%s after %d ms tools=0 system_chars=%d",
+            code,
+            api,
+            elapsed_ms,
+            system_chars,
+        )
+        if code == 429:
+            cooldown = self._retry_after_header_seconds(response.headers.get("retry-after"))
+            self._rate_limited_until = time.monotonic() + cooldown
+            raise LLMProviderRateLimitError("Gemini limitou temporariamente as requisições.")
+        if code in {408, 504}:
+            raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.")
+        if code in {400, 404, 422}:
+            raise LLMProviderResponseError(f"Gemini rejeitou a requisição (HTTP {code}).")
+        raise LLMProviderError(f"Gemini retornou HTTP {code}.")
+
+    def _raise_provider_error(
+        self,
+        exc: Exception,
+        *,
+        request_started: float,
+        api: str,
+        tool_count: int,
+        system_chars: int,
+    ) -> NoReturn:
+        elapsed_ms = int((time.perf_counter() - request_started) * 1000)
+        if isinstance(exc, httpx.TimeoutException):
+            logger.warning(
+                "gemini_request_timeout api=%s model=%s elapsed_ms=%d timeout_seconds=%.1f "
+                "tools=%d system_chars=%d",
+                api,
+                self._model,
+                elapsed_ms,
+                self._timeout_seconds,
+                tool_count,
+                system_chars,
+            )
+            raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.") from exc
+        if isinstance(exc, (httpx.RequestError, TimeoutError, ConnectionError)):
+            logger.warning(
+                "gemini_request_transport_error api=%s model=%s elapsed_ms=%d error=%s",
+                api,
+                self._model,
+                elapsed_ms,
+                type(exc).__name__,
+            )
+            raise LLMProviderError("Falha de comunicação com Gemini.") from exc
+
+        code = self._exception_status_code(exc)
+        error_name = type(exc).__name__
+        safe_message = self._safe_exception_message(exc)
+        logger.warning(
+            "Gemini SDK error %s (HTTP %s) api=%s after %d ms tools=%d system_chars=%d: %s",
+            error_name,
+            code or "desconhecido",
+            api,
+            elapsed_ms,
+            tool_count,
+            system_chars,
+            safe_message,
+        )
+        if code == 429 or error_name == "RateLimitError":
+            cooldown = self._retry_after_seconds(safe_message)
+            self._rate_limited_until = time.monotonic() + cooldown
+            raise LLMProviderRateLimitError(
+                "Gemini limitou temporariamente as requisições."
+            ) from exc
+        if code == 408 or error_name in {"APITimeoutError", "TimeoutError"}:
+            raise LLMProviderTimeoutError("Gemini excedeu o tempo limite.") from exc
+        if code in {400, 404, 422} or error_name == "BadRequestError":
+            raise LLMProviderResponseError(
+                f"Gemini rejeitou a requisição (HTTP {code or 400})."
+            ) from exc
+        raise LLMProviderError(f"Gemini retornou HTTP {code or 'desconhecido'}.") from exc
 
     def close(self) -> None:
         if self._client is not None:
@@ -152,7 +347,7 @@ class GeminiProvider:
 
     def _build_client(self) -> _GeminiClient:
         retry_options = types.HttpRetryOptions(
-            attempts=2,
+            attempts=1,
             initial_delay=1.0,
             max_delay=4.0,
             exp_base=2.0,
@@ -167,6 +362,29 @@ class GeminiProvider:
             ),
         )
         return cast(_GeminiClient, client)
+
+    @staticmethod
+    def _response_text(body: Mapping[str, object]) -> str:
+        candidates = body.get("candidates")
+        if not isinstance(candidates, list) or not candidates:
+            return ""
+        candidate = candidates[0]
+        if not isinstance(candidate, Mapping):
+            return ""
+        content = candidate.get("content")
+        if not isinstance(content, Mapping):
+            return ""
+        parts = content.get("parts")
+        if not isinstance(parts, list):
+            return ""
+        texts: list[str] = []
+        for part in parts:
+            if not isinstance(part, Mapping):
+                continue
+            text = part.get("text")
+            if isinstance(text, str):
+                texts.append(text)
+        return "".join(texts).strip()
 
     @staticmethod
     def _tool(tool: ToolDefinition) -> dict[str, object]:
@@ -249,6 +467,15 @@ class GeminiProvider:
         if self._api_key:
             message = message.replace(self._api_key, "[redacted]")
         return message[:500].replace("\n", " ")
+
+    @staticmethod
+    def _retry_after_header_seconds(value: str | None) -> float:
+        if value is None:
+            return 15.0
+        try:
+            return max(1.0, min(float(value), 120.0))
+        except ValueError:
+            return 15.0
 
     @staticmethod
     def _retry_after_seconds(message: str) -> float:

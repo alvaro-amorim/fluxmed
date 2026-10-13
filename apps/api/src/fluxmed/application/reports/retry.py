@@ -1,3 +1,4 @@
+import logging
 import uuid
 from copy import deepcopy
 from datetime import UTC, datetime
@@ -5,12 +6,15 @@ from datetime import UTC, datetime
 from sqlalchemy.orm import Session
 
 from fluxmed.application.reports.service import (
+    REPORT_GENERATION_FAILED_MESSAGE,
     ReportInputError,
     ReportNotFoundError,
     ReportService,
     ReportView,
 )
 from fluxmed.infrastructure.models.report import ReportModel
+
+logger = logging.getLogger(__name__)
 
 
 class ReportRetryService:
@@ -51,8 +55,14 @@ class ReportRetryService:
             retry.status = "COMPLETED"
             retry.completed_at = datetime.now(UTC)
         except Exception as exc:  # pragma: no cover - defensive persistence boundary
+            logger.warning(
+                "Report retry generation failed report_id=%s format=%s error=%s",
+                retry.id,
+                retry.format,
+                type(exc).__name__,
+            )
             retry.status = "FAILED"
-            retry.error_message = str(exc)[:2000]
+            retry.error_message = REPORT_GENERATION_FAILED_MESSAGE
             retry.completed_at = datetime.now(UTC)
 
         self._session.flush()

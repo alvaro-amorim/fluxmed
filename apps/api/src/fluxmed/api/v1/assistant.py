@@ -1,5 +1,6 @@
 import time
 import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 from fastapi import APIRouter, status
@@ -100,6 +101,7 @@ def assistant_message(
     request_id = uuid.uuid4()
     started = time.perf_counter()
     settings = LLMSettings.from_env()
+    _enforce_rate_limit(settings, current_user.id)
     try:
         provider = build_llm_provider(settings)
     except LLMProviderUnavailableError as exc:
@@ -286,6 +288,21 @@ def assistant_message(
         ],
         suggested_actions=list(reply.suggested_actions),
     )
+
+
+def _enforce_rate_limit(settings: LLMSettings, user_id: uuid.UUID) -> None:
+    if settings.rate_limit_requests <= 0:
+        return
+    since = datetime.now(UTC) - timedelta(seconds=settings.rate_limit_window_seconds)
+    recent_requests = AssistantTelemetryRecorder.count_since(user_id, since)
+    if recent_requests is None:
+        return
+    if recent_requests >= settings.rate_limit_requests:
+        raise ApiError(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "ASSISTANT_RATE_LIMITED",
+            "Muitas solicitações ao Assistente IA em pouco tempo. Tente novamente em instantes.",
+        )
 
 
 def _record_provider_failure(

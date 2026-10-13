@@ -392,6 +392,7 @@ class OptimizationResultService:
         if (
             run is None
             or run.status != OptimizationRunStatus.COMPLETED.value
+            or not run.validated
             or run.operation_revision_id is None
         ):
             raise OptimizationResultNotFoundError(run_id)

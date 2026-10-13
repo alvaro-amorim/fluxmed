@@ -212,4 +212,32 @@ describe('optimization result', () => {
     expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument()
     expect(screen.queryByText('Ainda não existe um plano otimizado')).not.toBeInTheDocument()
   })
+
+  it('keeps dispatched route details read-only', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const path = typeof input === 'string' ? input : input.toString()
+      if (path.endsWith('/operations/operation-1/optimization-runs/latest')) {
+        return response(result)
+      }
+      if (path.endsWith('/operations/operation-1/resources')) {
+        return response(resourcesResponse())
+      }
+      return response({}, 404)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(
+      <OptimizationResultPanel
+        operationId="operation-1"
+        operationStatus="DISPATCHED"
+        onOperationChanged={vi.fn(async () => undefined)}
+      />,
+    )
+
+    expect(await screen.findByText('Plano operacional validado')).toBeInTheDocument()
+    expect(screen.getByText('Equipe congelada após o despacho.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Simular equipe' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Aplicar' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reotimizar' })).toBeDisabled()
+  })
 })

@@ -1,6 +1,7 @@
 """Operation application service."""
 
 from fluxmed.application.operations.service import (
+    OperationDispatchError,
     OperationNotFoundError,
     OperationPage,
     OperationService,
@@ -9,6 +10,7 @@ from fluxmed.application.operations.service import (
 )
 
 __all__ = [
+    "OperationDispatchError",
     "OperationNotFoundError",
     "OperationPage",
     "OperationService",

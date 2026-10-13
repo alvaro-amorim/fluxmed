@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getAssistantStatus, sendAssistantMessage } from '../../services/assistant'
 import { listOperations } from '../../services/operations'
@@ -8,6 +8,7 @@ import type {
   AssistantToolCall,
 } from '../../types/assistant'
 import type { Operation } from '../../types/operations'
+import { AssistantMarkdown } from './AssistantMarkdown'
 import './assistant.css'
 
 interface ChatMessage {
@@ -102,6 +103,8 @@ export function AssistantPage() {
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [copyState, setCopyState] = useState<CopyState>('idle')
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -141,6 +144,16 @@ export function AssistantPage() {
     () => operations.find((operation) => operation.id === operationId) ?? null,
     [operationId, operations],
   )
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const target = messagesEndRef.current
+      if (target && typeof target.scrollIntoView === 'function') {
+        target.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      }
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [messages, sending])
 
   async function ask(message: string) {
     const cleanMessage = message.trim()
@@ -182,6 +195,7 @@ export function AssistantPage() {
       )
     } finally {
       setSending(false)
+      window.setTimeout(() => inputRef.current?.focus(), 0)
     }
   }
 
@@ -201,6 +215,12 @@ export function AssistantPage() {
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    void ask(input)
+  }
+
+  function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return
     event.preventDefault()
     void ask(input)
   }
@@ -267,10 +287,10 @@ export function AssistantPage() {
       <div className="assistant-layout">
         <aside className="assistant-suggestions" aria-label="Perguntas sugeridas">
           <p className="eyebrow eyebrow--dark">Comece por aqui</p>
-          <h2>Demonstração da Fase 16</h2>
+          <h2>Perguntas sugeridas</h2>
           <p>
-            As sugestões exercitam pergunta factual, explicação, instruções, relatório e simulação
-            sem aplicar mudanças ao plano.
+            Use exemplos rápidos para consultar dados, entender decisões, gerar instruções e
+            simular cenários sem aplicar mudanças ao plano.
           </p>
           <div className="assistant-suggestion-list">
             {suggestedQuestions.map((question) => (
@@ -308,7 +328,7 @@ export function AssistantPage() {
             </span>
           </div>
 
-          <div className="assistant-messages" aria-live="polite">
+          <div className="assistant-messages" aria-live="polite" aria-busy={sending}>
             {messages.map((message) => (
               <article
                 key={message.id}
@@ -318,10 +338,16 @@ export function AssistantPage() {
                   <strong>{message.role === 'assistant' ? 'FluxMed IA' : 'Você'}</strong>
                   {message.providerLabel ? <span>{message.providerLabel}</span> : null}
                 </div>
-                <p>{message.content}</p>
+                <div className="assistant-message__content">
+                  {message.role === 'assistant' ? (
+                    <AssistantMarkdown content={message.content} />
+                  ) : (
+                    <p>{message.content}</p>
+                  )}
+                </div>
                 {message.toolCalls && message.toolCalls.length > 0 ? (
                   <div className="assistant-tool-source">
-                    Fonte estruturada:{' '}
+                    {message.toolCalls.length === 1 ? 'Fonte estruturada' : 'Fontes estruturadas'}:{' '}
                     {message.toolCalls.map((tool) => `${tool.name} (${tool.status})`).join(', ')}
                   </div>
                 ) : null}
@@ -332,23 +358,37 @@ export function AssistantPage() {
                 <div className="assistant-message__label">
                   <strong>FluxMed IA</strong>
                 </div>
-                <p>Consultando dados estruturados…</p>
+                <div className="assistant-thinking" role="status">
+                  <span>Consultando dados estruturados</span>
+                  <span className="assistant-thinking__dots" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                </div>
               </article>
             ) : null}
+            <div ref={messagesEndRef} className="assistant-messages__end" aria-hidden="true" />
           </div>
 
           {error ? <p className="form-error assistant-error">{error}</p> : null}
 
           <form className="assistant-composer" onSubmit={submit}>
-            <label htmlFor="assistant-input">Pergunte sobre a operação selecionada</label>
+            <div className="assistant-composer__meta">
+              <label htmlFor="assistant-input">Pergunte sobre a operação selecionada</label>
+              <span id="assistant-input-hint">Enter envia · Shift+Enter quebra linha</span>
+            </div>
             <div className="assistant-composer__row">
               <textarea
+                ref={inputRef}
                 id="assistant-input"
                 rows={3}
                 maxLength={4000}
                 placeholder="Ex.: Qual o custo total da operação?"
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
+                onKeyDown={handleComposerKeyDown}
+                aria-describedby="assistant-input-hint"
                 disabled={!operationId || sending || assistantStatus?.status === 'DEGRADED'}
               />
               <button

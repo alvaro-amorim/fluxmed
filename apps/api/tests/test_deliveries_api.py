@@ -36,12 +36,9 @@ def test_delivery_endpoints_use_real_addresses_and_confirm_import() -> None:
         session.add(user)
         session.flush()
         user_id = user.id
-        city = seed_santa_aurora(
-            session,
-            seed=int(uuid.uuid4().int % 1_000_000_000),
-            dataset_version=f"deliveries-api-{uuid.uuid4().hex[:8]}",
-            replace=True,
-        )
+        city = session.scalar(select(CityModel).where(CityModel.name == "Santa Aurora"))
+        if city is None:
+            city = seed_santa_aurora(session)
         city_id = city.id
         operation = OperationModel(
             operation_code=f"OP-TEST-{uuid.uuid4().hex[:8]}",
@@ -165,4 +162,3 @@ def test_delivery_endpoints_use_real_addresses_and_confirm_import() -> None:
             session.execute(delete(OperationModel).where(OperationModel.id == operation_id))
             session.execute(delete(AuthSessionModel).where(AuthSessionModel.user_id == user_id))
             session.execute(delete(UserModel).where(UserModel.id == user_id))
-            session.execute(delete(CityModel).where(CityModel.id == city_id))

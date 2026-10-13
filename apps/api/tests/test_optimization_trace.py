@@ -7,6 +7,10 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import delete
 
+from fluxmed.application.optimization.results import (
+    OptimizationResultNotFoundError,
+    OptimizationResultService,
+)
 from fluxmed.application.optimization.trace import OptimizationTraceService
 from fluxmed.domain.enums import (
     OperationStatus,
@@ -183,6 +187,7 @@ def test_trace_api_replays_persisted_events_and_resumes_from_last_event_id() -> 
                 headers={"Last-Event-ID": "1"},
             )
             assert stream.status_code == 200
+            assert "retry: 1000" in stream.text
             assert "event: optimization_started" not in stream.text
             assert "id: 2" in stream.text
             assert "event: generation_snapshot" in stream.text
@@ -193,3 +198,56 @@ def test_trace_api_replays_persisted_events_and_resumes_from_last_event_id() -> 
             session.execute(delete(OperationModel).where(OperationModel.id == operation_id))
             session.execute(delete(AuthSessionModel).where(AuthSessionModel.user_id == user_id))
             session.execute(delete(UserModel).where(UserModel.id == user_id))
+
+
+def test_cancelled_run_restores_operation_and_never_exposes_a_result() -> None:
+    if not os.getenv("TEST_DATABASE_URL"):
+        pytest.skip("TEST_DATABASE_URL is not configured")
+
+    user_id: uuid.UUID
+    operation_id: uuid.UUID
+    with session_scope() as session:
+        user = UserModel(
+            email=f"trace-cancel-{uuid.uuid4().hex}@example.test",
+            display_name="Trace Cancellation Test",
+            password_hash="unused",
+            role=UserRole.PLANNER,
+            active=True,
+        )
+        session.add(user)
+        session.flush()
+        user_id = user.id
+        operation = OperationModel(
+            operation_code=f"OP-CANCEL-{uuid.uuid4().hex[:8]}",
+            operation_date=date(2026, 9, 17),
+            operation_start_time=time(7, 30),
+            operation_end_time=time(18, 0),
+            traffic_mode=TrafficMode.FREE,
+            status=OperationStatus.OPTIMIZING,
+            created_by_user_id=user.id,
+        )
+        session.add(operation)
+        session.flush()
+        operation_id = operation.id
+        run = _run(operation, status=OptimizationRunStatus.RUNNING)
+        session.add(run)
+        session.flush()
+
+        trace = OptimizationTraceService(session)
+        trace.request_cancel(run.id)
+        trace.mark_cancelled(run.id, elapsed_ms=250)
+
+        view = trace.get_run(run.id)
+        assert view.status == OptimizationRunStatus.CANCELLED.value
+        assert view.stop_reason == "CANCELLED_BY_USER"
+        assert view.error_code is None
+        assert view.error_message is None
+        assert operation.status is OperationStatus.READY
+        assert trace.events(run.id)[-1].event_type == "optimization_cancelled"
+
+        with pytest.raises(OptimizationResultNotFoundError):
+            OptimizationResultService(session).get_result(run.id)
+
+    with session_scope() as session:
+        session.execute(delete(OperationModel).where(OperationModel.id == operation_id))
+        session.execute(delete(UserModel).where(UserModel.id == user_id))

@@ -31,11 +31,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('apps/web/package.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('apps/web/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-      - name: Install
-        run: npm install --prefer-offline --no-audit --no-fund
+      - name: Install locked dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
       - name: Lint
         run: npm run lint
       - name: Type check

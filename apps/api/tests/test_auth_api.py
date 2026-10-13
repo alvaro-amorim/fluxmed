@@ -79,8 +79,12 @@ def test_login_me_and_logout_use_real_server_side_session(user_factory: UserFact
         assert after_logout.json()["error"]["code"] == "AUTH_REQUIRED"
 
 
-def test_login_rejects_wrong_password(user_factory: UserFactory) -> None:
+def test_login_rejects_wrong_password(
+    user_factory: UserFactory,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     email, _ = user_factory()
+    caplog.set_level("WARNING", logger="fluxmed.api.v1.auth")
 
     with TestClient(app) as client:
         response = client.post(
@@ -89,6 +93,12 @@ def test_login_rejects_wrong_password(user_factory: UserFactory) -> None:
 
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "AUTH_INVALID_CREDENTIALS"
+    auth_logs = "\n".join(
+        record.getMessage() for record in caplog.records if record.name == "fluxmed.api.v1.auth"
+    )
+    assert "auth_login_failed reason=invalid_credentials" in auth_logs
+    assert email not in auth_logs
+    assert "WrongPassword2026!" not in auth_logs
 
 
 def test_login_rejects_inactive_user(user_factory: UserFactory) -> None:

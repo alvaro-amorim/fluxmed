@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from fluxmed.api.dependencies import CurrentUser, DbSession
 from fluxmed.api.errors import ApiError
 from fluxmed.application.operations import (
+    OperationDispatchError,
     OperationNotFoundError,
     OperationService,
     OperationUpdate,
@@ -89,6 +90,12 @@ def _raise_operation_error(exc: Exception) -> None:
             status.HTTP_409_CONFLICT,
             "OPERATION_ALREADY_DISPATCHED",
             "Uma operação despachada não pode ser alterada.",
+        )
+    if isinstance(exc, OperationDispatchError):
+        raise ApiError(
+            status.HTTP_409_CONFLICT,
+            "OPERATION_DISPATCH_BLOCKED",
+            str(exc),
         )
     raise exc
 
@@ -182,6 +189,21 @@ def update_operation(
                 traffic_mode=payload.traffic_mode,
             ),
         )
+    except Exception as exc:
+        _raise_operation_error(exc)
+        raise
+    return _response(view)
+
+
+@router.post("/{operation_id}/dispatch", response_model=OperationResponse)
+def dispatch_operation(
+    operation_id: uuid.UUID,
+    session: DbSession,
+    current_user: CurrentUser,
+) -> OperationResponse:
+    del current_user
+    try:
+        view = OperationService(session).dispatch(operation_id)
     except Exception as exc:
         _raise_operation_error(exc)
         raise

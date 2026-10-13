@@ -26,6 +26,8 @@ class LLMSettings:
     max_output_chars: int
     thinking_level: str = "low"
     max_context_chars: int = 30000
+    rate_limit_requests: int = 12
+    rate_limit_window_seconds: int = 60
 
     @classmethod
     def from_env(cls) -> "LLMSettings":
@@ -44,4 +46,9 @@ class LLMSettings:
             max_output_chars=int(os.getenv("LLM_MAX_OUTPUT_CHARS", "6000")),
             thinking_level=thinking_level,
             max_context_chars=int(os.getenv("LLM_MAX_CONTEXT_CHARS", "30000")),
+            rate_limit_requests=max(0, int(os.getenv("LLM_RATE_LIMIT_REQUESTS", "12"))),
+            rate_limit_window_seconds=max(
+                1,
+                int(os.getenv("LLM_RATE_LIMIT_WINDOW_SECONDS", "60")),
+            ),
         )

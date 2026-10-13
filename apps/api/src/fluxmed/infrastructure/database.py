@@ -2,8 +2,9 @@ import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 NAMING_CONVENTION = {
@@ -26,12 +27,34 @@ def get_database_url() -> str:
     )
 
 
+def get_database_connect_timeout_seconds() -> int:
+    return max(1, int(os.getenv("DATABASE_CONNECT_TIMEOUT_SECONDS", "3")))
+
+
 def create_database_engine(database_url: str | None = None) -> Engine:
-    return create_engine(database_url or get_database_url(), pool_pre_ping=True)
+    resolved_url = database_url or get_database_url()
+    if resolved_url.startswith("postgresql"):
+        return create_engine(
+            resolved_url,
+            pool_pre_ping=True,
+            connect_args={"connect_timeout": get_database_connect_timeout_seconds()},
+        )
+    return create_engine(resolved_url, pool_pre_ping=True)
 
 
 engine = create_database_engine()
 SessionFactory = sessionmaker(bind=engine, class_=Session, expire_on_commit=False)
+
+
+def database_is_ready() -> bool:
+    session = SessionFactory()
+    try:
+        session.execute(text("SELECT 1"))
+        return True
+    except SQLAlchemyError:
+        return False
+    finally:
+        session.close()
 
 
 @contextmanager

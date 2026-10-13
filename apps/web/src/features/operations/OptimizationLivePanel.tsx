@@ -96,7 +96,7 @@ function phaseLabel(
   if (status === 'INTERRUPTED') return 'Execução interrompida'
   if (status === 'QUEUED') return 'Aguardando worker'
 
-  const latest = events.at(-1)
+  const latest = events[events.length - 1]
   if (!latest) return 'Conectando ao cálculo'
   if (latest.event_type === 'optimization_started') return 'Preparando otimização'
   if (latest.event_type === 'final_comparison') return 'Finalizando resultado'
@@ -202,8 +202,8 @@ export function OptimizationLivePanel({
         }
         if (mode === 'replay') return
 
-        const lastSequence = trace.at(-1)?.sequence ?? 0
-        setConnectionState('connected')
+        const lastSequence = trace[trace.length - 1]?.sequence ?? 0
+        setConnectionState('connecting')
         unsubscribe = subscribeOptimizationEvents(
           runId,
           lastSequence,
@@ -218,13 +218,24 @@ export function OptimizationLivePanel({
           () => {
             if (!active) return
             setConnectionState('reconnecting')
-            void getOptimizationRun(runId)
-              .then((latest) => {
+            void Promise.all([getOptimizationTrace(runId), getOptimizationRun(runId)])
+              .then(async ([persistedTrace, latest]) => {
                 if (!active) return
+                setEvents((current) => mergeEvents(current, persistedTrace))
+                const traceTerminal =
+                  [...persistedTrace].reverse().map(eventStatus).find(Boolean) ?? null
+                if (traceTerminal) {
+                  await reportTerminal(traceTerminal)
+                  return
+                }
                 setStatus(latest.status)
-                if (TERMINAL.has(latest.status)) void reportTerminal(latest.status)
+                if (TERMINAL.has(latest.status)) await reportTerminal(latest.status)
               })
               .catch(() => undefined)
+          },
+          () => {
+            if (!active) return
+            setConnectionState('connected')
           },
         )
       } catch (requestError) {
@@ -283,7 +294,7 @@ export function OptimizationLivePanel({
   const latestPruning = [...shownEvents]
     .reverse()
     .find((event) => event.event_type === 'pruning_summary')
-  const latestEvent = shownEvents.at(-1)
+  const latestEvent = shownEvents[shownEvents.length - 1]
   const routes: LiveRoute[] = latestBest?.payload.routes ?? []
   const deliveries: LiveDeliveryPoint[] = started?.payload.deliveries ?? []
   const pruning = latestPruning?.payload.counts ?? latestSnapshot?.payload.pruning_counts ?? {}

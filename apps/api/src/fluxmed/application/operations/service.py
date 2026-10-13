@@ -1,16 +1,22 @@
 import uuid
 from dataclasses import dataclass
-from datetime import date, datetime, time
+from datetime import UTC, date, datetime, time
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from fluxmed.domain.enums import OperationStatus, TrafficMode
+from fluxmed.domain.enums import OperationStatus, RevisionStatus, TrafficMode
 from fluxmed.domain.operations import ImmutableOperationError, Operation, validate_operation_window
 from fluxmed.infrastructure.models.operation import OperationModel
+from fluxmed.infrastructure.models.operation_revision import OperationRevisionModel
 from fluxmed.infrastructure.repositories.operation_repository import OperationRepository
 
 
 class OperationNotFoundError(LookupError):
+    pass
+
+
+class OperationDispatchError(ValueError):
     pass
 
 
@@ -143,6 +149,30 @@ class OperationService:
         self._session.flush()
         return self._view(model)
 
+    def dispatch(self, operation_id: uuid.UUID) -> OperationView:
+        model = self._require(operation_id)
+        current = self._entity(model)
+        current.assert_mutable()
+        if model.status is not OperationStatus.APPROVED:
+            raise OperationDispatchError("Somente uma operação aprovada pode ser despachada.")
+
+        revision = self._session.scalar(
+            select(OperationRevisionModel).where(
+                OperationRevisionModel.operation_id == model.id,
+                OperationRevisionModel.revision_number == model.current_revision_number,
+            )
+        )
+        if revision is None or revision.status is not RevisionStatus.APPROVED:
+            raise OperationDispatchError(
+                "A revisão atual precisa estar aprovada antes do despacho."
+            )
+
+        model.status = OperationStatus.DISPATCHED
+        revision.status = RevisionStatus.DISPATCHED
+        revision.dispatched_at = datetime.now(UTC)
+        self._session.flush()
+        return self._view(model)
+
     def _require(self, operation_id: uuid.UUID) -> OperationModel:
         model = self._operations.get_by_id(operation_id)
         if model is None:
@@ -185,6 +215,7 @@ class OperationService:
 
 __all__ = [
     "ImmutableOperationError",
+    "OperationDispatchError",
     "OperationNotFoundError",
     "OperationPage",
     "OperationService",

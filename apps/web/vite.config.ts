@@ -4,6 +4,11 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   envDir: '../..',
   plugins: [react()],
+  optimizeDeps: {
+    // MapLibre v6 ships an ESM worker that Vite's dependency optimizer can prebundle
+    // incorrectly, leaving GeoJSON style layers blank while DOM markers still render.
+    exclude: ['maplibre-gl'],
+  },
   server: {
     proxy: {
       '/api': 'http://localhost:8000',

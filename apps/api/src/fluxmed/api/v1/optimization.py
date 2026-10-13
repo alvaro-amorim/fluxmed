@@ -8,6 +8,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy.orm import Session
 
 from fluxmed.api.dependencies import CurrentUser, DbSession
 from fluxmed.api.errors import ApiError
@@ -31,7 +32,10 @@ from fluxmed.application.optimization.trace import (
     OptimizationTraceEventView,
     OptimizationTraceService,
 )
+from fluxmed.domain.enums import OperationStatus
 from fluxmed.infrastructure.database import SessionFactory
+from fluxmed.infrastructure.models.operation import OperationModel
+from fluxmed.infrastructure.models.optimization_result import OptimizationRunModel, RoutePlanModel
 
 router = APIRouter(tags=["optimization"])
 
@@ -228,6 +232,22 @@ def _raise_optimization_error(exc: Exception) -> None:
     raise exc
 
 
+def _assert_route_team_mutable(session: Session, route_id: uuid.UUID) -> None:
+    route = session.get(RoutePlanModel, route_id)
+    if route is None:
+        return
+    run = session.get(OptimizationRunModel, route.optimization_run_id)
+    if run is None:
+        return
+    operation = session.get(OperationModel, run.operation_id)
+    if operation is not None and operation.status is OperationStatus.DISPATCHED:
+        raise ApiError(
+            status.HTTP_409_CONFLICT,
+            "OPERATION_ALREADY_DISPATCHED",
+            "Uma operação despachada não pode ter a equipe da rota alterada.",
+        )
+
+
 @router.post(
     "/operations/{operation_id}/optimize",
     response_model=OptimizeAcceptedResponse,
@@ -347,6 +367,7 @@ def stream_events(
     def event_stream() -> Iterator[str]:
         nonlocal cursor
         idle_ticks = 0
+        yield "retry: 1000\n\n"
         while True:
             poll = SessionFactory()
             try:
@@ -498,6 +519,7 @@ def apply_team(
     current_user: CurrentUser,
 ) -> TeamSimulationResponse:
     del current_user
+    _assert_route_team_mutable(session, route_id)
     try:
         result = OptimizationResultService(session).simulate_team(
             route_id,

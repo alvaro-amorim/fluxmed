@@ -75,10 +75,12 @@ function vehicleTypeLabel(type: string): string {
 function RouteInspector({
   route,
   resources,
+  readOnly,
   onTeamApplied,
 }: {
   route: ResultRoute
   resources: OperationResources | null
+  readOnly: boolean
   onTeamApplied: () => Promise<void>
 }) {
   const [primaryWorkerId, setPrimaryWorkerId] = useState(route.team.primary_worker?.id ?? '')
@@ -187,7 +189,9 @@ function RouteInspector({
           </strong>
         </p>
 
-        {resources ? (
+        {readOnly ? (
+          <p><strong>Equipe congelada após o despacho.</strong></p>
+        ) : resources ? (
           <div className="team-simulation">
             {!route.team.primary_included && route.team.primary_role ? (
               <label>
@@ -567,7 +571,12 @@ export function OptimizationResultPanel({
               </div>
             </div>
             {selectedRoute ? (
-              <RouteInspector route={selectedRoute} resources={resources} onTeamApplied={refresh} />
+              <RouteInspector
+                route={selectedRoute}
+                resources={resources}
+                readOnly={operationStatus === 'DISPATCHED'}
+                onTeamApplied={refresh}
+              />
             ) : null}
           </div>
         </section>

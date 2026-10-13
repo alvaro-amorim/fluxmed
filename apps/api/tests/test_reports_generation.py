@@ -151,6 +151,10 @@ def test_pdf_report_contains_operational_sections_and_local_time() -> None:
     assert "Rotas" in text
     assert "Motorista Demo 1" in text
     assert "Conclusões" in text
-    assert "123.45" in text
+    assert "R$ 123,45" in text
+    assert "25,200 km" in text
+    assert "95,00 min" in text
+    assert "100,00%" in text
+    assert "15/09/2026" in text
     assert "15:30" in text
     assert REPORT_TIMEZONE_NAME in text

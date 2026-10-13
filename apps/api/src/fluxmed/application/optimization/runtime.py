@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 import uuid
@@ -11,7 +12,11 @@ from fluxmed.application.optimization.routing_matrix import (
     OptimizationRoutingError,
     RoutingMatrixBuilder,
 )
-from fluxmed.application.optimization.service import OptimizationService
+from fluxmed.application.optimization.service import (
+    OptimizationInputError,
+    OptimizationService,
+    OptimizationValidationMismatchError,
+)
 from fluxmed.application.optimization.trace import OptimizationTraceService
 from fluxmed.domain.enums import OptimizationRunStatus
 from fluxmed.infrastructure.database import SessionFactory
@@ -24,6 +29,8 @@ from fluxmed.optimization import (
     OptimizationCancelled,
     OptimizationProgress,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class OptimizationRunCoordinator:
@@ -267,12 +274,18 @@ class OptimizationRunCoordinator:
             session.commit()
         except Exception as exc:
             session.rollback()
+            logger.warning(
+                "Optimization run failed run_id=%s error=%s",
+                run_id,
+                type(exc).__name__,
+            )
             trace = OptimizationTraceService(session)
+            error_code, error_message = self._public_failure(exc)
             try:
                 trace.mark_failed(
                     run_id,
-                    error_code=type(exc).__name__.upper(),
-                    error_message=str(exc) or "Falha inesperada durante a otimização.",
+                    error_code=error_code,
+                    error_message=error_message,
                     elapsed_ms=self._elapsed_ms(started_monotonic),
                 )
                 session.commit()
@@ -280,6 +293,28 @@ class OptimizationRunCoordinator:
                 session.rollback()
         finally:
             session.close()
+
+    @staticmethod
+    def _public_failure(exc: Exception) -> tuple[str, str]:
+        if isinstance(exc, OptimizationValidationMismatchError):
+            return (
+                "OPTIMIZER_VALIDATION_MISMATCH",
+                "A validação independente divergiu do resultado do otimizador.",
+            )
+        if isinstance(exc, OptimizationRoutingError):
+            return (
+                "ROUTING_UNAVAILABLE",
+                "Não foi possível calcular as rotas para esta otimização.",
+            )
+        if isinstance(exc, OptimizationInputError):
+            return (
+                "OPTIMIZATION_INVALID",
+                "A otimização não pôde ser concluída com os dados atuais.",
+            )
+        return (
+            "OPTIMIZATION_FAILED",
+            "A otimização falhou inesperadamente.",
+        )
 
     @staticmethod
     def _elapsed_ms(started_monotonic: float) -> int:

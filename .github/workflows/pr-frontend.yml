@@ -1,0 +1,44 @@
+name: PR Frontend Fast
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/pr-frontend.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-frontend-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-fast:
+    name: Frontend fast
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('apps/web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - name: Install
+        run: npm install --prefer-offline --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Type check
+        run: npm run typecheck
+      - name: Tests
+        run: npm test

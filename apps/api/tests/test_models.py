@@ -3,4 +3,9 @@ from fluxmed.infrastructure.database import Base
 
 
 def test_foundation_models_are_registered() -> None:
-    assert {"users", "operations", "auth_sessions"}.issubset(Base.metadata.tables)
+    assert {
+        "users",
+        "operations",
+        "auth_sessions",
+        "assistant_telemetry",
+    }.issubset(Base.metadata.tables)

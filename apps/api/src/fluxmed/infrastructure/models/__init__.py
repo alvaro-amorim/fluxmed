@@ -3,6 +3,7 @@
 Importing this package registers the current models in Base.metadata for Alembic.
 """
 
+from fluxmed.infrastructure.models.assistant_telemetry import AssistantTelemetryModel
 from fluxmed.infrastructure.models.auth_session import AuthSessionModel
 from fluxmed.infrastructure.models.city import (
     AddressModel,
@@ -42,6 +43,7 @@ from fluxmed.infrastructure.models.user import UserModel
 __all__ = [
     "AddressModel",
     "AggregatedVehicleContractModel",
+    "AssistantTelemetryModel",
     "AuthSessionModel",
     "BuildingModel",
     "CityModel",

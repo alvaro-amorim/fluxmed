@@ -54,23 +54,24 @@ Entre, selecione Santa Aurora, crie uma operação, gere uma demanda pequena, co
 
 A primeira inicialização **não cria uma operação pré-otimizada**; o avaliador precisa gerar sua própria operação no aplicativo.
 
-## IA real ou simulada
+## IA simulada ou Gemini real
 
-O `.env.example` usa `LLM_PROVIDER=mock`, que responde sem chamadas externas. Isso testa a interface, **mas não equivale a usar uma LLM real**.
+A instalação padrão usa `LLM_PROVIDER=mock` e `LLM_MODEL=fluxmed-mock-v1`. Isso permite explorar o Assistente e suas consultas ao backend, **mas não faz chamadas reais ao Gemini**.
 
-Para a demonstração real, o avaliador precisa configurar no `.env` local:
-- `LLM_PROVIDER=gemini`;
-- `LLM_MODEL=gemini-3.5-flash-lite`;
-- `LLM_THINKING_LEVEL=minimal`;
-- `GEMINI_API_KEY` com uma chave pessoal habilitada.
+Para testar a integração real, use uma **chave própria** no arquivo local `.env` (nunca versionado) e **substitua** as linhas existentes de provider/modelo:
 
-A conta usada poderá ter limites e custos próprios. Não publique a chave. Para recarregar alterações:
-
-```bash
-docker compose up -d --force-recreate api
+```dotenv
+LLM_PROVIDER=gemini
+LLM_MODEL=gemini-3.5-flash-lite
+LLM_THINKING_LEVEL=minimal
+GEMINI_API_KEY=SUA_CHAVE_PESSOAL_AQUI
 ```
 
-A chave é passada somente ao backend, não ao frontend.
+Aplique a mudança usando `docker compose up -d --force-recreate api`. No Assistente, selecione uma operação já otimizada, confira `gemini`/modelo na interface e **envie uma pergunta**. O status saudável sozinho não comprova acesso ao Google. Se houver limitação de cota, indisponibilidade ou timeout, a API informa erro; não muda silenciosamente para o mock.
+
+A chave fica exclusivamente no container da API. Nunca a mostre em vídeo, print ou comando de diagnóstico. A conta do avaliador é responsável por seus limites e eventuais custos. **Sem chave própria, o professor pode explorar o mock e assistir à gravação da integração real, mas não executar chamadas Gemini por conta própria.**
+
+O passo a passo completo, exemplos de perguntas, evidências para o vídeo e cuidados com a chave estão no **[guia de avaliação do Assistente IA](ASSISTANT_EVALUATION.md)**.
 
 ## Diagnóstico e desligamento
 

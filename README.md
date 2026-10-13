@@ -331,73 +331,25 @@ Consulte [`benchmarks/README.md`](benchmarks/README.md) e [`docs/BENCHMARK_PLAN.
 
 ---
 
-## 8. Como executar localmente
+## 8. Instalação local (recomendada para avaliação)
 
-### Pré-requisitos
+A versão acadêmica é executada **localmente**, sem serviço em nuvem. O Docker Compose prepara PostgreSQL/PostGIS, migrations, a cidade Santa Aurora, backend e frontend.
 
-- Python `>=3.12,<3.14`;
-- Node.js `>=20`;
-- Docker / Docker Compose;
-- Git.
-
-### 8.1 Configuração inicial
-
-Na raiz do repositório:
+Pré-requisitos: Git, Docker Desktop com Compose v2 e acesso ao repositório. Na raiz:
 
 ```powershell
+# Windows PowerShell
 Copy-Item .env.example .env
-
-docker compose up -d db
+docker compose up --build -d
 ```
 
-### 8.2 Backend
+No macOS/Linux, substitua o primeiro comando por `cp .env.example .env`.
 
-```powershell
-cd apps\api
+Abra **http://localhost:5173** e entre com `planner@fluxmed.demo` / `FluxMedDemo2026!`. O primeiro start pode demorar devido ao seed da cidade. A saída `Exited (0)` do container `init` é esperada.
 
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+O Assistente inicia no modo `mock`; o uso de Gemini real exige `GEMINI_API_KEY` no `.env` local e `LLM_PROVIDER=gemini`, sem publicar segredos.
 
-alembic upgrade head
-python -m fluxmed.scripts.seed_demo
-
-uvicorn fluxmed.main:app --app-dir src --reload
-```
-
-Backend local:
-
-```text
-http://127.0.0.1:8000
-```
-
-### 8.3 Frontend
-
-Em outro terminal:
-
-```powershell
-cd apps\web
-npm ci
-npm run dev
-```
-
-Frontend local:
-
-```text
-http://localhost:5173
-```
-
-### 8.4 Conta demonstrativa
-
-Os valores padrão estão em `.env.example` e podem ser substituídos no `.env` local:
-
-```text
-E-mail: planner@fluxmed.demo
-Senha: FluxMedDemo2026!
-```
-
-Nunca versione o `.env` real nem chaves de providers externos.
+**Guia completo de instalação, execução manual, solução de problemas e avaliação:** [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md).
 
 ---
 
@@ -500,23 +452,31 @@ O build pode emitir aviso de bundle/chunk grande do mapa; isso é tratado como o
 
 ---
 
-## 12. Configurando o Assistente IA
+## 12. Configurando e avaliando o Assistente IA
 
-Por padrão, o projeto pode operar com provider mock sem consumo externo:
+A instalação local inicia com o **provider simulado**:
 
-```env
+```dotenv
 LLM_PROVIDER=mock
 LLM_MODEL=fluxmed-mock-v1
 ```
 
-Para testar Gemini localmente, configure somente no `.env` não versionado:
+Isso permite testar interface e consultas do backend, mas **não executa uma LLM real** e não comprova a integração Gemini exigida no trabalho acadêmico.
 
-```env
+Para testar o Gemini, o avaliador deve usar uma chave de API **da própria conta**, com acesso/cota disponível. Substitua as linhas correspondentes no arquivo local `.env` (não versionado):
+
+```dotenv
 LLM_PROVIDER=gemini
 LLM_MODEL=gemini-3.5-flash-lite
 LLM_THINKING_LEVEL=minimal
-GEMINI_API_KEY=replace-me
+GEMINI_API_KEY=SUA_CHAVE_PESSOAL_AQUI
 ```
+
+Reinicie só a API com `docker compose up -d --force-recreate api`. Abra uma operação otimizada no Assistente, confirme o provedor/modelo e envie uma pergunta factual para verificar que houve resposta real. Um indicador de saúde por si só não comprova a conectividade com o Google. Não há fallback silencioso para mock quando o Gemini falha.
+
+A chave do autor **não será publicada nem compartilhada**. A prova da integração real será apresentada também no vídeo acadêmico, usando a chave apenas no computador do autor. Quem quiser repetir a chamada real precisará configurar sua própria chave; isso pode estar sujeito a cotas/custos do provedor.
+
+**Instruções, exemplos de perguntas, cuidados com credenciais e roteiro de evidências:** [docs/ASSISTANT_EVALUATION.md](docs/ASSISTANT_EVALUATION.md).
 
 O backend aplica timeout, limite de contexto, limite de saída, sanitização de falhas e rate limiting por usuário.
 

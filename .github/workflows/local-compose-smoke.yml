@@ -1,0 +1,63 @@
+name: Local Docker Compose smoke
+
+on:
+  pull_request:
+    paths:
+      - docker-compose.yml
+      - apps/api/Dockerfile
+      - apps/api/.dockerignore
+      - apps/web/Dockerfile
+      - apps/web/.dockerignore
+      - apps/web/vite.config.ts
+      - .github/workflows/local-compose-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure disposable demo environment
+        run: cp .env.example .env
+      - name: Validate Compose config
+        run: docker compose config --quiet
+      - name: Check shared API image builds exactly once
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+
+          config = json.loads(subprocess.check_output(
+              ["docker", "compose", "config", "--format", "json"],
+              text=True,
+          ))
+          api_builders = [
+              name for name, service in config["services"].items()
+              if service.get("image") == "fluxmed-api:local" and "build" in service
+          ]
+          assert api_builders == ["init"], f"Expected one API image builder, got {api_builders}"
+          assert config["services"]["api"].get("pull_policy") == "never"
+          PY
+      - name: Build and start all local services
+        run: docker compose up --build --detach
+      - name: Confirm UI, database readiness, and cookie-based login through Vite proxy
+        run: |
+          set -euo pipefail
+          timeout 300 bash -c 'until curl -fsS http://127.0.0.1:5173/health/ready >/dev/null; do sleep 3; done'
+          curl -fsS http://127.0.0.1:5173/ >/dev/null
+          curl -fsS --cookie-jar /tmp/fluxmed-cookies.txt \
+            --header 'Content-Type: application/json' \
+            --data '{"email":"planner@fluxmed.demo","password":"FluxMedDemo2026!"}' \
+            http://127.0.0.1:5173/api/v1/auth/login >/dev/null
+          curl -fsS --cookie /tmp/fluxmed-cookies.txt \
+            http://127.0.0.1:5173/api/v1/auth/me >/dev/null
+      - name: Print container diagnostics on failure
+        if: failure()
+        run: docker compose ps && docker compose logs --tail 150
+      - name: Shut down disposable demo stack
+        if: always()
+        run: docker compose down

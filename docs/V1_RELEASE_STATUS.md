@@ -53,83 +53,88 @@ Também foram validados:
 - transição `OPTIMIZED -> APPROVED -> DISPATCHED`;
 - imutabilidade da revisão/equipe após dispatch.
 
-## Estado Git / PR stack
+## Estado Git / PR stack — concluído em 13/10/2026
 
-A implementação final está empilhada nesta ordem:
+As três PRs foram revisadas, executaram Full CI com sucesso e foram integradas na `main` com commits de merge (sem squash):
 
-1. PR #17 — `feat/llm-assistant` -> `main`;
-2. PR #18 — `feat/academic-benchmarks` -> `feat/llm-assistant`;
-3. PR #19 — `chore/v1-hardening` -> `feat/academic-benchmarks`.
+1. PR #17 — Fase 16 (Assistente IA), merge `0c6ec5af377871b10b043d7bfd478a453e3e4cf2`;
+2. PR #18 — Fase 17 (Benchmarks), merge `1e172f8e77ea44bf3124273173ca3f16c3d5dc70`;
+3. PR #19 — Fase 18 (Hardening), merge `ec51744863cd49dcfada994e6bec8e6a78b28276`.
 
-A relação de ancestry foi verificada: cada branch está estritamente à frente da anterior, sem divergência no stack.
+A `main` foi verificada no commit `ec51744863cd49dcfada994e6bec8e6a78b28276`.
+A branch `chore/v1-release` foi criada exatamente a partir desse commit para iniciar a Fase 19.
 
-Não fazer merge fora dessa ordem.
+## Evidência de CI após os merges
 
-## Limitação conhecida do GitHub Actions
+O GitHub Actions retomou a execução de jobs em 13/10/2026, permitindo a validação real dos três PRs:
 
-Os jobs rápidos do PR #17 chegaram a `failure` antes de qualquer step (`steps=null`), enquanto o Full CI foi corretamente `skipped` pela política de Draft PR.
+- [PR #17 — Full CI verde](https://github.com/alvaro-amorim/fluxmed/actions/runs/38416081953);
+- [PR #18 — Full CI verde](https://github.com/alvaro-amorim/fluxmed/actions/runs/38416715739);
+- [PR #19 — Full CI verde](https://github.com/alvaro-amorim/fluxmed/actions/runs/38417442393).
 
-A limitação de runner/quota/billing está documentada em:
+O último Full CI validou:
 
-- `docs/HARDENING_PLAN.md`;
-- `docs/CI_POLICY.md`.
+- Backend: Ruff, formatação, MyPy strict (126 arquivos), migrations e **169 testes aprovados**;
+- Frontend: lint, typecheck, **26 testes aprovados** e build de produção;
+- E2E automatizado: jornada de login demo com banco real.
 
-Isso não é tratado como evidência de sucesso do CI. A evidência atual de código é a regressão local completa registrada acima.
+Os testes da jornada operacional ponta a ponta registrada acima são evidência de validação manual; o job E2E automatizado do CI cobre especificamente o login demo.
 
-## Gate para iniciar a Fase 19
+O primeiro CI reativado identificou 71 erros de tipagem com SQLAlchemy 2.1.4, que era aceito pela faixa aberta `>=2.0,<3.0`. A dependência foi restringida à série estável `sqlalchemy>=2.0,<2.1` no PR #17 e o Full CI seguinte passou. Falhas históricas anteriores ao início dos jobs eram relacionadas a quota/billing do GitHub Actions, e não constituíam aprovação automática.
 
-Antes de criar `chore/v1-release`:
+## Gate para iniciar a Fase 19 — concluído
 
-- [ ] revisar PR #17;
-- [ ] mergear PR #17 em `main`;
-- [ ] retarget/revisar PR #18 após o merge anterior;
-- [ ] mergear PR #18;
-- [ ] retarget/revisar PR #19;
-- [ ] mergear PR #19;
-- [ ] confirmar `main` contendo a V1 completa;
-- [ ] criar `chore/v1-release` a partir de `main`.
+- [x] revisar PR #17;
+- [x] mergear PR #17 em `main`;
+- [x] retarget/revisar PR #18 após o merge anterior;
+- [x] mergear PR #18;
+- [x] retarget/revisar PR #19;
+- [x] mergear PR #19;
+- [x] confirmar `main` contendo a V1 completa;
+- [x] criar `chore/v1-release` a partir de `main`.
 
-## Gate técnico da Fase 19
+## Fase 19 — Finalização e entrega acadêmica local
 
-Na branch de release:
+**Decisão de escopo:** sem deploy em nuvem. O professor executará o projeto a partir do GitHub em sua máquina. A execução em nuvem é opcional no Tech Challenge.
 
-- [ ] decidir o deploy real com base nas limitações medidas do backend/GA;
-- [ ] configurar variáveis de produção sem versionar secrets;
-- [ ] provisionar PostgreSQL/PostGIS;
-- [ ] aplicar migrations em banco limpo;
-- [ ] executar seed da cidade e usuário demo;
-- [ ] validar health/readiness;
-- [ ] configurar provider LLM real para a demonstração;
-- [ ] executar smoke pós-deploy;
-- [ ] executar secret/dependency/static-analysis checks disponíveis;
-- [ ] registrar qualquer limitação de CI/infrastrutura que permaneça externa ao código;
-- [ ] preparar release notes;
-- [ ] criar tag `v1.0.0` somente após smoke verde.
+### Entrega executável
 
-## Smoke mínimo de release
+- [x] auditar dependências, banco, migrações, seed, autenticação e configurações de IA;
+- [x] adicionar Docker Compose para banco + etapa de inicialização + API + frontend;
+- [x] preservar um processo de API para o GA em segundo plano;
+- [x] manter proxy HTTP/SSE com cookies no mesmo domínio do navegador;
+- [x] adicionar Dockerfiles e .dockerignore de API e frontend;
+- [x] escrever guia para clone e execução local;
+- [x] criar workflow de smoke Docker Compose;
+- [x] confirmar workflow Docker Compose **verde** no GitHub Actions ([smoke após correção de Docker](https://github.com/alvaro-amorim/fluxmed/actions/runs/38481422992));
+- [x] validar clone limpo no Windows: Docker, PostGIS, migrations, seed, frontend e login; otimização de 20 entregas em 3 veículos (100% no prazo), PDF/XLSX/CSV e operação despachada, conforme prints enviados pelo autor;
+- [ ] confirmar acesso do avaliador ao repositório (atualmente privado).
+
+### Entregáveis acadêmicos
+
+- [ ] consolidar relatório técnico: GA, representação, operadores, restrições, benchmarks, LLM, resultados e desafios;
+- [ ] documentar a adaptação do código-base TSP do professor, se disponibilizado;
+- [ ] preparar e publicar vídeo demonstrativo de até 15 minutos;
+- [ ] concluir verificação final de segredos e das evidências antes da tag (documentação mock/Gemini pronta);
+- [ ] abrir/revisar PR da release e integrar em main após checks e instalação limpa;
+- [ ] criar tag `v1.0.0` somente após aceite.
+
+### Roteiro de validação local
 
 ```text
-frontend abre
-login funciona
-operações carregam
-Santa Aurora carrega
-criar operação pequena
-adicionar/gerar demanda
-selecionar recursos
-preflight válido
-otimizar cenário pequeno
-abrir resultado
-consultar Assistente IA
-gerar relatório
-aprovar
-despachar
-confirmar imutabilidade
+clone → .env.example → docker compose up --build -d
+PostGIS → migrations → Santa Aurora → login
+operação pequena → demanda → frota/equipe → preflight
+otimização/GA/SSE → resultado → assistente
+PDF/XLSX/CSV → aprovação → dispatch → imutabilidade
 ```
 
-## Regra de congelamento
+O modo `mock` permite explorar a interface e o grounding, mas não produz chamadas reais à LLM. A integração Gemini real foi verificada manualmente durante o desenvolvimento e deverá ser demonstrada no vídeo acadêmico, sem expor credenciais.
 
-Durante a Fase 19:
+O avaliador que desejar repetir uma chamada Gemini precisa configurar a própria chave no `.env` local. A documentação reproduzível está em [ASSISTANT_EVALUATION.md](ASSISTANT_EVALUATION.md).
 
-> corrigir bloqueadores; não ampliar escopo.
+A instalação limpa no Windows confirmou o estado `DISPATCHED` e os três relatórios `Pronto`; a tentativa específica de alteração após despacho não foi novamente evidenciada nos prints desta instalação e permanece coberta pelos testes anteriores.
 
-O objetivo da próxima fase é disponibilizar, demonstrar e congelar a V1 acadêmica, não iniciar uma V2.
+### Congelamento
+
+Durante a Fase 19, somente corrigir problemas impeditivos de instalação, segurança, testes e entrega — sem introduzir novas funcionalidades.

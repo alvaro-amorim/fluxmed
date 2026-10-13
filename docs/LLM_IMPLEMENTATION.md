@@ -474,3 +474,13 @@ A parte funcional da LLM está concluída com evidência de:
 - E2E final da V1.
 
 Após o hardening, a suíte local completa ficou verde. A indisponibilidade de evidência de GitHub Actions por limitação de conta/quota de runners está documentada separadamente em `docs/HARDENING_PLAN.md` e não é tratada como substituto para os checks locais.
+
+## 19. Avaliação acadêmica sem hospedagem
+
+Na entrega local, `LLM_PROVIDER=mock` é o padrão para não exigir credenciais nem consumir chamadas externas. O mock demonstra o fluxo do chat e das ferramentas estruturadas, mas **não comprova integração com LLM real**. A configuração `LLM_PROVIDER=gemini` precisa de `GEMINI_API_KEY` válida no arquivo `.env` privado e de uma chamada bem-sucedida para comprovação prática.
+
+O endpoint `GET /api/v1/assistant/status` informa provider/model e se a instância do provider pode ser construída; `HEALTHY` isoladamente **não verifica** quota, rede nem sucesso de uma chamada externa. Para a demonstração, selecione uma operação otimizada, faça uma pergunta factual, confira os metadados `provider=gemini`/`model` na resposta e compare o resultado com o plano persistido. A interface expõe esses metadados; não é necessário mostrar o `.env` ou a chave.
+
+A prova acadêmica da integração real será gravada em vídeo na máquina do autor, sem divulgar credenciais. Para reprodução independente de chamadas reais, o professor precisará da própria chave e de cotas disponíveis. Os testes automáticos executados com mock **não devem** ser descritos como testes reais do Gemini.
+
+Ver [guia de avaliação do Assistente IA](ASSISTANT_EVALUATION.md) para passos, exemplos, limitações e cuidados com segredos.

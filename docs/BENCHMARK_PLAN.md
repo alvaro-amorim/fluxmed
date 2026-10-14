@@ -122,9 +122,17 @@ Fifth increment:
 - final evidence preset fixed at all four profiles x 20/40/60/80;
 - final GA seeds fixed at 101/202/303/404/505 with scenario seed 20260917.
 
-Next:
+Final academic evidence — completed:
 
-1. validate chart/table generation on one quick cell;
-2. run the full final preset with the production GA configuration;
-3. inspect statistical summaries and convergence charts;
-4. archive the evidence used by the report and presentation.
+- The full 4 profiles × 4 scales preset was executed on the synthetic Santa Aurora benchmark; `quick=false`.
+- The 16 scenarios have one scenario seed (`20260917`) and five GA seeds each (101/202/303/404/505), producing 272 method runs (32 deterministic baseline runs + 240 GA runs).
+- The original result set was preserved at `benchmarks/results/final-evidence-20260917/`, including the manifest, CSV summaries, per-run CSV, convergence data, full JSON report, and five SVG charts.
+- The GitHub evidence should be interpreted through `benchmarks/README.md` and the generated `academic-summary.md`.
+- Measured feasibility: Nearest Neighbor 5/16, Best Insertion 3/16, GA Basic 14/80, GA + Pruning 60/80, GA + Pruning + Repair 80/80. Benchmarks establish observed viability and performance **within the sampled scenarios only**; they do not establish a global optimality guarantee.
+- Mean optimizer runtime of GA + Pruning + Repair: 56.309 seconds; GA + Pruning: 37.046 seconds. Repair improves feasibility at a computational cost, not a guaranteed cost reduction.
+
+Outstanding academic reproducibility qualification:
+
+- The manifest identifies `template_operation_code=OP-20260915-001`, but this operation's persisted resource selections, planning window and road overrides are **not** recreated by a clean Docker seed. The archived measurements remain independently inspectable, but exact execution reproducibility requires a sanitized operation fixture or clear reconstruction instructions. Do not claim the benchmark can be regenerated from a fresh clone with the seed alone.
+- Report the synthetic-data scope, single scenario seed per cell, and hardware dependence of runtime. Do not equate optimizer fitness cost and persisted operational total cost.
+- Integrate real experimental tables/charts into the Tech Challenge report and presentation rather than using a smoke test as evidence.

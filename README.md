@@ -1,5 +1,16 @@
 # FluxMed
 
+## Leitura rápida do case
+
+Projeto acadêmico de otimização e engenharia de software. O algoritmo genético resolve o planejamento; a LLM interpreta dados do resultado, sem substituir as restrições do otimizador.
+
+- [Arquitetura](docs/ARCHITECTURE.md).
+- [Modelo de otimização](docs/OPTIMIZATION_SPEC.md).
+- [Benchmark: resultados, comparação e limites](benchmarks/README.md).
+- [Instalação local](docs/LOCAL_SETUP.md).
+
+A evidência versionada reúne 272 execuções em 16 cenários sintéticos. A configuração com pruning e repair gerou 80/80 execuções viáveis dentro dessa matriz, com maior tempo médio; isso não garante ótimo global ou vantagem universal. A reprodução exata depende da operação-base descrita no benchmark, que não é recriada automaticamente pelo seed padrão. Vídeo de demonstração em preparação.
+
 > Planejamento inteligente de distribuição médica com Algoritmos Genéticos, restrições operacionais realistas, visualização de rotas, relatórios e Assistente IA grounded em dados do backend.
 
 ## Status

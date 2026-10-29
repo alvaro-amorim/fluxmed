@@ -39,7 +39,7 @@ All full jobs have explicit timeouts. Backend pytest also enables a faulthandler
 
 Python uses the native `setup-python` pip cache keyed by `apps/api/pyproject.toml`.
 
-The frontend caches npm download artifacts from `~/.npm` keyed by `apps/web/package.json`. The repository does not yet version `package-lock.json`; when the lockfile is intentionally introduced during hardening, switch CI installs from `npm install` to `npm ci` and key the cache from the lockfile.
+The frontend versions `apps/web/package-lock.json`. Full CI and the demo-login E2E job install with `npm ci --prefer-offline --no-audit --no-fund` and cache npm downloads keyed by that lockfile. Keep the lockfile synchronized with `package.json`; intentional dependency changes must update both.
 
 ## Merge rule
 

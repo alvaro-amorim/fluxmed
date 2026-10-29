@@ -39,6 +39,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "fluxmed.city.catalogs" = ["*.json"]
+"fluxmed.benchmarks" = ["fixtures/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

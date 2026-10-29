@@ -1,598 +1,129 @@
 # FluxMed
 
-## Leitura rápida do case
+Planejamento de rotas para distribuição de medicamentos e insumos em uma cidade sintética. O projeto implementa um algoritmo genético para uma variante de VRP com múltiplos veículos e restrições médicas, apresenta as rotas em um mapa e oferece um assistente de linguagem natural conectado aos resultados calculados pelo backend.
 
-Projeto acadêmico de otimização e engenharia de software. O algoritmo genético resolve o planejamento; a LLM interpreta dados do resultado, sem substituir as restrições do otimizador.
+**Tech Challenge — Fase 2, Projeto 2.** Esta é uma aplicação acadêmica de planejamento antes da saída dos veículos. Santa Aurora, entregas e condições de trânsito são sintéticas; não há operação hospitalar real nem rastreamento em tempo real.
 
-- [Arquitetura](docs/ARCHITECTURE.md).
-- [Modelo de otimização](docs/OPTIMIZATION_SPEC.md).
-- [Benchmark: resultados, comparação e limites](benchmarks/README.md).
-- [Instalação local](docs/LOCAL_SETUP.md).
+## Executar a aplicação
 
-A evidência versionada reúne 272 execuções em 16 cenários sintéticos. A configuração com pruning e repair gerou 80/80 execuções viáveis dentro dessa matriz, com maior tempo médio; isso não garante ótimo global ou vantagem universal. A reprodução exata depende da operação-base descrita no benchmark, que não é recriada automaticamente pelo seed padrão. Vídeo de demonstração em preparação.
+Pré-requisitos: Git, Docker com Compose v2, acesso a este repositório e portas locais 5432, 8000 e 5173 disponíveis.
 
-> Planejamento inteligente de distribuição médica com Algoritmos Genéticos, restrições operacionais realistas, visualização de rotas, relatórios e Assistente IA grounded em dados do backend.
-
-## Status
-
-**V1 implementada e funcional.**  
-**Fase 18 — hardening:** concluída e validada localmente.  
-**Projeto:** Tech Challenge — Fase 2, Projeto 2: Otimização de Rotas para Distribuição de Medicamentos e Insumos.
-
-A regressão final da V1 foi concluída com:
-
-- backend: **169 testes aprovados**, Ruff, formatter e mypy verdes;
-- frontend: **26 testes aprovados**, lint, typecheck e build de produção verdes;
-- E2E manual completo validado;
-- dispatch com imutabilidade pós-despacho validada;
-- relatórios PDF/XLSX/CSV validados;
-- Assistente IA validado com grounding operacional real.
-
-O fluxo E2E validado foi:
-
-```text
-login
-  -> operation
-  -> deliveries
-  -> resources
-  -> closure / preflight
-  -> optimization
-  -> result
-  -> assistant
-  -> report
-  -> approve
-  -> dispatch
+```bash
+git clone https://github.com/alvaro-amorim/fluxmed.git
+cd fluxmed
 ```
 
-O fechamento técnico da Fase 18 está registrado em [`docs/HARDENING_PLAN.md`](docs/HARDENING_PLAN.md).
-
----
-
-## 1. Visão geral
-
-O **FluxMed** é um sistema acadêmico e de portfólio para planejamento diário de distribuição médica em uma cidade sintética chamada **Santa Aurora**.
-
-A aplicação combina:
-
-- operações persistidas e versionadas;
-- entregas com prioridade, peso, volume, refrigeração e janelas de horário;
-- frota heterogênea;
-- motoristas, motociclistas e ajudantes;
-- grafo viário dirigido;
-- trânsito sintético dependente do horário;
-- restrições viárias e operacionais;
-- Algoritmo Genético para composição das rotas;
-- alocação determinística de equipe;
-- validação independente da solução;
-- Decision Trace e replay do processo de otimização;
-- mapa interativo das rotas;
-- custos operacionais detalhados;
-- relatórios operacionais;
-- Assistente IA que interpreta dados estruturados do FluxMed sem substituir o otimizador.
-
-A proposta não é simular um SaaS logístico completo. A V1 foi deliberadamente limitada ao que agrega valor acadêmico, arquitetural, demonstrável e de portfólio.
-
----
-
-## 2. Fluxo funcional da V1
-
-```text
-Login
-  ↓
-Criar operação
-  ↓
-Configurar jornada e trânsito
-  ↓
-Selecionar / importar / gerar entregas
-  ↓
-Selecionar frota e equipe
-  ↓
-Executar preflight de viabilidade
-  ↓
-Otimizar rotas com GA
-  ↓
-Acompanhar execução / replay
-  ↓
-Analisar plano final e custos
-  ↓
-Consultar Assistente IA
-  ↓
-Gerar relatórios
-  ↓
-Aprovar plano
-  ↓
-Despachar operação
-  ↓
-Congelar a revisão despachada
-```
-
-Após o dispatch, a revisão operacional se torna imutável para ações de planejamento: edição, reotimização e alteração de equipe deixam de ser permitidas.
-
----
-
-## 3. Capacidades implementadas
-
-### Operações e demanda
-
-- autenticação por sessão;
-- papel de planejador;
-- operações persistidas e versionadas;
-- wizard de preparação operacional;
-- entregas manuais;
-- importação CSV/XLSX;
-- geração determinística de cenários sintéticos;
-- prioridades `LOW`, `NORMAL`, `HIGH` e `CRITICAL`;
-- janelas `HARD` e `SOFT`;
-- refrigeração;
-- necessidade de duas pessoas;
-- peso e volume tratados de forma independente.
-
-### Frota e equipe
-
-- motos, vans compactas, cargo vans e caminhões leves;
-- veículos próprios e agregados;
-- disponibilidade operacional;
-- capacidade em peso e volume;
-- autonomia;
-- motoristas, motociclistas e ajudantes;
-- alocação determinística de equipe;
-- simulação de alterações de equipe antes do dispatch;
-- congelamento da equipe após o dispatch.
-
-### Otimização
-
-- Algoritmo Genético próprio;
-- Tournament Selection;
-- Order Crossover (OX);
-- mutações de swap, insertion e reverse/inversion;
-- elitismo;
-- mutação adaptativa;
-- diversidade populacional;
-- população inicial híbrida;
-- decoder determinístico de cromossomo para rotas;
-- pruning;
-- repair;
-- validação independente da solução final;
-- early stopping;
-- execução reproduzível por seed;
-- Decision Trace persistido.
-
-### Resultado operacional
-
-- mapa das rotas;
-- seleção visual por rota/veículo;
-- entregas por rota;
-- carga em peso e volume;
-- distância e duração;
-- makespan;
-- atrasos críticos;
-- percentual no prazo;
-- custos por rota e total;
-- equipe atribuída;
-- replay da otimização;
-- aprovação e dispatch.
-
-### Relatórios
-
-A aplicação gera relatórios a partir de snapshot persistido do plano, com exportação em:
-
-- PDF;
-- XLSX;
-- CSV.
-
-Os relatórios incluem resumo operacional, rotas, veículos, equipes, entregas, horários e custos.
-
-### Assistente IA
-
-A LLM funciona como **camada de interpretação**, nunca como otimizador.
-
-O backend resolve e valida o grounding antes da resposta textual. O Assistente pode, entre outras tarefas:
-
-- resumir a operação;
-- explicar custos;
-- consultar métricas do plano;
-- comparar informações presentes no grounding;
-- explicar seleção de veículos e rotas;
-- gerar instruções operacionais;
-- responder perguntas sobre entregas e planejamento.
-
-A LLM não pode despachar operações, alterar diretamente o banco, substituir restrições matemáticas ou inventar métricas ausentes.
-
-A V1 possui provider mock para desenvolvimento e suporte a providers reais, incluindo Gemini. O caminho de resposta grounded do Gemini usa uma chamada de geração controlada pelo backend, com timeout, mensagens públicas sanitizadas e rate guard por usuário.
-
-Detalhes: [`docs/LLM_SPEC.md`](docs/LLM_SPEC.md) e [`docs/LLM_IMPLEMENTATION.md`](docs/LLM_IMPLEMENTATION.md).
-
----
-
-## 4. Santa Aurora
-
-**Santa Aurora** é a cidade brasileira fictícia e determinística usada na demonstração.
-
-Ela fornece o ambiente controlado necessário para testar:
-
-- grafo urbano dirigido;
-- ruas de mão única e mão dupla;
-- diferentes classes viárias;
-- trânsito variável;
-- bairros e regiões;
-- centro de distribuição;
-- hospitais, clínicas, laboratórios, farmácias e home care;
-- endereços válidos para geração de demanda;
-- interdições e restrições de circulação.
-
-O domínio foi desenhado para não depender conceitualmente de uma única cidade; Santa Aurora é a implementação de demonstração da V1.
-
-Detalhes: [`docs/SANTA_AURORA_SPEC.md`](docs/SANTA_AURORA_SPEC.md).
-
----
-
-## 5. Arquitetura
-
-```text
-┌──────────────────────────────────────────────┐
-│            React + Vite + TypeScript         │
-│ Operações · Entregas · Frota · Equipe · IA │
-│ MapLibre · Relatórios · Resultado do GA      │
-└─────────────────────┬────────────────────────┘
-                      │ HTTP / SSE
-                      ▼
-┌──────────────────────────────────────────────┐
-│                   FastAPI                    │
-│ API · Application · Domain · Optimization   │
-│ Routing · Reports · LLM · Security           │
-└─────────────────────┬────────────────────────┘
-                      │
-                      ▼
-┌──────────────────────────────────────────────┐
-│            PostgreSQL + PostGIS              │
-└──────────────────────────────────────────────┘
-```
-
-O monorepo mantém frontend e backend separados, mas evoluídos como uma única aplicação.
-
-### Backend
-
-- Python 3.12+
-- FastAPI
-- Pydantic
-- SQLAlchemy
-- Alembic
-- PostgreSQL/PostGIS
-- psycopg
-- GeoAlchemy2
-- httpx
-- Google Gen AI SDK
-- ReportLab
-- openpyxl
-
-### Frontend
-
-- React 18
-- TypeScript
-- Vite
-- React Router
-- MapLibre GL
-- Vitest
-- React Testing Library
-- Playwright
-
-### Qualidade
-
-- Ruff
-- mypy strict
-- pytest
-- ESLint
-- TypeScript typecheck
-- Vitest
-- build de produção
-
-Detalhes arquiteturais: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
-
----
-
-## 6. Modelo de otimização
-
-O problema é separado em duas camadas.
-
-### 6.1 Routing urbano
-
-Responde:
-
-> Qual é o caminho viário entre dois pontos?
-
-O roteamento considera o grafo dirigido, distância, velocidade, trânsito, sentidos, restrições e horário estimado de passagem.
-
-### 6.2 Fleet / VRP Optimization
-
-Responde:
-
-> Qual veículo atende cada entrega e em qual ordem?
-
-O GA trabalha sobre uma permutação global de entregas. Um decoder transforma o cromossomo em rotas operacionais, respeitando restrições e recursos.
-
-A avaliação prioriza viabilidade e qualidade operacional antes de critérios econômicos. Uma solução inviável não deve superar uma solução válida apenas por ser mais curta ou barata.
-
-Mais detalhes: [`docs/OPTIMIZATION_SPEC.md`](docs/OPTIMIZATION_SPEC.md).
-
----
-
-## 7. Evidência acadêmica e benchmarks
-
-O repositório inclui infraestrutura reproduzível para comparar:
-
-1. Nearest Neighbor;
-2. Best Insertion;
-3. GA basic;
-4. GA + advanced pruning;
-5. GA + advanced pruning + repair.
-
-O preset acadêmico final utiliza os perfis `NORMAL`, `BUSY`, `HIGH_PRESSURE` e `EMERGENCY`, tamanhos de 20/40/60/80 entregas e seeds explicitamente registradas.
-
-Exemplo:
+Crie o arquivo de configuração local a partir de `.env.example`:
 
 ```powershell
-cd "$HOME\Desktop\fluxmed"
-.\apps\api\.venv\Scripts\Activate.ps1
-python scripts\benchmark_optimizer.py --matrix-template-code OP-20260915-001 --preset final
-```
-
-Os artefatos incluem CSV/JSON, estatísticas consolidadas, séries de convergência, tabelas acadêmicas e gráficos SVG.
-
-Consulte [`benchmarks/README.md`](benchmarks/README.md) e [`docs/BENCHMARK_PLAN.md`](docs/BENCHMARK_PLAN.md).
-
----
-
-## 8. Instalação local (recomendada para avaliação)
-
-A versão acadêmica é executada **localmente**, sem serviço em nuvem. O Docker Compose prepara PostgreSQL/PostGIS, migrations, a cidade Santa Aurora, backend e frontend.
-
-Pré-requisitos: Git, Docker Desktop com Compose v2 e acesso ao repositório. Na raiz:
-
-```powershell
-# Windows PowerShell
+# Windows / PowerShell
 Copy-Item .env.example .env
+```
+
+```bash
+# macOS / Linux
+cp .env.example .env
+```
+
+Inicie a pilha:
+
+```bash
 docker compose up --build -d
+docker compose ps -a
 ```
 
-No macOS/Linux, substitua o primeiro comando por `cp .env.example .env`.
+O primeiro início aplica as migrações e gera Santa Aurora. Aguarde `api` e `web` ficarem ativos; `init` terminar com `Exited (0)` é esperado. Abra **http://localhost:5173** e entre com a conta exclusiva de demonstração: `planner@fluxmed.demo` / `FluxMedDemo2026!`.
 
-Abra **http://localhost:5173** e entre com `planner@fluxmed.demo` / `FluxMedDemo2026!`. O primeiro start pode demorar devido ao seed da cidade. A saída `Exited (0)` do container `init` é esperada.
+> O Compose publica os serviços somente em `127.0.0.1`. As credenciais demonstrativas são públicas e não devem ser usadas em um ambiente exposto à internet. Nunca versione o arquivo `.env`.
 
-O Assistente inicia no modo `mock`; o uso de Gemini real exige `GEMINI_API_KEY` no `.env` local e `LLM_PROVIDER=gemini`, sem publicar segredos.
+Para detalhes de instalação, diagnóstico e execução sem Docker para API/web, consulte [o guia local](docs/LOCAL_SETUP.md).
 
-**Guia completo de instalação, execução manual, solução de problemas e avaliação:** [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md).
+## Jornada de demonstração
 
----
+1. Crie uma operação em Santa Aurora e escolha uma janela de planejamento.
+2. Gere entregas sintéticas ou importe um arquivo; selecione frota e equipe.
+3. Execute o preflight e a otimização. Acompanhe a evolução do GA e abra o mapa das rotas.
+4. Confira viabilidade, prioridades, horários, veículos, custos e comparação com heurísticas.
+5. Consulte o Assistente IA sobre o plano; peça instruções para o motorista de uma rota.
+6. Gere os relatórios operacionais PDF, XLSX e CSV; aprove e despache a operação.
 
-## 9. Reiniciar uma instalação já configurada
+Após o despacho, a revisão do plano fica imutável. O banco é persistido em um volume Docker. A instalação inicial não traz uma operação otimizada pronta: a jornada acima cria uma.
 
-Depois da configuração inicial, normalmente são necessários três terminais.
+Para capturar as telas e narrar depois, siga o [guia de gravação manual](docs/VIDEO_RECORDING_GUIDE.md). Ele separa a preparação da operação, a demonstração do GA e a chamada Gemini real.
 
-### Terminal 1 — PostgreSQL/PostGIS
+## Como a solução atende ao desafio
+
+| Requisito | Implementação e evidência |
+|---|---|
+| Algoritmo genético | Cromossomo como permutação de entregas, seleção por torneio, Order Crossover, mutações swap/insertion/inversion, elitismo e parada por estagnação. [Detalhes](docs/OPTIMIZATION_SPEC.md). |
+| Código-base TSP da FIAP | [Comparação com o repositório oficial](docs/FIAP_TSP_BASE.md): os conceitos do GA foram reimplementados e ampliados para VRP. O FluxMed foi desenvolvido de forma independente, sem copiar o arquivo fornecido. |
+| Restrições médicas e VRP | Múltiplos veículos, capacidade de peso e volume, autonomia, refrigeração, prioridades, janelas de entrega, equipe, jornada e retorno ao depósito. O backend valida a solução final independentemente do GA. |
+| Visualização | Mapa interativo de Santa Aurora com rotas, paradas e indicadores operacionais. |
+| Comparação experimental | Nearest Neighbor, Best Insertion e três configurações do GA avaliados na mesma matriz de cenários. [Resultados e método](benchmarks/README.md). |
+| LLM | Assistente com ferramentas de consulta ao plano persistido, instruções para motoristas, resumo diário e perguntas sobre rotas e custos. O modelo interpreta dados; não recalcula rotas nem altera a operação. [Avaliação](docs/ASSISTANT_EVALUATION.md). |
+| Qualidade e execução | FastAPI e React/TypeScript, migrações PostgreSQL/PostGIS, testes automatizados, CI e Docker Compose local. [Arquitetura](docs/ARCHITECTURE.md). |
+
+O relatório técnico acadêmico e o vídeo de até 15 minutos são entregáveis separados dos relatórios operacionais gerados pela aplicação.
+
+## Resultados do benchmark
+
+O experimento publicado usa 4 perfis de demanda (`NORMAL`, `BUSY`, `HIGH_PRESSURE`, `EMERGENCY`), 4 escalas (20, 40, 60, 80 entregas) e 5 seeds para cada configuração do GA. São **16 cenários e 272 execuções de métodos**; os baselines determinísticos executam uma vez por cenário.
+
+| Método | Soluções viáveis | Tempo médio do otimizador |
+|---|---:|---:|
+| Nearest Neighbor | 5/16 | 0,012 s |
+| Best Insertion | 3/16 | 0,115 s |
+| GA básico | 14/80 | 41,893 s |
+| GA com pruning | 60/80 | 37,046 s |
+| **GA com pruning e repair** | **80/80** | **56,309 s** |
+
+Nessa amostra, o repair elevou a frequência de soluções viáveis e aumentou o tempo médio. Os números **não** demonstram otimalidade global nem superioridade de custo em toda instância. Custos só são comparáveis entre soluções viáveis do mesmo cenário; a métrica de fitness não equivale necessariamente ao custo operacional final. Os dados, seeds, tabelas e gráficos estão em [benchmarks/results/final-evidence-20260917](benchmarks/results/final-evidence-20260917/academic-summary.md).
+
+### Reexecutar o experimento
+
+O benchmark usa a operação `OP-20260915-001` como modelo de recursos, data e janela. A pasta de resultados oficial preserva os dados medidos. Para uma nova execução, use uma pasta de saída diferente; a matriz completa consome CPU e pode levar bastante tempo.
 
 ```powershell
-cd "$HOME\Desktop\fluxmed"
-docker compose up -d db
+# Em um banco demo recém-inicializado, antes de criar outros recursos.
+docker compose run --rm --no-deps init python -m fluxmed.scripts.seed_benchmark_template --seed
+
+# Na raiz, com o Python/ambiente virtual da API ativo e PostgreSQL disponível.
+python scripts/benchmark_optimizer.py --matrix-template-code OP-20260915-001 --preset final --output benchmarks/results/minha-reexecucao
 ```
 
-### Terminal 2 — API
+O seed acadêmico é exclusivo da reprodução do experimento; **não o execute no banco da gravação**. Ele exige o banco de demonstração recém-inicializado, com Santa Aurora e usuário demo, antes de criar outras operações ou recursos. [Instruções e limitações de reexecução](benchmarks/README.md).
 
-```powershell
-cd "$HOME\Desktop\fluxmed\apps\api"
-.\.venv\Scripts\Activate.ps1
+## Assistente IA: mock e provider real
 
-Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
-Remove-Item Env:TEST_DATABASE_URL -ErrorAction SilentlyContinue
+Por padrão, a instalação usa `LLM_PROVIDER=mock`. Isso permite explorar a interface e as consultas ao backend **sem chamar uma LLM externa**. Para testar Gemini, configure uma chave própria **somente no `.env` da API**, altere `LLM_PROVIDER`/`LLM_MODEL` conforme [o guia de avaliação](docs/ASSISTANT_EVALUATION.md) e reinicie a API. O modelo real pode exigir cota e gerar custos. Uma resposta identificada como `gemini` após uma pergunta é a evidência de chamada; o status de configuração sozinho não comprova conectividade.
 
-uvicorn fluxmed.main:app --app-dir src --reload
-```
+Chaves não são fornecidas no repositório. O vídeo acadêmico deve demonstrar uma pergunta factual e instruções para motorista com Gemini real sem mostrar credenciais.
 
-### Terminal 3 — Web
-
-```powershell
-cd "$HOME\Desktop\fluxmed\apps\web"
-npm run dev
-```
-
-Os comandos equivalentes também estão disponíveis no `Makefile` para ambientes com `make`.
-
----
-
-## 10. Banco de testes isolado
-
-Os testes de integração possuem uma proteção explícita para não executar contra o banco da aplicação.
-
-Crie o banco de testes uma única vez:
-
-```powershell
-cd "$HOME\Desktop\fluxmed"
-
-docker compose exec db psql -U fluxmed -d postgres -c "CREATE DATABASE fluxmed_test OWNER fluxmed;"
-docker compose exec db psql -U fluxmed -d fluxmed_test -c "CREATE EXTENSION IF NOT EXISTS postgis;"
-```
-
-Aplique as migrations:
-
-```powershell
-cd apps\api
-.\.venv\Scripts\Activate.ps1
-
-$env:TEST_DATABASE_URL="postgresql+psycopg://fluxmed:fluxmed@localhost:5432/fluxmed_test"
-$env:DATABASE_URL=$env:TEST_DATABASE_URL
-
-alembic upgrade head
-```
-
-> Atenção: um terminal configurado com `DATABASE_URL=$env:TEST_DATABASE_URL` é um terminal de testes. Limpe essas variáveis antes de iniciar a aplicação normal.
-
----
-
-## 11. Validação local
-
-### Backend
-
-```powershell
-cd apps\api
-.\.venv\Scripts\Activate.ps1
-
-$env:TEST_DATABASE_URL="postgresql+psycopg://fluxmed:fluxmed@localhost:5432/fluxmed_test"
-$env:DATABASE_URL=$env:TEST_DATABASE_URL
-
-python -m ruff check src tests
-python -m ruff format --check src tests
-python -m mypy src
-python -m pytest -q
-```
-
-Na regressão final da V1: **169 testes aprovados**.
-
-### Frontend
-
-```powershell
-cd apps\web
-
-npm run lint
-npm run typecheck
-npm test -- --run
-npm run build
-```
-
-Na regressão final da V1: **26 testes aprovados** e build de produção concluído.
-
-O build pode emitir aviso de bundle/chunk grande do mapa; isso é tratado como otimização futura e não como falha funcional da V1.
-
----
-
-## 12. Configurando e avaliando o Assistente IA
-
-A instalação local inicia com o **provider simulado**:
-
-```dotenv
-LLM_PROVIDER=mock
-LLM_MODEL=fluxmed-mock-v1
-```
-
-Isso permite testar interface e consultas do backend, mas **não executa uma LLM real** e não comprova a integração Gemini exigida no trabalho acadêmico.
-
-Para testar o Gemini, o avaliador deve usar uma chave de API **da própria conta**, com acesso/cota disponível. Substitua as linhas correspondentes no arquivo local `.env` (não versionado):
-
-```dotenv
-LLM_PROVIDER=gemini
-LLM_MODEL=gemini-3.5-flash-lite
-LLM_THINKING_LEVEL=minimal
-GEMINI_API_KEY=SUA_CHAVE_PESSOAL_AQUI
-```
-
-Reinicie só a API com `docker compose up -d --force-recreate api`. Abra uma operação otimizada no Assistente, confirme o provedor/modelo e envie uma pergunta factual para verificar que houve resposta real. Um indicador de saúde por si só não comprova a conectividade com o Google. Não há fallback silencioso para mock quando o Gemini falha.
-
-A chave do autor **não será publicada nem compartilhada**. A prova da integração real será apresentada também no vídeo acadêmico, usando a chave apenas no computador do autor. Quem quiser repetir a chamada real precisará configurar sua própria chave; isso pode estar sujeito a cotas/custos do provedor.
-
-**Instruções, exemplos de perguntas, cuidados com credenciais e roteiro de evidências:** [docs/ASSISTANT_EVALUATION.md](docs/ASSISTANT_EVALUATION.md).
-
-O backend aplica timeout, limite de contexto, limite de saída, sanitização de falhas e rate limiting por usuário.
-
----
-
-## 13. Hardening e segurança da V1
-
-A Fase 18 adicionou ou validou, entre outros pontos:
-
-- liveness separado de readiness;
-- falhas de banco sanitizadas;
-- correlation ID em erros inesperados;
-- logs sem query string/body sensível;
-- auditoria de autenticação sem credenciais;
-- sessão same-origin;
-- cookies `Secure` forçados em produção;
-- upload/import com limite de tamanho e normalização de nome;
-- proteção contra execução dos testes em banco não dedicado;
-- falhas do otimizador sanitizadas;
-- cancelamento terminal-safe;
-- recuperação de SSE e reidratação de trace persistido;
-- histórico append-only de relatórios;
-- rate guard do Assistente IA;
-- erros de providers externos sem exposição de segredo;
-- imutabilidade operacional após dispatch.
-
-Veja [`docs/HARDENING_PLAN.md`](docs/HARDENING_PLAN.md) e [`docs/CI_POLICY.md`](docs/CI_POLICY.md).
-
----
-
-## 14. Estrutura do monorepo
+## Arquitetura
 
 ```text
-fluxmed/
-├── apps/
-│   ├── api/                 # FastAPI, domínio, routing, GA, relatórios e LLM
-│   └── web/                 # React/Vite/TypeScript
-├── benchmarks/              # definição e artefatos de benchmark acadêmico
-├── data/                    # dados auxiliares/versionados
-├── docs/                    # especificações, ADRs e planos
-├── infra/                   # infraestrutura de apoio
-├── scripts/                 # launchers e utilitários
-├── tests/                   # testes de nível de repositório quando aplicável
-├── .github/                 # workflows e configuração de automação
-├── docker-compose.yml
-├── Makefile
-├── .env.example
-└── README.md
+React + Vite + TypeScript + MapLibre
+             │ HTTP / SSE
+             ▼
+FastAPI: API → aplicação → domínio / routing / GA / relatórios / LLM
+             │
+             ▼
+      PostgreSQL + PostGIS
 ```
 
----
+O GA decide quais entregas cada veículo atende e em qual ordem. O módulo de routing encontra os caminhos no grafo urbano dirigido. Essa separação permite aplicar restrições de carga, autonomia, tempo e prioridade sem tratar cada rua como um gene. O Assistente consulta resultados estruturados depois da otimização.
 
-## 15. Documentação técnica
+## Verificação
 
-Principais referências:
+O [Full CI da `main`](https://github.com/alvaro-amorim/fluxmed/actions/runs/40573719652) executa lint, formatação, MyPy, migrations e testes de backend com PostGIS; lint, TypeScript, Vitest e build do frontend; além do E2E automatizado de login demo. Essa execução passou em 27/10/2026. A jornada operacional completa também foi verificada manualmente.
 
-- [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — escopo e comportamento do produto;
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitetura e responsabilidades;
-- [`docs/DOMAIN_MODEL.md`](docs/DOMAIN_MODEL.md) — entidades e regras de domínio;
-- [`docs/SANTA_AURORA_SPEC.md`](docs/SANTA_AURORA_SPEC.md) — cidade sintética;
-- [`docs/OPTIMIZATION_SPEC.md`](docs/OPTIMIZATION_SPEC.md) — GA, decoder e restrições;
-- [`docs/OPTIMIZATION_TRACE.md`](docs/OPTIMIZATION_TRACE.md) — evidências estruturadas do otimizador;
-- [`docs/API_SPEC.md`](docs/API_SPEC.md) — contratos da API;
-- [`docs/FRONTEND_SPEC.md`](docs/FRONTEND_SPEC.md) — UX e superfícies do frontend;
-- [`docs/LLM_SPEC.md`](docs/LLM_SPEC.md) — regras do Assistente IA;
-- [`docs/LLM_IMPLEMENTATION.md`](docs/LLM_IMPLEMENTATION.md) — implementação dos providers/grounding;
-- [`docs/TESTING_STRATEGY.md`](docs/TESTING_STRATEGY.md) — estratégia de testes;
-- [`docs/BENCHMARK_PLAN.md`](docs/BENCHMARK_PLAN.md) — metodologia acadêmica;
-- [`docs/HARDENING_PLAN.md`](docs/HARDENING_PLAN.md) — fechamento da V1;
-- [`docs/CI_POLICY.md`](docs/CI_POLICY.md) — política de CI.
+Para comandos de teste e banco isolado, consulte [a estratégia de testes](docs/TESTING_STRATEGY.md) e [o guia local](docs/LOCAL_SETUP.md). **Atenção:** confirme que `TEST_DATABASE_URL` aponta para um banco dedicado antes de executar pytest; os testes de integração podem modificar esse banco.
 
----
+## Escopo e documentação
 
-## 16. Limites deliberados da V1
+- Os dados e resultados refletem uma cidade e demandas sintéticas, não uma avaliação com pacientes ou logística hospitalar real.
+- O produto gera relatórios operacionais **diários**; não agrega várias operações em um relatório semanal.
+- A aplicação planeja a operação antes do despacho; não oferece GPS, telemetria, aplicativo do motorista ou reotimização em trânsito.
+- O E2E automatizado cobre login; o fluxo operacional completo foi validado manualmente.
 
-Ficam fora do escopo atual:
-
-- GPS e telemetria reais;
-- aplicativo do motorista;
-- rastreamento durante a execução física da rota;
-- reotimização disparada por eventos reais em trânsito;
-- múltiplos centros de distribuição;
-- microserviços;
-- Kafka/RabbitMQ;
-- Kubernetes;
-- processamento distribuído;
-- trânsito real de terceiros;
-- carregamento 3D;
-- regras trabalhistas completas e folha/ponto.
-
-Esses itens são possibilidades de evolução, não requisitos faltantes da V1 acadêmica.
-
----
-
-## 17. Princípio central
-
-> O FluxMed deve demonstrar profundidade técnica sem confundir profissionalismo com complexidade desnecessária.
-
-A V1 busca ser:
-
-- academicamente defensável;
-- tecnicamente correta;
-- visualmente demonstrável;
-- testável;
-- explicável;
-- reproduzível;
-- segura para demonstração;
-- organizada como projeto de portfólio.
+O [índice da documentação](docs/README.md) separa guias de avaliação, especificações técnicas e registros históricos de desenvolvimento.

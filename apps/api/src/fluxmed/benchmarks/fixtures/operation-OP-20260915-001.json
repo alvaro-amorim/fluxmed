@@ -1,0 +1,370 @@
+{
+  "operation": {
+    "id": "a9ca39ba-f62a-467d-94d0-7cbce7df6150",
+    "operation_code": "OP-20260915-001",
+    "operation_date": "2026-09-15",
+    "operation_start_time": "07:30:00",
+    "operation_end_time": "18:00:00",
+    "traffic_mode": "AUTOMATIC",
+    "status": "DISPATCHED",
+    "current_revision_number": 2
+  },
+  "vehicles": [
+    {
+      "id": "264b48cf-d573-475f-8ac9-6b89d1e2c5c6",
+      "plate": "FMD1A01",
+      "type": "CARGO_VAN",
+      "ownership_type": "OWNED",
+      "max_payload_kg": "1800.000",
+      "max_volume_m3": "10.0000",
+      "max_range_km": "520.00",
+      "refrigerated": true,
+      "status": "AVAILABLE",
+      "helper_policy": "OPTIONAL",
+      "fuel_type": "DIESEL",
+      "fuel_efficiency_km_per_l": "9.500",
+      "active": true
+    },
+    {
+      "id": "ee069a66-3651-491e-b159-d3f471cf74fc",
+      "plate": "FMD1A02",
+      "type": "CARGO_VAN",
+      "ownership_type": "OWNED",
+      "max_payload_kg": "1600.000",
+      "max_volume_m3": "9.0000",
+      "max_range_km": "500.00",
+      "refrigerated": false,
+      "status": "AVAILABLE",
+      "helper_policy": "OPTIONAL",
+      "fuel_type": "DIESEL",
+      "fuel_efficiency_km_per_l": "10.000",
+      "active": true
+    },
+    {
+      "id": "e9c64d69-c789-40ac-bc78-e2138119daee",
+      "plate": "FMD1A03",
+      "type": "VAN_COMPACT",
+      "ownership_type": "OWNED",
+      "max_payload_kg": "900.000",
+      "max_volume_m3": "5.0000",
+      "max_range_km": "430.00",
+      "refrigerated": true,
+      "status": "AVAILABLE",
+      "helper_policy": "OPTIONAL",
+      "fuel_type": "DIESEL",
+      "fuel_efficiency_km_per_l": "11.000",
+      "active": true
+    },
+    {
+      "id": "dbdb9e14-e711-44fe-9f6c-fc9de507fe97",
+      "plate": "FMD1A04",
+      "type": "VAN_COMPACT",
+      "ownership_type": "OWNED",
+      "max_payload_kg": "850.000",
+      "max_volume_m3": "4.8000",
+      "max_range_km": "430.00",
+      "refrigerated": false,
+      "status": "AVAILABLE",
+      "helper_policy": "OPTIONAL",
+      "fuel_type": "DIESEL",
+      "fuel_efficiency_km_per_l": "11.500",
+      "active": true
+    },
+    {
+      "id": "c9140190-9afb-44fe-8633-833553477cc9",
+      "plate": "FMD1A05",
+      "type": "LIGHT_TRUCK",
+      "ownership_type": "OWNED",
+      "max_payload_kg": "4500.000",
+      "max_volume_m3": "24.0000",
+      "max_range_km": "650.00",
+      "refrigerated": true,
+      "status": "AVAILABLE",
+      "helper_policy": "OPTIONAL",
+      "fuel_type": "DIESEL",
+      "fuel_efficiency_km_per_l": "6.500",
+      "active": true
+    },
+    {
+      "id": "ed819076-0430-44f4-8c17-332c84c3da3c",
+      "plate": "FMD1A06",
+      "type": "MOTO",
+      "ownership_type": "OWNED",
+      "max_payload_kg": "40.000",
+      "max_volume_m3": "0.1500",
+      "max_range_km": "250.00",
+      "refrigerated": false,
+      "status": "AVAILABLE",
+      "helper_policy": "FORBIDDEN",
+      "fuel_type": "GASOLINE",
+      "fuel_efficiency_km_per_l": "32.000",
+      "active": true
+    },
+    {
+      "id": "bbdd7913-abec-4952-9f54-8c235cd4a34c",
+      "plate": "FMD1A07",
+      "type": "CARGO_VAN",
+      "ownership_type": "AGGREGATED",
+      "max_payload_kg": "2200.000",
+      "max_volume_m3": "12.0000",
+      "max_range_km": "550.00",
+      "refrigerated": true,
+      "status": "AVAILABLE",
+      "helper_policy": "OPTIONAL",
+      "fuel_type": "DIESEL",
+      "fuel_efficiency_km_per_l": "9.000",
+      "active": true
+    }
+  ],
+  "workers": [
+    {
+      "id": "25c05680-339d-4179-934a-b60d888cf63a",
+      "name": "Ajudante Demo 1",
+      "role": "HELPER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "19.00",
+      "active": true
+    },
+    {
+      "id": "c00a80e2-dfd3-4000-8de8-91f370d97ffb",
+      "name": "Ajudante Demo 2",
+      "role": "HELPER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "19.50",
+      "active": true
+    },
+    {
+      "id": "991692e7-d330-4b35-be6b-d9edee3b636b",
+      "name": "Ajudante Demo 3",
+      "role": "HELPER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "20.00",
+      "active": true
+    },
+    {
+      "id": "210666df-0de0-4186-96bd-7ffcf5008c21",
+      "name": "Ajudante Demo 4",
+      "role": "HELPER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "21.00",
+      "active": true
+    },
+    {
+      "id": "d2e37f34-8eaf-4c90-8f84-cbbcce4e59b2",
+      "name": "Ajudante Demo 5",
+      "role": "HELPER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "22.00",
+      "active": true
+    },
+    {
+      "id": "a1c1fa2e-0875-4f6a-bf51-c3d3e468e9a2",
+      "name": "Motociclista Demo 1",
+      "role": "MOTORCYCLE_COURIER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "26.00",
+      "active": true
+    },
+    {
+      "id": "00c100d8-b55a-43cf-b507-29e836cbabae",
+      "name": "Motociclista Demo 2",
+      "role": "MOTORCYCLE_COURIER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "27.00",
+      "active": true
+    },
+    {
+      "id": "ef758ca2-9f00-4b78-a172-a581358568ea",
+      "name": "Motorista Demo 1",
+      "role": "DRIVER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "28.50",
+      "active": true
+    },
+    {
+      "id": "12adbf48-f183-4acf-8dde-9a0ba11b1813",
+      "name": "Motorista Demo 2",
+      "role": "DRIVER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "29.50",
+      "active": true
+    },
+    {
+      "id": "c8585bd4-58fa-4d98-97b5-f52abfe6a183",
+      "name": "Motorista Demo 3",
+      "role": "DRIVER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "30.00",
+      "active": true
+    },
+    {
+      "id": "8153583d-d062-4571-8ba5-3e8e0da60c52",
+      "name": "Motorista Demo 4",
+      "role": "DRIVER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "31.00",
+      "active": true
+    },
+    {
+      "id": "d0580e4e-cccf-472a-80f6-c1fecdd94fd7",
+      "name": "Motorista Demo 5",
+      "role": "DRIVER",
+      "engagement_type": "EMPLOYEE",
+      "compensation_model": "HOURLY",
+      "compensation_value_brl": "33.00",
+      "active": true
+    }
+  ],
+  "owned_profiles": [
+    {
+      "id": "8104437c-136f-44ef-9157-2bc5a5b94105",
+      "vehicle_id": "264b48cf-d573-475f-8ac9-6b89d1e2c5c6",
+      "acquisition_value_brl": "210000.00",
+      "residual_value_brl": "60000.00",
+      "useful_life_km": "320000.00",
+      "annual_ipva_brl": "3200.00",
+      "annual_insurance_brl": "4800.00",
+      "annual_fixed_costs_brl": "4200.00",
+      "expected_productive_hours_per_year": "2200.00"
+    },
+    {
+      "id": "687e1d7c-7319-41b3-bff9-9d3c1752954d",
+      "vehicle_id": "c9140190-9afb-44fe-8633-833553477cc9",
+      "acquisition_value_brl": "360000.00",
+      "residual_value_brl": "110000.00",
+      "useful_life_km": "420000.00",
+      "annual_ipva_brl": "3200.00",
+      "annual_insurance_brl": "4800.00",
+      "annual_fixed_costs_brl": "7200.00",
+      "expected_productive_hours_per_year": "2200.00"
+    },
+    {
+      "id": "ff5ca45b-825e-498e-9b85-f760fcc4125b",
+      "vehicle_id": "dbdb9e14-e711-44fe-9f6c-fc9de507fe97",
+      "acquisition_value_brl": "145000.00",
+      "residual_value_brl": "38000.00",
+      "useful_life_km": "280000.00",
+      "annual_ipva_brl": "3200.00",
+      "annual_insurance_brl": "4800.00",
+      "annual_fixed_costs_brl": "3200.00",
+      "expected_productive_hours_per_year": "2200.00"
+    },
+    {
+      "id": "e73b8773-6a45-4533-a91d-3b33f03806f6",
+      "vehicle_id": "e9c64d69-c789-40ac-bc78-e2138119daee",
+      "acquisition_value_brl": "155000.00",
+      "residual_value_brl": "42000.00",
+      "useful_life_km": "280000.00",
+      "annual_ipva_brl": "3200.00",
+      "annual_insurance_brl": "4800.00",
+      "annual_fixed_costs_brl": "3400.00",
+      "expected_productive_hours_per_year": "2200.00"
+    },
+    {
+      "id": "b3baed3f-b542-45f2-be99-0af6f2a2fdb2",
+      "vehicle_id": "ed819076-0430-44f4-8c17-332c84c3da3c",
+      "acquisition_value_brl": "26000.00",
+      "residual_value_brl": "7000.00",
+      "useful_life_km": "120000.00",
+      "annual_ipva_brl": "3200.00",
+      "annual_insurance_brl": "4800.00",
+      "annual_fixed_costs_brl": "1200.00",
+      "expected_productive_hours_per_year": "2200.00"
+    },
+    {
+      "id": "9708f3e4-7436-4067-ac56-66f57d50c6f9",
+      "vehicle_id": "ee069a66-3651-491e-b159-d3f471cf74fc",
+      "acquisition_value_brl": "190000.00",
+      "residual_value_brl": "50000.00",
+      "useful_life_km": "320000.00",
+      "annual_ipva_brl": "3200.00",
+      "annual_insurance_brl": "4800.00",
+      "annual_fixed_costs_brl": "3900.00",
+      "expected_productive_hours_per_year": "2200.00"
+    }
+  ],
+  "maintenance_items": [
+    {
+      "id": "ed71d449-ce9a-406c-902b-60f04ba4188e",
+      "vehicle_id": "264b48cf-d573-475f-8ac9-6b89d1e2c5c6",
+      "name": "Revisão preventiva demo",
+      "cost_brl": "1800.00",
+      "interval_km": "12000.00",
+      "active": true
+    },
+    {
+      "id": "4d068ee8-e195-424a-8f09-eb39eefb74b5",
+      "vehicle_id": "c9140190-9afb-44fe-8633-833553477cc9",
+      "name": "Revisão preventiva demo",
+      "cost_brl": "3200.00",
+      "interval_km": "15000.00",
+      "active": true
+    },
+    {
+      "id": "c3050f1f-528e-4ec6-8f82-c5a032bd3c3a",
+      "vehicle_id": "dbdb9e14-e711-44fe-9f6c-fc9de507fe97",
+      "name": "Revisão preventiva demo",
+      "cost_brl": "1250.00",
+      "interval_km": "12000.00",
+      "active": true
+    },
+    {
+      "id": "e507e5f1-83a7-4a5c-ae50-dea0a511831b",
+      "vehicle_id": "e9c64d69-c789-40ac-bc78-e2138119daee",
+      "name": "Revisão preventiva demo",
+      "cost_brl": "1350.00",
+      "interval_km": "12000.00",
+      "active": true
+    },
+    {
+      "id": "61417f4d-9cb7-4b89-8242-138822cd40cc",
+      "vehicle_id": "ed819076-0430-44f4-8c17-332c84c3da3c",
+      "name": "Revisão preventiva demo",
+      "cost_brl": "350.00",
+      "interval_km": "5000.00",
+      "active": true
+    },
+    {
+      "id": "1cbf62de-b945-4215-b571-69328388ad2d",
+      "vehicle_id": "ee069a66-3651-491e-b159-d3f471cf74fc",
+      "name": "Revisão preventiva demo",
+      "cost_brl": "1650.00",
+      "interval_km": "12000.00",
+      "active": true
+    }
+  ],
+  "aggregated_contracts": [
+    {
+      "id": "cb9f8b48-db55-4c1d-bc3a-865717a2c15d",
+      "vehicle_id": "bbdd7913-abec-4952-9f54-8c235cd4a34c",
+      "pricing_model": "PER_ROUTE",
+      "price_brl": "420.00",
+      "fuel_included": true,
+      "driver_included": true,
+      "helper_included": true,
+      "active": true
+    }
+  ],
+  "worker_availability": [],
+  "road_overrides": [],
+  "city": [
+    {
+      "id": "e4b38411-12a9-55fa-b389-00555b28404b",
+      "name": "Santa Aurora",
+      "dataset_version": "1.1.0",
+      "generation_seed": 20260913,
+      "generator_version": "santa-aurora-v2"
+    }
+  ]
+}

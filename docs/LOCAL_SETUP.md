@@ -93,4 +93,4 @@ Suba só o banco com `docker compose up -d db`. Em `apps/api`, usando Python 3.1
 
 ## Verificação técnica
 
-O workflow `.github/workflows/local-compose-smoke.yml` foi preparado para validar Compose, iniciar a pilha, abrir o frontend e autenticar via proxy. Só uma execução **verde** desse workflow comprova seu funcionamento automatizado; o fluxo completo do GA ainda precisa de teste manual em clone limpo.
+O workflow `.github/workflows/local-compose-smoke.yml` valida Compose, inicia a pilha, abre o frontend e autentica via proxy; a [execução de smoke aprovada](https://github.com/alvaro-amorim/fluxmed/actions/runs/38481422992) registra esse teste. O [Full CI da `main`](https://github.com/alvaro-amorim/fluxmed/actions/runs/40573719652) também passou. O E2E automatizado cobre o login demo; a jornada operacional completa foi verificada manualmente e deve aparecer no vídeo da entrega.

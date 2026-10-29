@@ -61,9 +61,17 @@ Na comparação pareada dos **60 pares cenário + seed em que as duas variantes 
 
 O benchmark opera em modo de **leitura** sobre uma operação já existente em Santa Aurora, usando sua frota, equipe, janela e configurações de tráfego. A execução original utilizou `OP-20260915-001`, conforme o manifesto.
 
-No repositório, a operação-base **não é criada automaticamente** pelo seed padrão do Docker. Por isso um clone limpo, apesar de executar perfeitamente a aplicação, **ainda não possui os dados suficientes para reproduzir exatamente o experimento original**. Não descreva o comando abaixo como reprodutível a partir do zero sem restaurar/reconstituir previamente a operação-base com as mesmas características. O registro de resultados e o manifesto permitem **inspecionar e auditar** o estudo já executado; a reprodução integral requer a entrada operacional equivalente.
+O seed padrão do Docker cria a cidade e o usuário demo, mas não a operação-base. O [fixture acadêmico](../apps/api/src/fluxmed/benchmarks/fixtures/operation-OP-20260915-001.json) registra o ID da operação, a janela, os sete veículos e os 12 profissionais selecionados, com IDs e custos originais. Ele contém apenas recursos demonstrativos; as entregas da matriz são geradas em memória pelo benchmark. Não execute o seed acadêmico sobre um catálogo de recursos já preenchido: ele recusa substituir dados existentes.
 
-Depois de inicializar o banco Santa Aurora, criar uma operação-base com recursos selecionados e instalar as dependências de `apps/api`, execute **na raiz do repositório** (Python da API/ambiente virtual ativo):
+Depois de `docker compose up --build -d` em um clone limpo, crie a operação-base com a imagem da API:
+
+```powershell
+docker compose run --rm --no-deps init python -m fluxmed.scripts.seed_benchmark_template --seed
+```
+
+O mesmo seed pode ser executado no host com `python scripts/seed_benchmark_template.py --seed`, usando o ambiente virtual da API. Sem `--seed`, o comando apenas confere em leitura se uma operação existente corresponde ao fixture. O seed é idempotente quando a operação já coincide e falha sem sobrescrever recursos divergentes.
+
+Com o Python da API instalado e PostgreSQL disponível, execute **na raiz do repositório**:
 
 ```powershell
 # Smoke: valida o mecanismo, não serve como evidência acadêmica de Santa Aurora.
@@ -72,11 +80,11 @@ python scripts/benchmark_optimizer.py --smoke --seeds 101 202 303
 # Exemplo rápido com uma operação local existente:
 python scripts/benchmark_optimizer.py --matrix-template-code CODIGO_DA_SUA_OPERACAO --profiles NORMAL --sizes 20 --scenario-seeds 20260917 --quick --seeds 101
 
-# Preset final de 16 cenários × 5 seeds de GA; exige a operação original no banco:
-python scripts/benchmark_optimizer.py --matrix-template-code OP-20260915-001 --preset final
+# Preset final de 16 cenários × 5 seeds de GA; grava em uma pasta separada:
+python scripts/benchmark_optimizer.py --matrix-template-code OP-20260915-001 --preset final --output benchmarks/results/minha-reexecucao
 ```
 
-A execução completa pode demorar e utiliza CPU. O último comando não deve sobrescrever os artefatos acadêmicos versionados sem comparação com a evidência original. Se for executar um novo estudo, informe uma pasta de saída diferente por meio do argumento `--output`.
+A execução completa pode demorar e utiliza CPU. Preserve os artefatos acadêmicos versionados. A reconstrução do cenário `NORMAL-20` foi comparada com a operação original em um banco de teste transacional: entregas, veículos, janela e matriz de deslocamento coincidiram exatamente. O teste de regressão registra um hash desse input. Tempos de execução variam conforme hardware e carga; resultados de uma nova execução devem ser apresentados separadamente dos dados arquivados.
 
 ## Limitações e cuidados metodológicos
 
@@ -85,7 +93,7 @@ A execução completa pode demorar e utiliza CPU. O último comando não deve so
 3. Os tempos foram medidos no ambiente do experimento; não são garantias de performance em computadores diferentes.
 4. As heurísticas determinísticas executam uma vez por cenário, enquanto cada GA executa cinco vezes; a comparação de percentuais exige reconhecer essa diferença.
 5. O benchmark não comprova otimalidade matemática nem garante superioridade de custo do GA em toda instância.
-6. A reexecução byte a byte depende dos dados e parâmetros da operação-base original. **Fornecer um fixture/export sanitizado dessa operação é uma melhoria pendente de reprodutibilidade**.
+6. O fixture restaura os parâmetros operacionais e IDs usados pela matriz em um banco limpo. A igualdade dos inputs foi validada para `NORMAL-20`; não se promete repetição byte a byte de tempos ou de todos os artefatos em outro ambiente.
 7. Os gráficos e as tabelas são gerados automaticamente dos dados experimentais, mas as interpretações são limitadas às instâncias testadas.
 
 Para o relatório acadêmico, priorize viabilidade e restrições, apresente custo apenas nos pares comparáveis e discuta o trade-off com tempo computacional. Para a arquitetura e restrições do algoritmo, consulte [docs/OPTIMIZATION_SPEC.md](../docs/OPTIMIZATION_SPEC.md) e [docs/BENCHMARK_PLAN.md](../docs/BENCHMARK_PLAN.md).

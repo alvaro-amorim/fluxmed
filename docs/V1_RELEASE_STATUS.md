@@ -1,6 +1,8 @@
-# FluxMed — V1 Release Status
+# FluxMed — registro histórico da preparação da V1
 
-## Estado atual
+> Este arquivo preserva o estado das fases 18–19 registrado em 13/10/2026. Para a avaliação e os números de testes mais recentes, consulte o [README principal](../README.md) e o [índice de documentação](README.md).
+
+## Estado registrado naquele momento
 
 A V1 está funcionalmente concluída até a Fase 18.
 

@@ -131,8 +131,8 @@ Final academic evidence — completed:
 - Measured feasibility: Nearest Neighbor 5/16, Best Insertion 3/16, GA Basic 14/80, GA + Pruning 60/80, GA + Pruning + Repair 80/80. Benchmarks establish observed viability and performance **within the sampled scenarios only**; they do not establish a global optimality guarantee.
 - Mean optimizer runtime of GA + Pruning + Repair: 56.309 seconds; GA + Pruning: 37.046 seconds. Repair improves feasibility at a computational cost, not a guaranteed cost reduction.
 
-Outstanding academic reproducibility qualification:
+Academic reproducibility qualification:
 
-- The manifest identifies `template_operation_code=OP-20260915-001`, but this operation's persisted resource selections, planning window and road overrides are **not** recreated by a clean Docker seed. The archived measurements remain independently inspectable, but exact execution reproducibility requires a sanitized operation fixture or clear reconstruction instructions. Do not claim the benchmark can be regenerated from a fresh clone with the seed alone.
+- The manifest identifies `template_operation_code=OP-20260915-001`. A sanitized academic fixture now restores the original operation ID, date/window, selected demo resources, stable IDs and cost profiles after the standard Docker seed. It refuses to overwrite an existing resource catalog. The `NORMAL-20` input was compared in a rollback-only test database against the original operation and matched exactly. Reexecution still requires the explicit fixture step; timing and full output files are not guaranteed byte-identical across machines.
 - Report the synthetic-data scope, single scenario seed per cell, and hardware dependence of runtime. Do not equate optimizer fitness cost and persisted operational total cost.
 - Integrate real experimental tables/charts into the Tech Challenge report and presentation rather than using a smoke test as evidence.

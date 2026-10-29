@@ -560,7 +560,7 @@ export function NewOperationPage() {
             </div>
           </div>
           {preflight?.status === 'VALID' ? (
-            <p className="wizard-phase-note">A preparação está concluída. O clique abre o planejamento da operação; o motor GA será conectado na Fase 11, sem simular uma otimização inexistente.</p>
+            <p className="wizard-phase-note">A preparação está concluída. Abra a operação e, na aba Resultado, inicie a otimização das rotas pelo algoritmo genético.</p>
           ) : null}
         </section>
       ) : null}

@@ -30,3 +30,8 @@ Thumbs.db
 
 # Local tooling
 *.log
+
+# Benchmark runs created locally; the final-evidence directory is versioned.
+benchmarks/results/smoke/
+benchmarks/results/*-quick/
+benchmarks/results/validation-*/

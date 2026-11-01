@@ -156,7 +156,7 @@ class MatrixCheckpoint:
         self._lock.seek(0)
         try:
             if os.name == "nt":
-                import msvcrt
+                msvcrt = importlib.import_module("msvcrt")
 
                 msvcrt.locking(self._lock.fileno(), msvcrt.LK_NBLCK, 1)
             else:

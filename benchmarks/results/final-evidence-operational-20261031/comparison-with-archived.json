@@ -1,0 +1,62 @@
+{
+  "same_scenario_method_seed_keys": true,
+  "same_recorded_experiment_parameters": true,
+  "methods": {
+    "BEST_INSERTION": {
+      "archived_runs": 16,
+      "current_runs": 16,
+      "archived_feasible": 3,
+      "current_feasible": 3,
+      "archived_mean_runtime_seconds": 0.11478555624989895,
+      "current_mean_runtime_seconds": 0.11106330000023945
+    },
+    "GA_BASIC": {
+      "archived_runs": 80,
+      "current_runs": 80,
+      "archived_feasible": 14,
+      "current_feasible": 13,
+      "archived_mean_runtime_seconds": 41.89267651999971,
+      "current_mean_runtime_seconds": 51.32459011124985
+    },
+    "GA_PRUNING": {
+      "archived_runs": 80,
+      "current_runs": 80,
+      "archived_feasible": 60,
+      "current_feasible": 62,
+      "archived_mean_runtime_seconds": 37.04562125625007,
+      "current_mean_runtime_seconds": 49.81038576249998
+    },
+    "GA_PRUNING_REPAIR": {
+      "archived_runs": 80,
+      "current_runs": 80,
+      "archived_feasible": 80,
+      "current_feasible": 80,
+      "archived_mean_runtime_seconds": 56.308937087499906,
+      "current_mean_runtime_seconds": 82.84557574125012
+    },
+    "NEAREST_NEIGHBOR": {
+      "archived_runs": 16,
+      "current_runs": 16,
+      "archived_feasible": 5,
+      "current_feasible": 5,
+      "archived_mean_runtime_seconds": 0.011853106251237477,
+      "current_mean_runtime_seconds": 0.015159706250074123
+    }
+  },
+  "paired_current_viable_runs": 62,
+  "paired_current_cost_lower_with_repair": 33,
+  "paired_current_cost_higher_with_repair": 25,
+  "paired_current_cost_equal_with_repair": 4,
+  "paired_current_quality": {
+    "better": 37,
+    "equal": 4,
+    "worse": 21
+  },
+  "limits": [
+    "Archived cost is a partial search cost; current cost includes vehicle, fuel and actual team. No monetary percentage change between editions is computed.",
+    "Waiting, priority scoring and team feasibility changed together. Historical feasibility and quality are not the same evaluation contract.",
+    "Archived hardware was not recorded. Runtime changes cannot be attributed solely to the code changes.",
+    "Only one scenario seed per profile/size; GA seeds measure optimizer variability, not independent real-world operations.",
+    "Within the current experiment, compare cost only on feasible solutions of the same scenario; show service quality tradeoffs alongside cost."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "official_wall_seconds": 14895.496,
+  "pilot_wall_seconds": 320.859,
+  "pilot_resume_wall_seconds": 22.949,
+  "pilot_resume_byte_identical_report_verified": true,
+  "pilot_reexecuted_in_official_matrix": true,
+  "pilot_official_matching_runs_identical_except_timing": true,
+  "archived_results_unchanged": true,
+  "stage2_algorithm_sources_preserved": true,
+  "official_runs": 272,
+  "scenarios": 16,
+  "scenario_method_summaries": 80,
+  "convergence_points": 19144,
+  "source_sha256": "c4368d3b6e6ba81917b3ad47a6b28ad71ba73584a597ca616ab2a797c14a5830",
+  "git_base_commit": "ce721ffcf7e1323cc8cd03b73fe5ab09609759ac",
+  "ruff_check": "passed",
+  "mypy": "passed",
+  "diff_check": "passed",
+  "charts_visual_review": "5 SVG charts rendered and inspected; readable axes, labels and legends",
+  "no_production_database_or_paid_provider_used": true,
+  "no_commit_or_publication_performed": true,
+  "verification_commands": [
+    "python verification-tools/audit_benchmark.py OFFICIAL_RESULTS_DIR REPOSITORY_ROOT",
+    "python verification-tools/compare_benchmarks.py BENCHMARK_RESULTS_PARENT"
+  ],
+  "directed_benchmark_and_operational_tests_passed": 28,
+  "legacy_normal20_input_sha256_verified": "5a2bdacd2a529e7310d5871e83885f6cc16046ebb9f631ce9df22478f2cc88ee",
+  "archived_files_sha256": {
+    "benchmarks/results/final-evidence-20260917/academic-summary.md": "0899ed993a8018933e3632b8eb3d857d956b07fa059365c06804a058a103fc3e",
+    "benchmarks/results/final-evidence-20260917/benchmark-convergence.csv": "e5fe59aaa0f2acb84b03d7f61c4527f3b03c689c072b4e3acdabca2e623a53e8",
+    "benchmarks/results/final-evidence-20260917/benchmark-report.json": "55b670242d4379e47746e4e2dc4ec02e6e677ab373623c7b0a3b473d65f76bdf",
+    "benchmarks/results/final-evidence-20260917/benchmark-runs.csv": "f3a1aeb4810f30b590374088b33cca711df309689220e3e33bc22d3745208cfb",
+    "benchmarks/results/final-evidence-20260917/benchmark-summaries.csv": "62019b934af7e36e5fe4c337b9e95cee1d0c8297284bbda9d347ff2ba23e3cde",
+    "benchmarks/results/final-evidence-20260917/matrix-manifest.json": "b1f04dd8893a759d0b13960a3e4e8b9b2ca7158afed9234b99fd464256bf09ff",
+    "benchmarks/results/final-evidence-20260917/charts/convergence-hard-violations.svg": "8c37385dbcde2f402ae1a00cfb069bbf0f86cb1c1af10c48443b88d21eef1171",
+    "benchmarks/results/final-evidence-20260917/charts/feasibility-by-scale.svg": "52d126c3bc2bcb6586a29b767737ff6b0bcf138d751df427aafdac6d41cd039c",
+    "benchmarks/results/final-evidence-20260917/charts/ga-hard-violations-by-scale.svg": "4d54ab36ca36e5e78ab6352f48d07ea0e7edf64566b8dbe5e9955499f37e8560",
+    "benchmarks/results/final-evidence-20260917/charts/paired-pruning-repair-cost-by-scale.svg": "402595d1b015886716443c71ff6409e423602548a40bfb818f20dc16c5619149",
+    "benchmarks/results/final-evidence-20260917/charts/runtime-by-scale.svg": "c1a3baf5f6ab2061741f1f7c2c7b4031b35ffd5aeda83b026811710266df6c0c"
+  }
+}

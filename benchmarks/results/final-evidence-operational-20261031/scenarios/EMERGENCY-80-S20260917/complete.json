@@ -1,0 +1,18 @@
+{
+  "cell": {
+    "delivery_count": 80,
+    "profile": "EMERGENCY",
+    "scenario_name": "EMERGENCY-80-S20260917",
+    "scenario_seed": 20260917
+  },
+  "completed_at_utc": "2026-10-31T20:50:03.665176+00:00",
+  "experiment_id": "831811541cf21dea34c4cdf0c0aceb2acbcd35027f19fed28e879d85fcb54e4f",
+  "files_sha256": {
+    "benchmark-convergence.csv": "cb76028367e0f64d89fd44870d5b7bf89bd0f9d6b0caadb9e74485d526e1483b",
+    "benchmark-report.json": "9e4c29bafda1f25c17d567d8e6ef5452254b9a28fcb9055fa21614e771b2ceba",
+    "benchmark-runs.csv": "b5aa2c25c560c5a4a265d630220975a558564cb384c47c9d723965a57b744bf1",
+    "benchmark-summaries.csv": "2cfa025259bd09e90807a15b9dd97721e87184cf89f1fd66ff415c30d4b600d1",
+    "input.json": "c38b5ad752a13553ff81f79ada6002a6850dbfeb1fd4a9d36e752fbd0806f8ad"
+  },
+  "input_sha256": "c38b5ad752a13553ff81f79ada6002a6850dbfeb1fd4a9d36e752fbd0806f8ad"
+}

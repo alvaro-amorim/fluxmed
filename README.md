@@ -2,7 +2,7 @@
 
 Planejamento de rotas para distribuição de medicamentos e insumos em uma cidade sintética. O projeto implementa um algoritmo genético para uma variante de VRP com múltiplos veículos e restrições médicas, apresenta as rotas em um mapa e oferece um assistente de linguagem natural conectado aos resultados calculados pelo backend.
 
-**Tech Challenge — Fase 2, Projeto 2.** Esta é uma aplicação acadêmica de planejamento antes da saída dos veículos. Santa Aurora, entregas e condições de trânsito são sintéticas; não há operação hospitalar real nem rastreamento em tempo real.
+**Tech Challenge — Fase 2, Projeto 2.** A aplicação realiza planejamento pré-despacho com Santa Aurora, entregas e condições de trânsito sintéticas.
 
 ## Executar a aplicação
 
@@ -49,35 +49,37 @@ Para detalhes de instalação, diagnóstico e execução sem Docker para API/web
 
 Após o despacho, a revisão do plano fica imutável. O banco é persistido em um volume Docker. A instalação inicial não traz uma operação otimizada pronta: a jornada acima cria uma.
 
-Para capturar as telas e narrar depois, siga o [guia de gravação manual](docs/VIDEO_RECORDING_GUIDE.md). Ele separa a preparação da operação, a demonstração do GA e a chamada Gemini real.
-
-## Como a solução atende ao desafio
+## Componentes da solução
 
 | Requisito | Implementação e evidência |
 |---|---|
 | Algoritmo genético | Cromossomo como permutação de entregas, seleção por torneio, Order Crossover, mutações swap/insertion/inversion, elitismo e parada por estagnação. [Detalhes](docs/OPTIMIZATION_SPEC.md). |
-| Código-base TSP da FIAP | [Comparação com o repositório oficial](docs/FIAP_TSP_BASE.md): os conceitos do GA foram reimplementados e ampliados para VRP. O FluxMed foi desenvolvido de forma independente, sem copiar o arquivo fornecido. |
+| Código-base TSP da FIAP | [Referência conceitual e comparação técnica](docs/FIAP_TSP_BASE.md) entre o TSP didático e o VRP do FluxMed. |
 | Restrições médicas e VRP | Múltiplos veículos, capacidade de peso e volume, autonomia, refrigeração, prioridades, janelas de entrega, equipe, jornada e retorno ao depósito. O backend valida a solução final independentemente do GA. |
 | Visualização | Mapa interativo de Santa Aurora com rotas, paradas e indicadores operacionais. |
 | Comparação experimental | Nearest Neighbor, Best Insertion e três configurações do GA avaliados na mesma matriz de cenários. [Resultados e método](benchmarks/README.md). |
 | LLM | Assistente com ferramentas de consulta ao plano persistido, instruções para motoristas, resumo diário e perguntas sobre rotas e custos. O modelo interpreta dados; não recalcula rotas nem altera a operação. [Avaliação](docs/ASSISTANT_EVALUATION.md). |
 | Qualidade e execução | FastAPI e React/TypeScript, migrações PostgreSQL/PostGIS, testes automatizados, CI e Docker Compose local. [Arquitetura](docs/ARCHITECTURE.md). |
 
-O relatório técnico acadêmico e o vídeo de até 15 minutos são entregáveis separados dos relatórios operacionais gerados pela aplicação.
+O [relatório técnico acadêmico](docs/academic/Relatorio-Tecnico-FluxMed.pdf) e o vídeo de até 15 minutos são entregáveis separados dos relatórios operacionais gerados pela aplicação.
 
 ## Resultados do benchmark
 
-O experimento publicado usa 4 perfis de demanda (`NORMAL`, `BUSY`, `HIGH_PRESSURE`, `EMERGENCY`), 4 escalas (20, 40, 60, 80 entregas) e 5 seeds para cada configuração do GA. São **16 cenários e 272 execuções de métodos**; os baselines determinísticos executam uma vez por cenário.
+O estudo final de 31/10/2026 usa 4 perfis de demanda (`NORMAL`, `BUSY`, `HIGH_PRESSURE`, `EMERGENCY`), 4 escalas (20, 40, 60, 80 entregas) e 5 seeds para cada configuração do GA. São **16 cenários e 272 execuções únicas de métodos**; os baselines determinísticos executam uma vez por cenário.
 
 | Método | Soluções viáveis | Tempo médio do otimizador |
 |---|---:|---:|
-| Nearest Neighbor | 5/16 | 0,012 s |
-| Best Insertion | 3/16 | 0,115 s |
-| GA básico | 14/80 | 41,893 s |
-| GA com pruning | 60/80 | 37,046 s |
-| **GA com pruning e repair** | **80/80** | **56,309 s** |
+| Nearest Neighbor | 5/16 | 0,015 s |
+| Best Insertion | 3/16 | 0,111 s |
+| GA básico | 13/80 | 51,325 s |
+| GA com pruning | 62/80 | 49,810 s |
+| **GA com pruning e repair** | **80/80** | **82,846 s** |
 
-Nessa amostra, o repair elevou a frequência de soluções viáveis e aumentou o tempo médio. Os números **não** demonstram otimalidade global nem superioridade de custo em toda instância. Custos só são comparáveis entre soluções viáveis do mesmo cenário; a métrica de fitness não equivale necessariamente ao custo operacional final. Os dados, seeds, tabelas e gráficos estão em [benchmarks/results/final-evidence-20260917](benchmarks/results/final-evidence-20260917/academic-summary.md).
+Nessa amostra, repair elevou a frequência de soluções viáveis e aumentou o tempo médio. Nos **62 pares viáveis de mesmo cenário e seed** entre pruning e pruning + repair, repair teve custo menor em **33**, maior em **25** e igual em **4**. A qualidade do atendimento também pode diferir entre esses pares; a interpretação conjunta está no método experimental.
+
+O GA e os métodos comparados usam o mesmo custo operacional, incluindo combustível e equipe efetivamente atribuída. Falta de equipe torna o candidato inviável antes da escolha final. A espera por janela entra na duração, no makespan e nos componentes por hora. A fitness ordena: viabilidade, violações, atraso SOFT ponderado por prioridade, risco CRITICAL, inversões de prioridade, custo operacional, makespan, viagem, distância e veículos. Restrições e atendimento precedem custo. [Funcionamento e validação](docs/OPTIMIZATION_SPEC.md).
+
+Os [dados finais, seeds, identidade do código e gráficos](benchmarks/results/final-evidence-operational-20261031/academic-summary.md) documentam a matriz oficial. O [método experimental](benchmarks/README.md) apresenta o pareamento e as condições de interpretação.
 
 ### Reexecutar o experimento
 
@@ -89,9 +91,12 @@ docker compose run --rm --no-deps init python -m fluxmed.scripts.seed_benchmark_
 
 # Na raiz, com o Python/ambiente virtual da API ativo e PostgreSQL disponível.
 python scripts/benchmark_optimizer.py --matrix-template-code OP-20260915-001 --preset final --output benchmarks/results/minha-reexecucao
+
+# Após interrupção, retome a mesma pasta com os mesmos parâmetros e código:
+python scripts/benchmark_optimizer.py --matrix-template-code OP-20260915-001 --preset final --output benchmarks/results/minha-reexecucao --resume
 ```
 
-O seed acadêmico é exclusivo da reprodução do experimento; **não o execute no banco da gravação**. Ele exige o banco de demonstração recém-inicializado, com Santa Aurora e usuário demo, antes de criar outras operações ou recursos. [Instruções e limitações de reexecução](benchmarks/README.md).
+O seed acadêmico usa banco dedicado de demonstração recém-inicializado, com Santa Aurora e usuário demo, antes de criar outras operações ou recursos. Preserve o banco utilizado nas demonstrações. [Preparação e reprodução](benchmarks/README.md).
 
 ## Assistente IA: mock e provider real
 
@@ -111,19 +116,10 @@ FastAPI: API → aplicação → domínio / routing / GA / relatórios / LLM
       PostgreSQL + PostGIS
 ```
 
-O GA decide quais entregas cada veículo atende e em qual ordem. O módulo de routing encontra os caminhos no grafo urbano dirigido. Essa separação permite aplicar restrições de carga, autonomia, tempo e prioridade sem tratar cada rua como um gene. O Assistente consulta resultados estruturados depois da otimização.
+O GA evolui uma permutação de entregas; o decoder constrói as rotas e atribui veículos de forma gulosa. O routing encontra os caminhos no grafo urbano dirigido: cada par da matriz e da geometria parte da referência inicial da operação, considerando fatores temporais das arestas dentro do caminho. O Assistente consulta resultados estruturados depois da otimização.
 
-## Verificação
+## Verificação e referência
 
-O [Full CI da `main`](https://github.com/alvaro-amorim/fluxmed/actions/runs/40573719652) executa lint, formatação, MyPy, migrations e testes de backend com PostGIS; lint, TypeScript, Vitest e build do frontend; além do E2E automatizado de login demo. Essa execução passou em 27/10/2026. A jornada operacional completa também foi verificada manualmente.
+Os comandos, o banco dedicado e os escopos de backend, frontend, E2E e ensaio manual estão em [TESTING_STRATEGY.md](docs/TESTING_STRATEGY.md). O [workflow de CI](.github/workflows/ci.yml) define os jobs e o [registro experimental](benchmarks/results/final-evidence-operational-20261031/verification.json) identifica as verificações da fonte medida.
 
-Para comandos de teste e banco isolado, consulte [a estratégia de testes](docs/TESTING_STRATEGY.md) e [o guia local](docs/LOCAL_SETUP.md). **Atenção:** confirme que `TEST_DATABASE_URL` aponta para um banco dedicado antes de executar pytest; os testes de integração podem modificar esse banco.
-
-## Escopo e documentação
-
-- Os dados e resultados refletem uma cidade e demandas sintéticas, não uma avaliação com pacientes ou logística hospitalar real.
-- O produto gera relatórios operacionais **diários**; não agrega várias operações em um relatório semanal.
-- A aplicação planeja a operação antes do despacho; não oferece GPS, telemetria, aplicativo do motorista ou reotimização em trânsito.
-- O E2E automatizado cobre login; o fluxo operacional completo foi validado manualmente.
-
-O [índice da documentação](docs/README.md) separa guias de avaliação, especificações técnicas e registros históricos de desenvolvimento.
+O [índice da documentação](docs/README.md) organiza os guias do problema, algoritmo, arquitetura, API, cidade, LLM, relatórios e experimento. O relatório técnico acadêmico e o vídeo apresentam o método e os resultados; os relatórios operacionais da aplicação descrevem cada operação.

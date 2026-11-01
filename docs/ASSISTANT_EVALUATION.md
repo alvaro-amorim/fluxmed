@@ -56,7 +56,7 @@ O autor demonstrará a integração com Gemini real no **vídeo acadêmico** de 
 4. uma pergunta para instruções de motorista;
 5. a comparação visual de valores com o resultado/relatório gerado.
 
-Mostrar somente o chat em modo `mock` não demonstra integração com LLM pré-treinada. O professor pode inspecionar a implementação real no repositório e, se desejar verificar por execução independente, utilizar uma chave própria. **Sem chave externa e sem servidor hospedado, ninguém poderá executar chamadas reais ao Gemini.**
+Uma chamada externa é identificada pela resposta concluída e pelos metadados do provider, confrontados com as fontes da operação. O ensaio independente utiliza chave e cota da conta configurada.
 
 ## Segurança das credenciais
 
@@ -80,4 +80,4 @@ Remova a linha `GEMINI_API_KEY` e execute `docker compose up -d --force-recreate
 
 ## Limite de comprovação
 
-Os testes automáticos em CI usam o provider simulado por padrão. Eles não são uma prova de acesso ao Google. A integração real foi exercitada manualmente durante o desenvolvimento; a evidência acadêmica reproduzível deve incluir vídeo com o provider real e, quando desejado, teste adicional com chave própria do avaliador.
+Os testes automáticos em CI usam o provider simulado por padrão. Eles não são uma prova de acesso ao Google. O registro de um ensaio externo deve identificar operação/run, provider/modelo, perguntas, respostas e valores de referência. O vídeo pode apresentar essa conferência com a mesma operação.

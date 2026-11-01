@@ -1,13 +1,13 @@
 # FluxMed — guia de instalação local
 
-O projeto é executado **sem hospedagem**, em uma máquina com Docker. Não é preciso instalar Python ou Node.js no computador avaliador.
+O ambiente local utiliza Docker Compose, que reúne as dependências de execução da API, frontend e banco espacial.
 
 ## Pré-requisitos
 
 - Git, Docker Desktop (Windows com WSL2 ou macOS) ou Docker Engine + Compose v2 (Linux);
 - memória e armazenamento suficientes para o banco espacial e Santa Aurora;
 - portas 5432, 8000 e 5173 disponíveis;
-- acesso ao repositório no GitHub (atualmente privado).
+- acesso ao repositório no GitHub.
 
 ## Instalação inicial
 
@@ -69,7 +69,7 @@ GEMINI_API_KEY=SUA_CHAVE_PESSOAL_AQUI
 
 Aplique a mudança usando `docker compose up -d --force-recreate api`. No Assistente, selecione uma operação já otimizada, confira `gemini`/modelo na interface e **envie uma pergunta**. O status saudável sozinho não comprova acesso ao Google. Se houver limitação de cota, indisponibilidade ou timeout, a API informa erro; não muda silenciosamente para o mock.
 
-A chave fica exclusivamente no container da API. Nunca a mostre em vídeo, print ou comando de diagnóstico. A conta do avaliador é responsável por seus limites e eventuais custos. **Sem chave própria, o professor pode explorar o mock e assistir à gravação da integração real, mas não executar chamadas Gemini por conta própria.**
+A chave fica exclusivamente no container da API. Nunca a mostre em vídeo, print ou comando de diagnóstico. A conta do avaliador é responsável por seus limites e eventuais custos. O modo mock permite explorar o fluxo com respostas simuladas; o ensaio externo utiliza chave e cota da conta configurada.
 
 O passo a passo completo, exemplos de perguntas, evidências para o vídeo e cuidados com a chave estão no **[guia de avaliação do Assistente IA](ASSISTANT_EVALUATION.md)**.
 
@@ -93,4 +93,4 @@ Suba só o banco com `docker compose up -d db`. Em `apps/api`, usando Python 3.1
 
 ## Verificação técnica
 
-O workflow `.github/workflows/local-compose-smoke.yml` valida Compose, inicia a pilha, abre o frontend e autentica via proxy; a [execução de smoke aprovada](https://github.com/alvaro-amorim/fluxmed/actions/runs/38481422992) registra esse teste. O [Full CI da `main`](https://github.com/alvaro-amorim/fluxmed/actions/runs/40573719652) também passou. O E2E automatizado cobre o login demo; a jornada operacional completa foi verificada manualmente e deve aparecer no vídeo da entrega.
+O [workflow de smoke local](../.github/workflows/local-compose-smoke.yml) prepara a pilha e verifica acesso pelo proxy. O [CI](../.github/workflows/ci.yml) e a [estratégia de testes](TESTING_STRATEGY.md) descrevem os comandos e os escopos automatizados. Para a conferência operacional, use a mesma operação no resultado, mapa, assistente e relatórios.

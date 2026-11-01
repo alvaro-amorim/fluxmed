@@ -1,2016 +1,783 @@
-# FluxMed — Domain Model
-
-**Documento:** `docs/DOMAIN_MODEL.md`  
-**Status:** Modelo de domínio oficial da V1  
-**Projeto:** FluxMed — Planejamento Inteligente de Rotas Médicas  
-**Contexto:** Tech Challenge — Fase 2 — Projeto 2
-
----
-
-# 1. Objetivo deste documento
-
-Este documento define o modelo de domínio do FluxMed V1.
-
-Ele estabelece:
-
-- entidades principais;
-- value objects;
-- enums;
-- relacionamentos;
-- invariantes;
-- estados;
-- snapshots;
-- regras de identidade;
-- separação entre dados planejados e históricos;
-- fronteiras entre operação, cidade, frota, equipe, roteamento e otimização.
-
-Este documento não define detalhes de banco, ORM ou endpoints HTTP.
-
----
-
-# 2. Princípios de modelagem
-
-O domínio deve seguir estes princípios:
-
-1. entidades com identidade própria usam UUID;
-2. códigos humanos não substituem IDs técnicos;
-3. regras críticas vivem no domínio;
-4. histórico despachado é imutável;
-5. dinheiro não usa `float`;
-6. distâncias, tempos e unidades devem ser explícitos;
-7. relações geográficas não devem ser inferidas apenas por proximidade quando existir ligação conhecida;
-8. entidades históricas não devem ser apagadas fisicamente se já estiverem referenciadas;
-9. planned e actual devem ser conceitos separados, mesmo quando actual ainda não for usado na V1;
-10. regras futuras não devem poluir o domínio atual sem necessidade.
-
----
-
-# 3. Contextos principais
-
-O modelo pode ser entendido em seis áreas:
-
-```text
-Identity / Security
-Operations
-Deliveries
-Fleet / Workforce
-City / Routing
-Optimization / Reporting
-```
-
-Essas áreas podem residir no mesmo monólito modular.
-
----
-
-# 4. Entidade User
-
-Representa um usuário autenticável.
-
-Campos principais:
-
-```text
-id: UUID
-email: str
-display_name: str
-password_hash: str
-role: UserRole
-active: bool
-created_at
-updated_at
-last_login_at?
-```
-
-Enum:
-
-```text
-UserRole
-├── ADMIN
-└── PLANNER
-```
-
-Invariantes:
-
-- email único;
-- usuário inativo não autentica;
-- password_hash nunca é exposto pela API;
-- autorização é validada no backend.
-
----
-
-# 5. Entidade Operation
-
-Representa uma operação diária de planejamento.
-
-Campos:
-
-```text
-id: UUID
-operation_code: str
-city_id: UUID
-depot_facility_id: UUID
-operation_date: date
-operation_start_time: time
-operation_end_time: time
-traffic_mode: TrafficMode
-status: OperationStatus
-current_revision_number: int
-created_by_user_id: UUID
-created_at
-updated_at
-```
-
-Enum:
-
-```text
-OperationStatus
-├── DRAFT
-├── READY
-├── OPTIMIZING
-├── OPTIMIZED
-├── OUTDATED
-├── APPROVED
-└── DISPATCHED
-```
-
-Invariantes:
-
-- `operation_end_time > operation_start_time`;
-- exatamente um depósito por operação na V1;
-- uma operação despachada não pode ser alterada;
-- uma mudança relevante após otimização torna a operação `OUTDATED`.
-
----
-
-# 6. Operation Code
-
-Código humano legível.
-
-Exemplo:
-
-```text
-OP-20260913-001
-```
-
-Não substitui o UUID.
-
-Pode ser único por sistema.
-
----
-
-# 7. Entidade OperationRevision
-
-Representa o estado planejado de uma operação em um momento relevante.
-
-Campos:
-
-```text
-id: UUID
-operation_id: UUID
-revision_number: int
-status: RevisionStatus
-created_at
-created_by_user_id: UUID
-optimized_at?
-approved_at?
-dispatched_at?
-notes?
-```
-
-Enum sugerido:
-
-```text
-RevisionStatus
-├── DRAFT
-├── OPTIMIZED
-├── OUTDATED
-├── APPROVED
-└── DISPATCHED
-```
-
-Invariantes:
-
-- revision_number cresce monotonicamente dentro da operação;
-- apenas revisões operacionalmente relevantes precisam ser persistidas;
-- revisão `DISPATCHED` é imutável.
-
----
-
-# 8. O que pertence a uma revisão
-
-Uma revisão pode referenciar ou snapshotar:
-
-- entregas selecionadas;
-- veículos selecionados;
-- workers disponíveis;
-- restrições viárias;
-- parâmetros operacionais;
-- horário;
-- trânsito;
-- resultado de otimização;
-- equipe sugerida;
-- custos;
-- métricas.
-
----
-
-# 9. Entidade OperationVehicleSelection
-
-Relaciona veículo e operação/revisão.
-
-Campos:
-
-```text
-id: UUID
-operation_revision_id: UUID
-vehicle_id: UUID
-selected: bool
-available: bool
-created_at
-```
-
-Regra:
-
-- todos os veículos ativos/disponíveis podem vir selecionados por padrão;
-- planejador pode desmarcar antes de otimizar.
-
----
-
-# 10. Entidade OperationWorkerSelection
-
-Relaciona worker e operação/revisão.
-
-Campos:
-
-```text
-id: UUID
-operation_revision_id: UUID
-worker_id: UUID
-selected: bool
-available: bool
-created_at
-```
-
----
-
-# 11. Entidade Delivery
-
-Representa uma parada logística.
-
-Campos:
-
-```text
-id: UUID
-delivery_code: str
-operation_id: UUID
-invoice_number: str
-invoice_series: str
-issuer_document: str
-issuer_name: str?
-external_reference: str?
-destination_address_id: UUID
-recipient_name: str
-package_count: int
-total_weight_kg: Decimal
-total_volume_m3: Decimal
-priority: DeliveryPriority
-time_window_start: datetime?
-time_window_end: datetime?
-time_window_policy: TimeWindowPolicy
-service_time_minutes: int
-service_time_source: ServiceTimeSource
-temperature_class: TemperatureClass
-handling_requirement: HandlingRequirement
-status: DeliveryStatus
-cargo_profile: CargoProfile?
-notes: str?
-created_at
-updated_at
-```
-
----
-
-# 12. DeliveryPriority
-
-```text
-CRITICAL
-HIGH
-NORMAL
-LOW
-```
-
-Regra:
-
-- prioridade afeta qualidade de serviço;
-- prioridade por si só não substitui janelas HARD.
-
----
-
-# 13. TimeWindowPolicy
-
-```text
-HARD
-SOFT
-```
-
-Regra:
-
-- HARD violada invalida a rota;
-- SOFT violada gera penalidade de serviço.
-
----
-
-# 14. ServiceTimeSource
-
-```text
-ESTIMATED
-MANUAL
-IMPORTED
-```
-
----
-
-# 15. TemperatureClass
-
-```text
-AMBIENT
-REFRIGERATED
-```
-
----
-
-# 16. HandlingRequirement
-
-```text
-STANDARD
-TWO_PERSON
-```
-
----
-
-# 17. DeliveryStatus
-
-Modelo future-ready:
-
-```text
-PENDING
-PLANNED
-LOADED
-DISPATCHED
-IN_TRANSIT
-DELIVERED
-FAILED
-```
-
-Na V1:
-
-- uso efetivo termina essencialmente em `DISPATCHED`;
-- estados de execução não precisam ser simulados.
-
----
-
-# 18. CargoProfile
-
-Usado principalmente no gerador sintético.
-
-Valores sugeridos:
-
-```text
-MEDICATION_SMALL
-REFRIGERATED_MEDICATION
-LAB_MATERIAL
-HOSPITAL_SUPPLIES
-BULK_CONSUMABLES
-MEDICAL_EQUIPMENT
-```
-
-Não é obrigatório para entregas importadas.
-
----
-
-# 19. Identidade operacional da entrega
-
-`delivery_code` é legível.
-
-Exemplo:
-
-```text
-DLV-NF45872-001
-```
-
-A combinação documental relevante:
-
-```text
-issuer_document
-invoice_series
-invoice_number
-```
-
-pode identificar a NF de origem.
-
-Uma mesma NF pode gerar múltiplas deliveries quando houver divisão logística.
-
----
-
-# 20. Invariantes de Delivery
-
-- `package_count > 0`;
-- `total_weight_kg > 0`;
-- `total_volume_m3 > 0`;
-- endereço deve existir;
-- janela final não pode ser anterior à inicial;
-- `TWO_PERSON` exige equipe compatível;
-- `REFRIGERATED` exige veículo compatível;
-- não usar número de NF como chave primária.
-
----
-
-# 21. Service Time
-
-Valor oficial da entrega:
-
-```text
-service_time_minutes
-```
-
-O estimator pode produzir internamente:
-
-```text
-service_time_solo_minutes
-service_time_with_helper_minutes
-```
-
-Esses valores podem ser armazenados quando úteis.
-
-Se o usuário fornecer tempo manual/importado, ele prevalece sobre estimativa automática.
-
----
-
-# 22. Entidade Vehicle
-
-Campos:
-
-```text
-id: UUID
-plate: str
-type: VehicleType
-ownership_type: VehicleOwnershipType
-max_payload_kg: Decimal
-max_volume_m3: Decimal
-max_range_km: Decimal
-refrigerated: bool
-status: VehicleStatus
-helper_policy: HelperPolicy
-fuel_type: FuelType?
-fuel_efficiency_km_per_l: Decimal?
-active: bool
-created_at
-updated_at
-```
-
----
-
-# 23. VehicleType
-
-```text
-MOTO
-VAN_COMPACT
-CARGO_VAN
-LIGHT_TRUCK
-```
-
----
-
-# 24. VehicleOwnershipType
-
-```text
-OWNED
-AGGREGATED
-```
-
----
-
-# 25. VehicleStatus
-
-Sugestão:
-
-```text
-AVAILABLE
-UNAVAILABLE
-MAINTENANCE
-INACTIVE
-```
-
----
-
-# 26. HelperPolicy
-
-```text
-FORBIDDEN
-OPTIONAL
-REQUIRED
-```
-
-Regras padrão sugeridas:
-
-```text
-MOTO → FORBIDDEN
-VAN_COMPACT → OPTIONAL
-CARGO_VAN → OPTIONAL
-LIGHT_TRUCK → OPTIONAL
-```
-
-Configuração pode sobrescrever.
-
----
-
-# 27. FuelType
-
-V1 pode começar com:
-
-```text
-GASOLINE
-ETHANOL
-DIESEL
-FLEX
-OTHER
-```
-
-A arquitetura pode receber energia elétrica no futuro.
-
----
-
-# 28. Entidade OwnedVehicleCostProfile
-
-Aplicável a veículo próprio.
-
-Campos:
-
-```text
-id: UUID
-vehicle_id: UUID
-acquisition_value_brl: Decimal
-residual_value_brl: Decimal
-useful_life_km: Decimal
-annual_ipva_brl: Decimal
-annual_insurance_brl: Decimal
-annual_fixed_costs_brl: Decimal
-expected_productive_hours_per_year: Decimal
-created_at
-updated_at
-```
-
-Valores derivados:
-
-```text
-depreciation_per_km
-fixed_cost_per_hour
-```
-
----
-
-# 29. Entidade VehicleMaintenanceItem
-
-Representa custos periódicos de manutenção.
-
-Campos:
-
-```text
-id: UUID
-vehicle_id: UUID
-name: str
-cost_brl: Decimal
-interval_km: Decimal
-active: bool
-```
-
-Derivação:
-
-```text
-maintenance_per_km = Σ(cost / interval_km)
-```
-
----
-
-# 30. Entidade AggregatedVehicleContract
-
-Aplicável a veículo agregado.
-
-Campos:
-
-```text
-id: UUID
-vehicle_id: UUID
-pricing_model: AggregatedPricingModel
-price_brl: Decimal
-fuel_included: bool
-driver_included: bool
-helper_included: bool
-active: bool
-```
-
-Enum:
-
-```text
-PER_ROUTE
-```
-
-Future-ready:
-
-```text
-PER_DAY
-PER_KM
-```
-
----
-
-# 31. Entidade Worker
-
-Campos:
-
-```text
-id: UUID
-name: str
-role: WorkerRole
-engagement_type: WorkerEngagementType
-compensation_model: CompensationModel
-compensation_value_brl: Decimal
-active: bool
-created_at
-updated_at
-```
-
----
-
-# 32. WorkerRole
-
-```text
-DRIVER
-HELPER
-MOTORCYCLE_COURIER
-```
-
----
-
-# 33. WorkerEngagementType
-
-```text
-EMPLOYEE
-DAY_WORKER
-AGGREGATED
-```
-
----
-
-# 34. CompensationModel
-
-```text
-HOURLY
-DAILY
-PER_ROUTE
-INCLUDED_IN_VEHICLE_CONTRACT
-```
-
----
-
-# 35. Disponibilidade
-
-Disponibilidade não deve ser confundida com cadastro ativo.
-
-Pode existir entidade:
-
-```text
-WorkerAvailability
-```
-
-Campos:
-
-```text
-id: UUID
-worker_id: UUID
-date: date
-available: bool
-notes?
-```
-
-Ou disponibilidade específica por operação.
-
-A implementação pode escolher a forma mais simples, desde que a regra de domínio seja preservada.
-
----
-
-# 36. Entidade City
-
-Campos:
-
-```text
-id: UUID
-name: str
-country_code: str
-timezone: str
-srid: int
-source_type: CitySourceType
-dataset_version: str
-active: bool
-```
-
-Enum:
-
-```text
-SYNTHETIC
-OSM
-GIS
-OTHER
-```
-
----
-
-# 37. City dataset identity
-
-Exemplo:
-
-```text
-name = Santa Aurora
-dataset_version = 1.0.0
-source_type = SYNTHETIC
-```
-
-A seed do gerador deve ser registrada separadamente.
-
----
-
-# 38. Entidade District
-
-Campos:
-
-```text
-id: UUID
-city_id: UUID
-name: str
-geometry
-profile: DistrictProfile?
-```
-
-Exemplos:
-
-- Centro Histórico;
-- Vila Aurora;
-- Jardim das Flores;
-- Parque Universitário;
-- Santa Cecília;
-- Vale Verde;
-- Nova Esperança;
-- Distrito Industrial;
-- Distrito Logístico.
-
----
-
-# 39. Entidade Street
-
-Representa um corredor/logradouro lógico.
-
-Campos:
-
-```text
-id: UUID
-city_id: UUID
-name: str
-normalized_name: str
-street_type: StreetType
-active: bool
-```
-
-Uma Street pode conter muitos RoadSegments.
-
----
-
-# 40. StreetType
-
-Exemplos:
-
-```text
-STREET
-AVENUE
-ROAD
-HIGHWAY
-RING_ROAD
-SERVICE_ROAD
-```
-
-A apresentação pode usar nomes locais como Rua, Avenida, Rodovia.
-
----
-
-# 41. Entidade Intersection
-
-Campos:
-
-```text
-id: UUID
-city_id: UUID
-location: POINT
-```
-
-Representa nó do grafo viário.
-
----
-
-# 42. Entidade RoadSegment
-
-Campos:
-
-```text
-id: UUID
-street_id: UUID
-from_intersection_id: UUID
-to_intersection_id: UUID
-geometry: LINESTRING
-length_m: Decimal
-speed_limit_kmh: Decimal
-road_class: RoadClass
-lanes: int?
-active: bool
-```
-
-O grafo é dirigido.
-
-Para via de mão dupla podem existir dois edges direcionados.
-
----
-
-# 43. RoadClass
-
-Sugestão:
-
-```text
-EXPRESSWAY
-ARTERIAL
-COLLECTOR
-LOCAL
-SERVICE
-```
-
----
-
-# 44. Direção
-
-Não é obrigatório armazenar `one_way` se cada segmento já for direcionado.
-
-Conceito recomendado:
-
-```text
-RoadSegment = edge dirigido
-```
-
-Isso simplifica routing.
-
----
-
-# 45. Entidade Lot
-
-Campos:
-
-```text
-id: UUID
-district_id: UUID
-geometry: POLYGON
-status: LotStatus
-```
-
-Enum:
-
-```text
-OCCUPIED
-VACANT
-```
-
----
-
-# 46. Entidade Building
-
-Campos:
-
-```text
-id: UUID
-lot_id: UUID
-building_type: BuildingType
-geometry: POLYGON
-entrance_location: POINT
-active: bool
-```
-
----
-
-# 47. BuildingType
-
-```text
-HOUSE
-APARTMENT_BUILDING
-COMMERCIAL
-CLINIC
-HOSPITAL
-PHARMACY
-LABORATORY
-WAREHOUSE
-SCHOOL
-PUBLIC_BUILDING
-OTHER
-```
-
-Lote vazio não precisa de Building.
-
----
-
-# 48. Entidade Address
-
-Campos:
-
-```text
-id: UUID
-street_id: UUID
-house_number: str
-house_number_numeric: int?
-suffix: str?
-district_id: UUID
-building_id: UUID
-location: POINT
-road_segment_id: UUID
-position_on_segment: Decimal
-complement_default: str?
-active: bool
-```
-
----
-
-# 49. Invariantes de Address
-
-- existe apenas se houver entrada/edificação;
-- mapeia para segmento viário específico;
-- não depende apenas da interseção mais próxima;
-- números podem ter gaps;
-- números podem conter sufixo;
-- complemento não altera o ponto de acesso rodoviário principal.
-
----
-
-# 50. Entidade Facility
-
-Representa um ponto de interesse operacional.
-
-Campos:
-
-```text
-id: UUID
-city_id: UUID
-address_id: UUID
-name: str
-facility_type: FacilityType
-active: bool
-```
-
----
-
-# 51. FacilityType
-
-```text
-DEPOT
-HOSPITAL
-CLINIC
-LABORATORY
-PHARMACY
-WAREHOUSE
-PUBLIC_FACILITY
-OTHER
-```
-
-Home care normalmente usa um Address residencial, sem exigir Facility própria.
-
----
-
-# 52. Entidade TrafficProfile
-
-Representa fator temporal de trânsito.
-
-Campos conceituais:
-
-```text
-id: UUID
-city_id: UUID
-district_id?
-road_class?
-time_bucket_start
-time_bucket_end
-traffic_factor
-```
-
-Pode haver perfis combinados.
-
----
-
-# 53. TrafficMode
-
-Na operação:
-
-```text
-AUTOMATIC
-FREE
-CUSTOM
-```
-
----
-
-# 54. Entidade RoadOverride
-
-Restrição específica da revisão.
-
-Campos:
-
-```text
-id: UUID
-operation_revision_id: UUID
-road_segment_id: UUID
-override_type: RoadOverrideType
-direction_scope: DirectionScope
-traffic_factor: Decimal?
-reason: RoadOverrideReason
-notes?
-created_by_user_id: UUID
-created_at
-```
-
----
-
-# 55. RoadOverrideType
-
-```text
-CLOSURE
-TRAFFIC
-```
-
----
-
-# 56. DirectionScope
-
-```text
-SEGMENT_DIRECTION
-BOTH_DIRECTIONS
-```
-
-Se RoadSegment for dirigido, `SEGMENT_DIRECTION` atua apenas naquele edge.
-
----
-
-# 57. RoadOverrideReason
-
-```text
-ACCIDENT
-ROADWORK
-EVENT
-OTHER
-```
-
----
-
-# 58. Entidade Route
-
-Representa uma rota planejada para um veículo.
-
-Campos:
-
-```text
-id: UUID
-optimization_run_id: UUID
-vehicle_id: UUID
-route_code: str
-planned_start_at: datetime
-planned_return_at: datetime
-total_distance_km: Decimal
-travel_time_minutes: int
-service_time_minutes: int
-total_duration_minutes: int
-total_cost_brl: Decimal
-weight_load_kg: Decimal
-volume_load_m3: Decimal
-status: RouteStatus
-```
-
----
-
-# 59. RouteStatus
-
-Na V1:
-
-```text
-PLANNED
-APPROVED
-DISPATCHED
-```
-
-Future-ready:
-
-```text
-IN_PROGRESS
-COMPLETED
-FAILED
-```
-
----
-
-# 60. Entidade RouteStop
-
-Representa uma parada ordenada.
-
-Campos:
-
-```text
-id: UUID
-route_id: UUID
-sequence: int
-stop_type: RouteStopType
-delivery_id: UUID?
-facility_id: UUID?
-address_id: UUID
-planned_arrival_at: datetime
-planned_departure_at: datetime
-planned_service_minutes: int
-planned_load_before_kg: Decimal?
-planned_load_after_kg: Decimal?
-planned_volume_before_m3: Decimal?
-planned_volume_after_m3: Decimal?
-actual_arrival_at: datetime?
-actual_departure_at: datetime?
-```
-
----
-
-# 61. RouteStopType
-
-V1:
-
-```text
-DEPOT_START
-DELIVERY
-DEPOT_RETURN
-```
-
-Future-ready:
-
-```text
-PICKUP
-```
-
----
-
-# 62. Planned x Actual
-
-Campos `actual_*` ficam `null` na V1.
-
-Essa separação evita precisar remodelar tudo caso execução real seja adicionada no futuro.
-
----
-
-# 63. Entidade RouteLeg
-
-Opcional, mas recomendada.
-
-Representa o trecho entre duas paradas.
-
-Campos:
-
-```text
-id: UUID
-route_id: UUID
-from_stop_id: UUID
-to_stop_id: UUID
-distance_km: Decimal
-travel_time_minutes: int
-geometry
-departure_time
-arrival_time
-```
-
-Pode armazenar o caminho retornado pelo routing.
-
----
-
-# 64. Entidade RouteAssignment
-
-Liga rota e equipe.
-
-Campos:
-
-```text
-id: UUID
-route_id: UUID
-driver_worker_id: UUID?
-helper_worker_id: UUID?
-motorcycle_courier_worker_id: UUID?
-team_cost_brl: Decimal
-helper_decision: HelperDecision
-manual_override: bool
-created_at
-```
-
----
-
-# 65. HelperDecision
-
-```text
-REQUIRED
-OPTIONAL_SELECTED
-OPTIONAL_NOT_SELECTED
-NOT_NEEDED
-FORBIDDEN
-```
-
----
-
-# 66. Entidade OptimizationRun
-
-Representa uma execução do otimizador.
-
-Campos:
-
-```text
-id: UUID
-operation_revision_id: UUID
-status: OptimizationRunStatus
-algorithm_version: str
-configuration_version: str
-random_seed: int
-started_at
-finished_at?
-elapsed_ms?
-stop_reason?
-generations_completed: int
-total_candidates_evaluated: int
-total_pruned: int
-total_repaired: int
-best_solution_id?
-error_code?
-error_message?
-```
-
----
-
-# 67. OptimizationRunStatus
-
-```text
-QUEUED
-RUNNING
-COMPLETED
-FAILED
-CANCELLED
-INTERRUPTED
-```
-
----
-
-# 68. OptimizationStopReason
-
-```text
-EARLY_STOPPING
-TIME_BUDGET
-MAX_GENERATIONS
-CONVERGED
-USER_CANCELLED
-FAILED
-```
-
----
-
-# 69. FitnessVector
-
-Value object:
+# FluxMed — modelo persistido e tipos
+
+Este guia reúne o modelo SQL e os tipos usados pelo planejamento. As tabelas descrevem persistência PostgreSQL; os campos HTTP e sua serialização pertencem ao [contrato da API](API_SPEC.md).
+
+## Entidades e vínculos
+
+Operações e revisões vinculam entregas, seleção de recursos e runs. Os runs vinculam planos de rota, paradas, equipes e eventos. Relatórios guardam o snapshot do resultado. O catálogo de Santa Aurora mantém os vínculos geográficos.
+
+### AddressModel
+
+Persistência: `addresses`, classe `AddressModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `city_id` | `UUID` | Não | FK cities.id |
+| `street_id` | `UUID` | Não | FK streets.id |
+| `district_id` | `UUID` | Não | FK districts.id |
+| `building_id` | `UUID` | Não | FK buildings.id |
+| `road_segment_id` | `UUID` | Não | FK road_segments.id |
+| `house_number` | `VARCHAR(16)` | Não | — |
+| `house_number_numeric` | `INTEGER` | Não | — |
+| `suffix` | `VARCHAR(4)` | Sim | — |
+| `complement` | `VARCHAR(80)` | Sim | — |
+| `position_on_segment` | `FLOAT` | Não | — |
+| `location` | `geometry(POINT,4326)` | Não | — |
+| `active` | `BOOLEAN` | Não | — |
+
+### AggregatedVehicleContractModel
+
+Persistência: `aggregated_vehicle_contracts`, classe `AggregatedVehicleContractModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `vehicle_id` | `UUID` | Não | FK vehicles.id |
+| `pricing_model` | `aggregated_pricing_model` | Não | — |
+| `price_brl` | `NUMERIC(12, 2)` | Não | — |
+| `fuel_included` | `BOOLEAN` | Não | — |
+| `driver_included` | `BOOLEAN` | Não | — |
+| `helper_included` | `BOOLEAN` | Não | — |
+| `active` | `BOOLEAN` | Não | — |
+
+### AssistantTelemetryModel
+
+Persistência: `assistant_telemetry`, classe `AssistantTelemetryModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `request_id` | `UUID` | Não | — |
+| `user_id` | `UUID` | Não | FK users.id |
+| `operation_id` | `UUID` | Sim | FK operations.id |
+| `provider` | `VARCHAR(40)` | Não | — |
+| `model` | `VARCHAR(160)` | Não | — |
+| `latency_ms` | `INTEGER` | Não | — |
+| `input_tokens` | `INTEGER` | Não | — |
+| `output_tokens` | `INTEGER` | Não | — |
+| `tool_calls` | `JSONB` | Não | — |
+| `tool_failures` | `INTEGER` | Não | — |
+| `status` | `VARCHAR(24)` | Não | — |
+| `fallback_used` | `BOOLEAN` | Não | — |
+| `error_code` | `VARCHAR(80)` | Sim | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+### AuthSessionModel
+
+Persistência: `auth_sessions`, classe `AuthSessionModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `user_id` | `UUID` | Não | FK users.id |
+| `token_hash` | `VARCHAR(64)` | Não | — |
+| `expires_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+### BuildingModel
+
+Persistência: `buildings`, classe `BuildingModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `city_id` | `UUID` | Não | FK cities.id |
+| `district_id` | `UUID` | Não | FK districts.id |
+| `lot_id` | `UUID` | Não | FK lots.id |
+| `building_type` | `building_type` | Não | — |
+| `entrance_location` | `geometry(POINT,4326)` | Não | — |
+
+### CityModel
+
+Persistência: `cities`, classe `CityModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `name` | `VARCHAR(120)` | Não | — |
+| `country` | `VARCHAR(80)` | Não | — |
+| `source_type` | `city_source_type` | Não | — |
+| `timezone` | `VARCHAR(80)` | Não | — |
+| `dataset_version` | `VARCHAR(32)` | Não | — |
+| `generation_seed` | `INTEGER` | Não | — |
+| `generator_version` | `VARCHAR(64)` | Não | — |
+| `boundary` | `geometry(POLYGON,4326)` | Não | — |
+| `river_geometry` | `geometry(LINESTRING,4326)` | Não | — |
+| `depot_name` | `VARCHAR(160)` | Não | — |
+| `depot_geometry` | `geometry(POINT,4326)` | Não | — |
+
+### DeliveryModel
+
+Persistência: `deliveries`, classe `DeliveryModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `delivery_code` | `VARCHAR(64)` | Não | — |
+| `operation_id` | `UUID` | Não | FK operations.id |
+| `invoice_number` | `VARCHAR(80)` | Não | — |
+| `invoice_series` | `VARCHAR(40)` | Não | — |
+| `issuer_document` | `VARCHAR(40)` | Não | — |
+| `issuer_name` | `VARCHAR(180)` | Sim | — |
+| `external_reference` | `VARCHAR(120)` | Sim | — |
+| `destination_address_id` | `UUID` | Não | FK addresses.id |
+| `recipient_name` | `VARCHAR(180)` | Não | — |
+| `package_count` | `INTEGER` | Não | — |
+| `total_weight_kg` | `NUMERIC(12, 3)` | Não | — |
+| `total_volume_m3` | `NUMERIC(12, 4)` | Não | — |
+| `priority` | `delivery_priority` | Não | — |
+| `time_window_start` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+| `time_window_end` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+| `time_window_policy` | `time_window_policy` | Não | — |
+| `service_time_minutes` | `INTEGER` | Não | — |
+| `service_time_source` | `service_time_source` | Não | — |
+| `temperature_class` | `temperature_class` | Não | — |
+| `handling_requirement` | `handling_requirement` | Não | — |
+| `status` | `delivery_status` | Não | — |
+| `cargo_profile` | `cargo_profile` | Sim | — |
+| `notes` | `TEXT` | Sim | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `updated_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+### DeliveryImportModel
+
+Persistência: `delivery_imports`, classe `DeliveryImportModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `operation_id` | `UUID` | Não | FK operations.id |
+| `created_by_user_id` | `UUID` | Não | FK users.id |
+| `filename` | `VARCHAR(255)` | Não | — |
+| `file_type` | `VARCHAR(16)` | Não | — |
+| `status` | `VARCHAR(24)` | Não | — |
+| `total_rows` | `INTEGER` | Não | — |
+| `valid_rows` | `INTEGER` | Não | — |
+| `warning_rows` | `INTEGER` | Não | — |
+| `error_rows` | `INTEGER` | Não | — |
+| `rows_json` | `JSONB` | Não | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `confirmed_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+
+### DistrictModel
+
+Persistência: `districts`, classe `DistrictModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `city_id` | `UUID` | Não | FK cities.id |
+| `name` | `VARCHAR(120)` | Não | — |
+| `slug` | `VARCHAR(120)` | Não | — |
+| `geometry` | `geometry(POLYGON,4326)` | Não | — |
+
+### FacilityModel
+
+Persistência: `facilities`, classe `FacilityModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `city_id` | `UUID` | Não | FK cities.id |
+| `address_id` | `UUID` | Não | FK addresses.id |
+| `building_id` | `UUID` | Não | FK buildings.id |
+| `name` | `VARCHAR(180)` | Não | — |
+| `facility_type` | `facility_type` | Não | — |
+| `active` | `BOOLEAN` | Não | — |
+
+### IntersectionModel
+
+Persistência: `intersections`, classe `IntersectionModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `city_id` | `UUID` | Não | FK cities.id |
+| `district_id` | `UUID` | Não | FK districts.id |
+| `code` | `VARCHAR(40)` | Não | — |
+| `geometry` | `geometry(POINT,4326)` | Não | — |
+
+### LotModel
+
+Persistência: `lots`, classe `LotModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `city_id` | `UUID` | Não | FK cities.id |
+| `district_id` | `UUID` | Não | FK districts.id |
+| `road_segment_id` | `UUID` | Não | FK road_segments.id |
+| `position_on_segment` | `FLOAT` | Não | — |
+| `status` | `lot_status` | Não | — |
+| `location` | `geometry(POINT,4326)` | Não | — |
+
+### OperationRevisionModel
+
+Persistência: `operation_revisions`, classe `OperationRevisionModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `operation_id` | `UUID` | Não | FK operations.id |
+| `revision_number` | `INTEGER` | Não | — |
+| `status` | `revision_status` | Não | — |
+| `operation_date` | `DATE` | Não | — |
+| `operation_start_time` | `TIME WITHOUT TIME ZONE` | Não | — |
+| `operation_end_time` | `TIME WITHOUT TIME ZONE` | Não | — |
+| `traffic_mode` | `traffic_mode` | Não | — |
+| `created_by_user_id` | `UUID` | Não | FK users.id |
+| `notes` | `VARCHAR(500)` | Sim | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `optimized_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+| `approved_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+| `dispatched_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+
+### OperationVehicleSelectionModel
+
+Persistência: `operation_vehicle_selections`, classe `OperationVehicleSelectionModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `operation_id` | `UUID` | Não | PK / FK operations.id |
+| `vehicle_id` | `UUID` | Não | PK / FK vehicles.id |
+
+### OperationWorkerSelectionModel
+
+Persistência: `operation_worker_selections`, classe `OperationWorkerSelectionModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `operation_id` | `UUID` | Não | PK / FK operations.id |
+| `worker_id` | `UUID` | Não | PK / FK workers.id |
+
+### OperationModel
+
+Persistência: `operations`, classe `OperationModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `operation_code` | `VARCHAR(40)` | Não | — |
+| `operation_date` | `DATE` | Não | — |
+| `operation_start_time` | `TIME WITHOUT TIME ZONE` | Não | — |
+| `operation_end_time` | `TIME WITHOUT TIME ZONE` | Não | — |
+| `traffic_mode` | `traffic_mode` | Não | — |
+| `status` | `operation_status` | Não | — |
+| `current_revision_number` | `INTEGER` | Não | — |
+| `created_by_user_id` | `UUID` | Não | FK users.id |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `updated_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+### OptimizationRunModel
+
+Persistência: `optimization_runs`, classe `OptimizationRunModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `operation_id` | `UUID` | Não | FK operations.id |
+| `operation_revision_id` | `UUID` | Sim | FK operation_revisions.id |
+| `status` | `VARCHAR(24)` | Não | — |
+| `random_seed` | `INTEGER` | Não | — |
+| `generations_completed` | `INTEGER` | Não | — |
+| `stop_reason` | `VARCHAR(60)` | Não | — |
+| `validated` | `BOOLEAN` | Não | — |
+| `delivery_count` | `INTEGER` | Não | — |
+| `vehicles_used` | `INTEGER` | Não | — |
+| `total_cost_brl` | `NUMERIC(14, 2)` | Não | — |
+| `distance_km` | `NUMERIC(14, 3)` | Não | — |
+| `makespan_minutes` | `NUMERIC(14, 2)` | Não | — |
+| `critical_delays` | `INTEGER` | Não | — |
+| `on_time_percentage` | `NUMERIC(6, 2)` | Não | — |
+| `average_weight_utilization_pct` | `NUMERIC(6, 2)` | Não | — |
+| `average_volume_utilization_pct` | `NUMERIC(6, 2)` | Não | — |
+| `pruning_counts` | `JSONB` | Não | — |
+| `previous_operation_status` | `VARCHAR(24)` | Sim | — |
+| `error_code` | `VARCHAR(80)` | Sim | — |
+| `error_message` | `TEXT` | Sim | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `started_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+| `cancel_requested_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+| `completed_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+
+### OptimizationTraceEventModel
+
+Persistência: `optimization_trace_events`, classe `OptimizationTraceEventModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `optimization_run_id` | `UUID` | Não | FK optimization_runs.id |
+| `sequence` | `INTEGER` | Não | — |
+| `event_type` | `VARCHAR(48)` | Não | — |
+| `generation` | `INTEGER` | Sim | — |
+| `elapsed_ms` | `INTEGER` | Sim | — |
+| `payload` | `JSONB` | Não | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+### OwnedVehicleCostProfileModel
+
+Persistência: `owned_vehicle_cost_profiles`, classe `OwnedVehicleCostProfileModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `vehicle_id` | `UUID` | Não | FK vehicles.id |
+| `acquisition_value_brl` | `NUMERIC(14, 2)` | Não | — |
+| `residual_value_brl` | `NUMERIC(14, 2)` | Não | — |
+| `useful_life_km` | `NUMERIC(14, 2)` | Não | — |
+| `annual_ipva_brl` | `NUMERIC(14, 2)` | Não | — |
+| `annual_insurance_brl` | `NUMERIC(14, 2)` | Não | — |
+| `annual_fixed_costs_brl` | `NUMERIC(14, 2)` | Não | — |
+| `expected_productive_hours_per_year` | `NUMERIC(12, 2)` | Não | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `updated_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+### ReportModel
+
+Persistência: `reports`, classe `ReportModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `operation_id` | `UUID` | Não | FK operations.id |
+| `optimization_run_id` | `UUID` | Não | FK optimization_runs.id |
+| `created_by_user_id` | `UUID` | Não | FK users.id |
+| `report_type` | `VARCHAR(40)` | Não | — |
+| `format` | `VARCHAR(12)` | Não | — |
+| `status` | `VARCHAR(20)` | Não | — |
+| `filename` | `VARCHAR(255)` | Sim | — |
+| `content_type` | `VARCHAR(120)` | Sim | — |
+| `snapshot` | `JSONB` | Não | — |
+| `artifact` | `BYTEA` | Sim | — |
+| `error_message` | `TEXT` | Sim | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `completed_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+
+### RoadOverrideModel
+
+Persistência: `road_overrides`, classe `RoadOverrideModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `operation_id` | `UUID` | Não | FK operations.id |
+| `road_segment_id` | `UUID` | Não | FK road_segments.id |
+| `override_type` | `road_override_type` | Não | — |
+| `direction_scope` | `road_override_direction_scope` | Não | — |
+| `traffic_level` | `traffic_level` | Sim | — |
+| `reason` | `VARCHAR(80)` | Não | — |
+| `notes` | `VARCHAR(500)` | Sim | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `updated_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+### RoadSegmentModel
+
+Persistência: `road_segments`, classe `RoadSegmentModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `city_id` | `UUID` | Não | FK cities.id |
+| `street_id` | `UUID` | Não | FK streets.id |
+| `from_intersection_id` | `UUID` | Não | FK intersections.id |
+| `to_intersection_id` | `UUID` | Não | FK intersections.id |
+| `geometry` | `geometry(LINESTRING,4326)` | Não | — |
+| `length_m` | `FLOAT` | Não | — |
+| `speed_limit_kmh` | `INTEGER` | Não | — |
+| `road_class` | `road_class` | Não | — |
+| `lanes` | `INTEGER` | Não | — |
+| `active` | `BOOLEAN` | Não | — |
+| `is_bridge` | `BOOLEAN` | Não | — |
+| `bridge_name` | `VARCHAR(120)` | Sim | — |
+
+### RoutePlanModel
+
+Persistência: `route_plans`, classe `RoutePlanModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `optimization_run_id` | `UUID` | Não | FK optimization_runs.id |
+| `route_code` | `VARCHAR(24)` | Não | — |
+| `sequence` | `INTEGER` | Não | — |
+| `vehicle_id` | `UUID` | Não | FK vehicles.id |
+| `total_weight_kg` | `NUMERIC(14, 3)` | Não | — |
+| `total_volume_m3` | `NUMERIC(14, 4)` | Não | — |
+| `distance_km` | `NUMERIC(14, 3)` | Não | — |
+| `duration_minutes` | `NUMERIC(14, 2)` | Não | — |
+| `weight_utilization_pct` | `NUMERIC(6, 2)` | Não | — |
+| `volume_utilization_pct` | `NUMERIC(6, 2)` | Não | — |
+| `depreciation_brl` | `NUMERIC(14, 2)` | Não | — |
+| `maintenance_brl` | `NUMERIC(14, 2)` | Não | — |
+| `fixed_time_brl` | `NUMERIC(14, 2)` | Não | — |
+| `fuel_brl` | `NUMERIC(14, 2)` | Não | — |
+| `team_brl` | `NUMERIC(14, 2)` | Não | — |
+| `contract_brl` | `NUMERIC(14, 2)` | Não | — |
+| `total_cost_brl` | `NUMERIC(14, 2)` | Não | — |
+| `geometry` | `JSONB` | Não | — |
+
+### RouteStopModel
+
+Persistência: `route_stops`, classe `RouteStopModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `route_id` | `UUID` | Não | FK route_plans.id |
+| `delivery_id` | `UUID` | Não | FK deliveries.id |
+| `sequence` | `INTEGER` | Não | — |
+| `planned_arrival_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+| `planned_departure_at` | `TIMESTAMP WITH TIME ZONE` | Sim | — |
+| `lateness_minutes` | `NUMERIC(12, 2)` | Não | — |
+
+### RouteTeamAssignmentModel
+
+Persistência: `route_team_assignments`, classe `RouteTeamAssignmentModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `route_id` | `UUID` | Não | PK / FK route_plans.id |
+| `primary_role` | `VARCHAR(32)` | Sim | — |
+| `primary_worker_id` | `UUID` | Sim | FK workers.id |
+| `helper_worker_id` | `UUID` | Sim | FK workers.id |
+| `primary_included` | `BOOLEAN` | Não | — |
+| `helper_included` | `BOOLEAN` | Não | — |
+| `team_cost_brl` | `NUMERIC(14, 2)` | Não | — |
+
+### StreetModel
+
+Persistência: `streets`, classe `StreetModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `city_id` | `UUID` | Não | FK cities.id |
+| `key` | `VARCHAR(80)` | Não | — |
+| `name` | `VARCHAR(160)` | Não | — |
+| `road_class` | `road_class` | Não | — |
+
+### UserModel
+
+Persistência: `users`, classe `UserModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `email` | `VARCHAR(320)` | Não | — |
+| `display_name` | `VARCHAR(120)` | Não | — |
+| `password_hash` | `VARCHAR(255)` | Não | — |
+| `role` | `user_role` | Não | — |
+| `active` | `BOOLEAN` | Não | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `updated_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+### VehicleMaintenanceItemModel
+
+Persistência: `vehicle_maintenance_items`, classe `VehicleMaintenanceItemModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `vehicle_id` | `UUID` | Não | FK vehicles.id |
+| `name` | `VARCHAR(120)` | Não | — |
+| `cost_brl` | `NUMERIC(12, 2)` | Não | — |
+| `interval_km` | `NUMERIC(12, 2)` | Não | — |
+| `active` | `BOOLEAN` | Não | — |
+
+### VehicleModel
+
+Persistência: `vehicles`, classe `VehicleModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `plate` | `VARCHAR(16)` | Não | — |
+| `type` | `vehicle_type` | Não | — |
+| `ownership_type` | `vehicle_ownership_type` | Não | — |
+| `max_payload_kg` | `NUMERIC(12, 3)` | Não | — |
+| `max_volume_m3` | `NUMERIC(12, 4)` | Não | — |
+| `max_range_km` | `NUMERIC(12, 2)` | Não | — |
+| `refrigerated` | `BOOLEAN` | Não | — |
+| `status` | `vehicle_status` | Não | — |
+| `helper_policy` | `helper_policy` | Não | — |
+| `fuel_type` | `fuel_type` | Sim | — |
+| `fuel_efficiency_km_per_l` | `NUMERIC(10, 3)` | Sim | — |
+| `active` | `BOOLEAN` | Não | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `updated_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+### WorkerAvailabilityModel
+
+Persistência: `worker_availability`, classe `WorkerAvailabilityModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `worker_id` | `UUID` | Não | FK workers.id |
+| `date` | `DATE` | Não | — |
+| `available` | `BOOLEAN` | Não | — |
+| `notes` | `TEXT` | Sim | — |
+
+### WorkerModel
+
+Persistência: `workers`, classe `WorkerModel`.
+
+| Campo | Tipo SQL | Aceita nulo | Chave |
+|---|---|---|---|
+| `id` | `UUID` | Não | PK |
+| `name` | `VARCHAR(180)` | Não | — |
+| `role` | `worker_role` | Não | — |
+| `engagement_type` | `worker_engagement_type` | Não | — |
+| `compensation_model` | `compensation_model` | Não | — |
+| `compensation_value_brl` | `NUMERIC(12, 2)` | Não | — |
+| `active` | `BOOLEAN` | Não | — |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+| `updated_at` | `TIMESTAMP WITH TIME ZONE` | Não | — |
+
+## Tipos do domínio
+
+Os enums abaixo são definidos pelo código. As ações e transições são verificadas pelos serviços de aplicação.
+
+### UserRole
+
+`ADMIN`, `PLANNER`
+
+### OperationStatus
+
+`DRAFT`, `READY`, `OPTIMIZING`, `OPTIMIZED`, `OUTDATED`, `APPROVED`, `DISPATCHED`
+
+### RevisionStatus
+
+`DRAFT`, `OPTIMIZED`, `OUTDATED`, `APPROVED`, `DISPATCHED`
+
+### OptimizationRunStatus
+
+`QUEUED`, `RUNNING`, `COMPLETED`, `FAILED`, `CANCELLED`, `INTERRUPTED`
+
+### DeliveryPriority
+
+`CRITICAL`, `HIGH`, `NORMAL`, `LOW`
+
+### TimeWindowPolicy
+
+`HARD`, `SOFT`
+
+### ServiceTimeSource
+
+`ESTIMATED`, `MANUAL`, `IMPORTED`
+
+### TemperatureClass
+
+`AMBIENT`, `REFRIGERATED`
+
+### HandlingRequirement
+
+`STANDARD`, `TWO_PERSON`
+
+### DeliveryStatus
+
+`PENDING`, `PLANNED`, `LOADED`, `DISPATCHED`, `IN_TRANSIT`, `DELIVERED`, `FAILED`
+
+### CargoProfile
+
+`MEDICATION_SMALL`, `REFRIGERATED_MEDICATION`, `LAB_MATERIAL`, `HOSPITAL_SUPPLIES`, `BULK_CONSUMABLES`, `MEDICAL_EQUIPMENT`
+
+### VehicleType
+
+`MOTO`, `VAN_COMPACT`, `CARGO_VAN`, `LIGHT_TRUCK`
+
+### VehicleOwnershipType
+
+`OWNED`, `AGGREGATED`
+
+### VehicleStatus
+
+`AVAILABLE`, `UNAVAILABLE`, `MAINTENANCE`, `INACTIVE`
+
+### HelperPolicy
+
+`FORBIDDEN`, `OPTIONAL`, `REQUIRED`
+
+### FuelType
+
+`GASOLINE`, `ETHANOL`, `DIESEL`, `FLEX`, `OTHER`
+
+### AggregatedPricingModel
+
+`PER_ROUTE`
+
+### WorkerRole
+
+`DRIVER`, `HELPER`, `MOTORCYCLE_COURIER`
+
+### WorkerEngagementType
+
+`EMPLOYEE`, `DAY_WORKER`, `AGGREGATED`
+
+### CompensationModel
+
+`HOURLY`, `DAILY`, `PER_ROUTE`, `INCLUDED_IN_VEHICLE_CONTRACT`
+
+### TrafficMode
+
+`AUTOMATIC`, `FREE`, `CUSTOM`
+
+### TrafficLevel
+
+`FREE`, `LIGHT`, `MODERATE`, `HEAVY`, `VERY_HEAVY`
+
+### RoadOverrideType
+
+`CLOSURE`, `TRAFFIC`
+
+### RoadOverrideDirectionScope
+
+`SEGMENT_DIRECTION`
+
+### RoutingAlgorithm
+
+`DIJKSTRA`, `ASTAR`
+
+### CitySourceType
+
+`SYNTHETIC`
+
+### RoadClass
+
+`EXPRESSWAY`, `ARTERIAL`, `COLLECTOR`, `LOCAL`, `SERVICE`
+
+### LotStatus
+
+`OCCUPIED`, `VACANT`
+
+### BuildingType
+
+`HOUSE`, `APARTMENT_BUILDING`, `COMMERCIAL`, `CLINIC`, `HOSPITAL`, `PHARMACY`, `LABORATORY`, `WAREHOUSE`, `SCHOOL`, `PUBLIC_BUILDING`, `OTHER`
+
+### FacilityType
+
+`DEPOT`, `HOSPITAL`, `CLINIC`, `LABORATORY`, `PHARMACY`, `WAREHOUSE`, `PUBLIC_FACILITY`
+
+### ScenarioProfile
+
+`NORMAL`, `BUSY`, `HIGH_PRESSURE`, `EMERGENCY`
+
+## FitnessVector
+
+Value object do núcleo:
 
 ```text
 feasible: bool
 hard_violations: int
 service_penalty: Decimal
 critical_risk: Decimal
+priority_inversion_minutes: Decimal
 total_cost_brl: Decimal
-makespan_minutes: int
-travel_minutes: int
+makespan_minutes: Decimal
+travel_minutes: Decimal
 distance_km: Decimal
 vehicles_used: int
+team_feasible: bool
 ```
 
-Comparação é lexicográfica.
+`sort_key` minimiza, nessa ordem: 0 se viável/1 se inviável; violações; atraso SOFT ponderado; risco CRITICAL; inversões; custo operacional; makespan; viagem; distância; veículos. `team_feasible` reflete-se na viabilidade e nas violações. A equipe efetiva e o combustível são avaliados pela aplicação. Veja [a ordem completa](OPTIMIZATION_SPEC.md#ordem-lexicográfica).
 
----
+## Solução avaliada
 
-# 70. Entidade OptimizationSolution
+O núcleo usa `EvaluatedIndividual`, que contém cromossomo, `DecodedSolution` e `FitnessVector`. A solução decodificada reúne rotas, entregas não atribuídas e contagens de poda. O resultado publicado é vinculado ao run e à revisão após validação, atribuição final de equipe e persistência.
 
-Campos:
+## GeneticOptimizerConfig
+
+Configuração tipada do núcleo:
 
 ```text
-id: UUID
-optimization_run_id: UUID
-rank: int
-fitness_vector
-is_validated: bool
-created_at
+population_size: int = 48
+max_generations: int = 120
+tournament_size: int = 3
+crossover_rate: float = 0.9
+mutation_rate: float = 0.22
+max_mutation_rate: float = 0.55
+elitism_fraction: float = 0.05
+stagnation_generations: int = 25
+low_diversity_threshold: float = 0.35
+immigrant_fraction: float = 0.1
+advanced_pruning_enabled: bool = True
+repair_enabled: bool = True
 ```
 
-A solução principal deve ser validada pelo `SolutionValidator`.
+O manifesto experimental registra os parâmetros do estudo, seeds e identidade da fonte. O run operacional registra sua seed e seus indicadores nos campos de `OptimizationRunModel`.
 
----
+## ScenarioRequest
 
-# 71. Decision Trace
+O corpo HTTP de geração usa `profile`, `delivery_count` e `random_seed`. `ScenarioProfile` define os quatro perfis. A data, a janela e os recursos são obtidos da operação selecionada. Tipos, defaults e limites estão no [contrato da API](API_SPEC.md).
 
-Pode ser entidade pai:
+## Resultado da geração de cenário
+
+O gerador retorna `ScenarioBatch` com seed e especificações de entregas; o serviço retorna os seguintes objetos:
+
+`ScenarioSummary`:
 
 ```text
-DecisionTrace
+generated_count: int
+critical_count: int
+refrigerated_count: int
+hard_window_count: int
+total_weight_kg: Decimal
+total_volume_m3: Decimal
 ```
 
-Campos:
+`ScenarioResult`:
 
 ```text
-id: UUID
-optimization_run_id: UUID
-created_at
-summary_json?
+seed: int
+summary: ScenarioSummary
+deliveries: list[DeliveryView]
 ```
 
-Eventos podem ser persistidos em tabela própria ou estrutura JSON controlada.
+## Métricas e caminho
 
----
-
-# 72. DecisionTraceEvent
-
-Campos:
+`TravelMetric` contém `distance_km: Decimal` e `travel_minutes: Decimal`. O routing retorna `RoutePath`, com métricas em metros/segundos e geometria:
 
 ```text
-id: UUID
-decision_trace_id: UUID
-sequence: int
-event_type: DecisionTraceEventType
-generation: int?
-elapsed_ms: int?
-payload: JSON
-created_at
+origin_node_id: uuid.UUID
+destination_node_id: uuid.UUID
+node_ids: tuple[uuid.UUID, ...]
+edge_ids: tuple[uuid.UUID, ...]
+distance_m: float
+travel_time_seconds: float
+departure_at: datetime
+arrival_at: datetime
+algorithm: RoutingAlgorithm
+traffic_mode: TrafficMode
+time_bucket: str
+geometry: dict[str, object]
 ```
 
----
+A aplicação converte as métricas do routing para a matriz do núcleo.
 
-# 73. DecisionTraceEventType
+## Chaves da matriz de viagem
 
-```text
-GENERATION_SNAPSHOT
-PRUNING_SUMMARY
-IMPROVEMENT
-VEHICLE_SELECTION_REASON
-ROUTE_ASSIGNMENT_CHANGE
-CONSTRAINT_VIOLATION
-DIVERSITY_CHANGE
-FINAL_COMPARISON
-```
+`TravelMatrix` mapeia pares `(origem, destino)` a `TravelMetric`. Cada local é um UUID de entrega ou `None`, que representa o depósito. O horário de referência é usado na preparação da matriz; não faz parte da chave interna de cada par.
 
----
+## Grafo e condições efetivas
 
-# 74. PruningReason
+`DirectedGraph` reúne nós e arestas da cidade. O routing recebe os segmentos fechados e os níveis de trânsito sobrescritos para a operação. A construção da matriz verifica também o acesso dos endereços ao grafo dirigido.
 
-Enum:
+## Identidade do dataset
 
-```text
-CAPACITY_EXCEEDED
-VOLUME_EXCEEDED
-HARD_TIME_WINDOW_IMPOSSIBLE
-RANGE_IMPOSSIBLE
-REFRIGERATION_INCOMPATIBLE
-TEAM_INFEASIBLE
-ROAD_ACCESS_IMPOSSIBLE
-END_OF_SHIFT_IMPOSSIBLE
-FUTURE_INFEASIBILITY
-DOMINATED_STATE
-LOWER_BOUND
-```
+A cidade registra `dataset_version`, `generation_seed` e `generator_version`, conforme `CityModel`. O experimento também registra a identidade das entradas e do código em seu manifesto e em `experiment.json`.
 
----
+## Despacho e revisão
 
-# 75. Entidade ReportGeneration
+O despacho é uma transição da operação aprovada e registra `dispatched_at` na revisão. A operação/revisão despachada fica imutável pelos serviços operacionais. Runs, rotas, equipe e custos mantêm seus vínculos persistidos; relatórios guardam seu próprio snapshot de geração.
 
-Campos:
+## Regras operacionais
 
-```text
-id: UUID
-operation_revision_id: UUID
-report_type: ReportType
-status: ReportStatus
-format: ReportFormat
-generated_at?
-file_reference?
-error_code?
-```
-
----
-
-# 76. ReportType
-
-```text
-DISPATCH
-DAILY_OPERATION
-EXECUTIVE_SUMMARY
-DRIVER_INSTRUCTIONS
-```
-
----
-
-# 77. ReportFormat
-
-```text
-PDF
-XLSX
-CSV
-```
-
----
-
-# 78. ReportStatus
-
-```text
-PENDING
-GENERATING
-COMPLETED
-FAILED
-```
-
----
-
-# 79. Entidade AuditLog
-
-Campos:
-
-```text
-id: UUID
-user_id: UUID?
-operation_id: UUID?
-operation_revision_id: UUID?
-action: str
-entity_type: str?
-entity_id: UUID?
-metadata: JSON?
-created_at
-```
-
-Nunca armazenar secrets.
-
----
-
-# 80. Entidade SystemConfiguration
-
-Pode armazenar apenas configurações operacionais simples.
-
-Exemplos:
-
-```text
-fuel_price_brl
-active_llm_provider
-default_operation_start_time
-default_operation_end_time
-```
-
-Parâmetros internos do GA devem preferencialmente usar configuração versionada de código/config file, não formulário de admin.
-
----
-
-# 81. OptimizerConfiguration
-
-Value object/versioned config.
-
-Exemplos:
-
-```text
-version
-population_size
-tournament_size
-elitism_rate
-base_mutation_rate
-max_generations
-stagnation_limit
-time_budget_seconds
-hard_time_limit_seconds
-diversity_threshold
-```
-
-Registrado em cada OptimizationRun.
-
----
-
-# 82. ScenarioProfile
-
-Para geração sintética:
-
-```text
-NORMAL
-BUSY
-HIGH_PRESSURE
-EMERGENCY
-CUSTOM
-```
-
----
-
-# 83. ScenarioGenerationRequest
-
-Value object:
-
-```text
-profile
-delivery_count
-random_seed?
-operation_date
-operation_start_time
-available_vehicle_ids
-```
-
----
-
-# 84. ScenarioGenerationResult
-
-Contém:
-
-```text
-deliveries
-validation_summary
-seed
-feasibility_witness_metadata
-```
-
-A witness solution não deve ser exposta como solução do usuário.
-
----
-
-# 85. AddressResolutionResult
-
-Value object:
-
-```text
-status
-matched_address_id?
-confidence?
-suggestions[]
-normalized_input
-```
-
-Status:
-
-```text
-EXACT
-FUZZY_CONFIRMATION_REQUIRED
-NUMBER_NOT_FOUND
-AMBIGUOUS
-NOT_FOUND
-```
-
----
-
-# 86. TravelTime
-
-Value object:
-
-```text
-distance_m
-duration_seconds
-time_bucket
-path?
-```
-
----
-
-# 87. TravelMatrixKey
-
-Conceito de cache:
-
-```text
-origin_id
-destination_id
-time_bucket
-graph_version
-```
-
----
-
-# 88. EffectiveRoadGraph
-
-Não precisa ser entidade persistida.
-
-É um objeto de execução construído a partir de:
-
-```text
-base city graph
-+
-traffic profile
-+
-operation road overrides
-```
-
----
-
-# 89. GraphVersion
-
-Derivada de:
-
-- dataset_version;
-- traffic context;
-- overrides relevantes.
-
-Serve para evitar cache incorreto.
-
----
-
-# 90. Snapshot de dispatch
-
-Entidade sugerida:
-
-```text
-DispatchSnapshot
-```
-
-Campos:
-
-```text
-id: UUID
-operation_id: UUID
-operation_revision_id: UUID
-created_at
-created_by_user_id: UUID
-snapshot_version: str
-payload: JSON / structured normalized data
-```
-
-Preferência:
-
-- preservar dados estruturados em tabelas relacionais quando útil;
-- snapshot JSON pode complementar para auditoria/reprodução.
-
----
-
-# 91. Imutabilidade histórica
-
-Depois do dispatch:
-
-- Vehicle pode ser editado no cadastro;
-- Worker pode mudar;
-- preço de combustível pode mudar;
-- cidade pode ganhar nova versão;
-
-mas o relatório histórico deve continuar mostrando os dados usados naquele dispatch.
-
----
-
-# 92. Soft delete e inativação
-
-Aplicar principalmente a:
-
-```text
-Vehicle
-Worker
-User
-Facility
-```
-
-Se houver referência histórica:
-
-```text
-active = false
-```
-
-em vez de delete físico.
-
----
-
-# 93. Regras de dinheiro
-
-Todo valor monetário usa:
-
-```text
-Decimal
-```
-
-ou inteiro em centavos.
-
-Não usar `float`.
-
----
-
-# 94. Regras de unidade
-
-Padronização:
-
-```text
-peso → kg
-volume → m³
-distância persistida → metros ou km explicitamente
-velocidade → km/h
-duração → segundos/minutos explicitamente
-moeda → BRL
-```
-
-Nomes de campos devem incluir unidade quando houver risco de ambiguidade.
-
-Exemplo:
-
-```text
-max_range_km
-length_m
-total_weight_kg
-```
-
----
-
-# 95. Regras de data e hora
-
-- API usa ISO 8601;
-- datas persistidas timezone-aware quando aplicável;
-- City possui timezone;
-- horários planejados são calculados no timezone da cidade.
-
----
-
-# 96. Entidades que não entram na V1
-
-Não criar agora:
-
-```text
-Patient
-Prescription
-MedicationSKU
-InventoryLot
-ProofOfDelivery
-GPSPosition
-PickupRequest
-ChargingStation
-FuelStation
-DriverShiftBreak
-MultiDepot
-Tenant
-Subscription
-BillingAccount
-```
-
-Só criar quando houver requisito real.
-
----
-
-# 97. Relações principais
-
-Diagrama conceitual simplificado:
-
-```text
-User
-  │
-  └── creates
-        │
-        ▼
-Operation
-  │
-  ├── OperationRevision
-  │      ├── Delivery
-  │      ├── Vehicle selections
-  │      ├── Worker selections
-  │      ├── RoadOverride
-  │      └── OptimizationRun
-  │             ├── OptimizationSolution
-  │             ├── DecisionTrace
-  │             └── Route
-  │                    ├── RouteStop
-  │                    ├── RouteLeg
-  │                    └── RouteAssignment
-  │
-  └── DispatchSnapshot
-
-City
-  ├── District
-  ├── Street
-  │     └── RoadSegment
-  ├── Intersection
-  ├── Lot
-  │     └── Building
-  │            └── Address
-  └── Facility
-
-Vehicle
-  ├── OwnedVehicleCostProfile
-  ├── VehicleMaintenanceItem
-  └── AggregatedVehicleContract
-
-Worker
-  └── WorkerAvailability
-```
-
----
-
-# 98. Aggregate boundaries sugeridas
-
-Não aplicar DDD de forma rígida, mas tratar como agregados conceituais:
-
-## Operation Aggregate
-
-- Operation;
-- Revision;
-- selections;
-- overrides;
-- approval/dispatch state.
-
-## Delivery Aggregate
-
-- Delivery;
-- window;
-- service requirements.
-
-## Vehicle Aggregate
-
-- Vehicle;
-- cost profile;
-- maintenance;
-- contract.
-
-## Worker Aggregate
-
-- Worker;
-- compensation;
-- availability.
-
-## City Aggregate
-
-Persistência grande e geoespacial, com entidades próprias.
-
----
-
-# 99. Invariantes críticas
-
-O domínio deve impedir:
-
-- delivery duplicada na mesma rota;
-- delivery perdida na solução final;
-- veículo acima de peso;
-- veículo acima de volume;
-- veículo excedendo autonomia;
-- carga refrigerada em veículo incompatível;
-- TWO_PERSON sem equipe compatível;
-- janela HARD violada;
-- retorno após fim da operação;
-- rota sem retorno ao depósito;
-- worker em duas rotas simultaneamente;
-- mesmo veículo em duas rotas simultaneamente;
-- dispatch de revisão OUTDATED;
-- alteração de snapshot despachado;
-- custo oficial vindo da LLM.
-
----
-
-# 100. Compatibilidade futura com pickup
-
-O modelo `RouteStop` já deve permitir expansão futura.
-
-V1:
-
-```text
-DEPOT_START
-DELIVERY
-DEPOT_RETURN
-```
-
-Futuro:
-
-```text
-PICKUP
-```
-
-Não implementar lógica de pickup agora.
-
----
-
-# 101. Compatibilidade futura com execução
-
-Campos `actual_*` podem existir ou ser previstos.
-
-Não implementar:
-
-- tracking;
-- GPS;
-- completion events.
-
-Apenas evitar nomes que tornem futura evolução impossível.
-
----
-
-# 102. Nomenclatura
-
-Código-fonte pode usar inglês.
-
-Exemplos:
-
-```text
-Operation
-Delivery
-Vehicle
-Worker
-Route
-RoadSegment
-OptimizationRun
-```
-
-Interface pode usar português.
-
-Essa separação é recomendada para consistência técnica.
-
----
-
-# 103. Regras para ORM
-
-ORM deve mapear o domínio, não ditá-lo.
-
-Evitar regras como:
-
-```text
-if model.column_x ...
-```
-
-espalhadas pela aplicação.
-
-Validação importante deve existir em serviços/entidades/value objects.
-
----
-
-# 104. Regras para Pydantic
-
-Pydantic valida fronteira de API.
-
-Não usar schemas Pydantic como substitutos universais das entidades internas.
-
----
-
-# 105. Regras para JSON
-
-JSON é apropriado para:
-
-- metadata;
-- Decision Trace payload;
-- snapshots complementares;
-- configurações versionadas.
-
-Não usar JSON para evitar modelar entidades claramente relacionais.
-
----
-
-# 106. Regras de versionamento de dataset
-
-Cada operação otimizada deve conhecer a versão da cidade.
-
-Exemplo:
-
-```text
-Santa Aurora 1.0.0
-```
-
-Isso ajuda reprodução de benchmark e histórico.
-
----
-
-# 107. Regras de versionamento do algoritmo
-
-Cada run registra:
-
-```text
-algorithm_version
-configuration_version
-random_seed
-```
-
-Isso permite reproduzir e explicar resultados.
-
----
-
-# 108. Consistência entre docs e implementação
-
-Ao implementar uma entidade:
-
-1. comparar com este documento;
-2. não adicionar campo por conveniência sem necessidade;
-3. se o domínio mudar, atualizar este documento;
-4. mudanças grandes podem gerar ADR.
-
----
-
-# 109. Definition of Done do domínio
-
-O modelo de domínio está corretamente implementado quando:
-
-- entidades principais existem;
-- invariantes críticas têm testes;
-- enums são centralizados;
-- dinheiro não usa float;
-- UUID é usado como identidade técnica;
-- histórico é preservado;
-- domínio não importa frameworks externos;
-- SolutionValidator consegue validar uma solução sem depender da API.
-
----
-
-# 110. Regra final
-
-> O modelo de domínio deve representar a operação logística que o FluxMed precisa planejar, e não detalhes de frameworks, telas ou banco de dados.
-
-A prioridade é preservar clareza, invariantes e rastreabilidade.
+- IDs e chaves estrangeiras identificam os recursos utilizados por operação, revisão e execução.
+- Distância e tempo do núcleo usam km e minutos; o routing expõe metros e segundos.
+- Carga e volume usam kg e m³. Valores quantitativos e monetários do domínio usam `Decimal`.
+- A cronologia considera o fuso da cidade e inclui viagem, serviço, espera e retorno.
+- A aprovação e o despacho são verificados pelos serviços; a revisão despachada fica imutável.
+- A validação independente reconstrói as restrições das entradas originais, conforme [OPTIMIZATION_SPEC.md](OPTIMIZATION_SPEC.md).

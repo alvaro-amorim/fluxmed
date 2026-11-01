@@ -12,15 +12,15 @@ FluxMed uses staged CI to preserve GitHub Actions minutes without weakening the 
 
 ## Draft pull requests
 
-Draft PR updates run only path-scoped fast checks:
+On PR opening, update or reopening, path-scoped fast checks run for both Draft and Ready PRs:
 
-- `PR Backend Fast` runs only when `apps/api/**` changes.
-- `PR Frontend Fast` runs only when `apps/web/**` changes.
+- `PR Backend Fast` runs when `apps/api/**` or its own workflow file changes.
+- `PR Frontend Fast` runs when `apps/web/**` or its own workflow file changes.
 - Backend fast checks skip tests marked `integration`.
 - Frontend fast checks skip the production build and Playwright E2E.
 - `concurrency.cancel-in-progress` cancels obsolete runs when a newer push arrives.
 
-Documentation-only changes normally consume no runner minutes.
+The fast workflows use path filters. Full CI follows the PR/main/manual triggers below, including documentation-only changes when those triggers apply.
 
 ## Full CI
 

@@ -1,0 +1,3212 @@
+{
+  "deliveries": [
+    {
+      "handling_requirement": "STANDARD",
+      "id": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "priority": "HIGH",
+      "service_minutes": 12,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 16:09:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 13:57:00-03:00",
+      "volume_m3": "0.1223",
+      "weight_kg": "20.409"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "priority": "CRITICAL",
+      "service_minutes": 14,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 11:39:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 10:04:00-03:00",
+      "volume_m3": "0.3838",
+      "weight_kg": "73.442"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "priority": "LOW",
+      "service_minutes": 12,
+      "temperature_class": "REFRIGERATED",
+      "time_window_end": "2026-09-15 15:12:00-03:00",
+      "time_window_policy": "HARD",
+      "time_window_start": "2026-09-15 13:22:00-03:00",
+      "volume_m3": "0.0201",
+      "weight_kg": "7.462"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "priority": "NORMAL",
+      "service_minutes": 14,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 14:24:00-03:00",
+      "time_window_policy": "HARD",
+      "time_window_start": "2026-09-15 11:42:00-03:00",
+      "volume_m3": "0.1652",
+      "weight_kg": "42.113"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "priority": "LOW",
+      "service_minutes": 12,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 09:37:00-03:00",
+      "time_window_policy": "HARD",
+      "time_window_start": "2026-09-15 07:32:00-03:00",
+      "volume_m3": "0.0653",
+      "weight_kg": "12.944"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "priority": "LOW",
+      "service_minutes": 14,
+      "temperature_class": "REFRIGERATED",
+      "time_window_end": "2026-09-15 16:05:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 13:31:00-03:00",
+      "volume_m3": "0.3985",
+      "weight_kg": "74.784"
+    },
+    {
+      "handling_requirement": "TWO_PERSON",
+      "id": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "priority": "CRITICAL",
+      "service_minutes": 11,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 16:30:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 13:57:00-03:00",
+      "volume_m3": "1.217",
+      "weight_kg": "173.523"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "priority": "NORMAL",
+      "service_minutes": 24,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 13:16:00-03:00",
+      "time_window_policy": "HARD",
+      "time_window_start": "2026-09-15 10:35:00-03:00",
+      "volume_m3": "0.3912",
+      "weight_kg": "84.02"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "679337fb-5234-59ad-917c-17e371071746",
+      "priority": "HIGH",
+      "service_minutes": 12,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 13:38:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 12:01:00-03:00",
+      "volume_m3": "0.1364",
+      "weight_kg": "46.404"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "priority": "NORMAL",
+      "service_minutes": 15,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 12:24:00-03:00",
+      "time_window_policy": "HARD",
+      "time_window_start": "2026-09-15 09:58:00-03:00",
+      "volume_m3": "0.1223",
+      "weight_kg": "22.339"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "priority": "NORMAL",
+      "service_minutes": 14,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 16:34:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 14:39:00-03:00",
+      "volume_m3": "0.1416",
+      "weight_kg": "33.624"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "priority": "NORMAL",
+      "service_minutes": 15,
+      "temperature_class": "REFRIGERATED",
+      "time_window_end": "2026-09-15 17:15:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 15:16:00-03:00",
+      "volume_m3": "0.1215",
+      "weight_kg": "28.815"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "priority": "NORMAL",
+      "service_minutes": 14,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 16:24:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 14:33:00-03:00",
+      "volume_m3": "0.2082",
+      "weight_kg": "22.577"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "priority": "NORMAL",
+      "service_minutes": 14,
+      "temperature_class": "REFRIGERATED",
+      "time_window_end": "2026-09-15 13:55:00-03:00",
+      "time_window_policy": "HARD",
+      "time_window_start": "2026-09-15 12:21:00-03:00",
+      "volume_m3": "0.0486",
+      "weight_kg": "20.499"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "priority": "HIGH",
+      "service_minutes": 14,
+      "temperature_class": "REFRIGERATED",
+      "time_window_end": "2026-09-15 12:22:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 10:00:00-03:00",
+      "volume_m3": "0.5648",
+      "weight_kg": "70.243"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "priority": "NORMAL",
+      "service_minutes": 12,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 10:27:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 07:57:00-03:00",
+      "volume_m3": "0.0432",
+      "weight_kg": "8.583"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "priority": "NORMAL",
+      "service_minutes": 12,
+      "temperature_class": "AMBIENT",
+      "time_window_end": null,
+      "time_window_policy": "SOFT",
+      "time_window_start": null,
+      "volume_m3": "0.0482",
+      "weight_kg": "13.411"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "priority": "NORMAL",
+      "service_minutes": 12,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 17:32:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 15:02:00-03:00",
+      "volume_m3": "0.3487",
+      "weight_kg": "100.422"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "priority": "NORMAL",
+      "service_minutes": 17,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 10:03:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 07:48:00-03:00",
+      "volume_m3": "0.1552",
+      "weight_kg": "63.768"
+    },
+    {
+      "handling_requirement": "STANDARD",
+      "id": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "priority": "NORMAL",
+      "service_minutes": 14,
+      "temperature_class": "AMBIENT",
+      "time_window_end": "2026-09-15 14:03:00-03:00",
+      "time_window_policy": "SOFT",
+      "time_window_start": "2026-09-15 12:08:00-03:00",
+      "volume_m3": "0.1122",
+      "weight_kg": "39.908"
+    }
+  ],
+  "operation_end_at": "2026-09-15 18:00:00-03:00",
+  "operation_start_at": "2026-09-15 07:30:00-03:00",
+  "operational_resources": {
+    "vehicles": [
+      {
+        "active": true,
+        "cost": {
+          "contract_price_brl": null,
+          "depreciation_per_km": "0.46875",
+          "driver_included": false,
+          "fixed_cost_per_hour": "5.545454545454545454545454545",
+          "fuel_included": false,
+          "helper_included": false,
+          "maintenance_items": [
+            {
+              "active": true,
+              "cost_brl": "1800.00",
+              "cost_per_km": "0.15",
+              "id": "ed71d449-ce9a-406c-902b-60f04ba4188e",
+              "interval_km": "12000.00",
+              "name": "Revisão preventiva demo"
+            }
+          ],
+          "maintenance_per_km": "0.15",
+          "ownership_type": "OWNED",
+          "pricing_model": null
+        },
+        "fuel_efficiency_km_per_l": "9.500",
+        "fuel_type": "DIESEL",
+        "helper_policy": "OPTIONAL",
+        "id": "264b48cf-d573-475f-8ac9-6b89d1e2c5c6",
+        "max_payload_kg": "1800.000",
+        "max_range_km": "520.00",
+        "max_volume_m3": "10.0000",
+        "ownership_type": "OWNED",
+        "plate": "FMD1A01",
+        "refrigerated": true,
+        "status": "AVAILABLE",
+        "type": "CARGO_VAN"
+      },
+      {
+        "active": true,
+        "cost": {
+          "contract_price_brl": null,
+          "depreciation_per_km": "0.4375",
+          "driver_included": false,
+          "fixed_cost_per_hour": "5.409090909090909090909090909",
+          "fuel_included": false,
+          "helper_included": false,
+          "maintenance_items": [
+            {
+              "active": true,
+              "cost_brl": "1650.00",
+              "cost_per_km": "0.1375",
+              "id": "1cbf62de-b945-4215-b571-69328388ad2d",
+              "interval_km": "12000.00",
+              "name": "Revisão preventiva demo"
+            }
+          ],
+          "maintenance_per_km": "0.1375",
+          "ownership_type": "OWNED",
+          "pricing_model": null
+        },
+        "fuel_efficiency_km_per_l": "10.000",
+        "fuel_type": "DIESEL",
+        "helper_policy": "OPTIONAL",
+        "id": "ee069a66-3651-491e-b159-d3f471cf74fc",
+        "max_payload_kg": "1600.000",
+        "max_range_km": "500.00",
+        "max_volume_m3": "9.0000",
+        "ownership_type": "OWNED",
+        "plate": "FMD1A02",
+        "refrigerated": false,
+        "status": "AVAILABLE",
+        "type": "CARGO_VAN"
+      },
+      {
+        "active": true,
+        "cost": {
+          "contract_price_brl": null,
+          "depreciation_per_km": "0.4035714285714285714285714286",
+          "driver_included": false,
+          "fixed_cost_per_hour": "5.181818181818181818181818182",
+          "fuel_included": false,
+          "helper_included": false,
+          "maintenance_items": [
+            {
+              "active": true,
+              "cost_brl": "1350.00",
+              "cost_per_km": "0.1125",
+              "id": "e507e5f1-83a7-4a5c-ae50-dea0a511831b",
+              "interval_km": "12000.00",
+              "name": "Revisão preventiva demo"
+            }
+          ],
+          "maintenance_per_km": "0.1125",
+          "ownership_type": "OWNED",
+          "pricing_model": null
+        },
+        "fuel_efficiency_km_per_l": "11.000",
+        "fuel_type": "DIESEL",
+        "helper_policy": "OPTIONAL",
+        "id": "e9c64d69-c789-40ac-bc78-e2138119daee",
+        "max_payload_kg": "900.000",
+        "max_range_km": "430.00",
+        "max_volume_m3": "5.0000",
+        "ownership_type": "OWNED",
+        "plate": "FMD1A03",
+        "refrigerated": true,
+        "status": "AVAILABLE",
+        "type": "VAN_COMPACT"
+      },
+      {
+        "active": true,
+        "cost": {
+          "contract_price_brl": null,
+          "depreciation_per_km": "0.3821428571428571428571428571",
+          "driver_included": false,
+          "fixed_cost_per_hour": "5.090909090909090909090909091",
+          "fuel_included": false,
+          "helper_included": false,
+          "maintenance_items": [
+            {
+              "active": true,
+              "cost_brl": "1250.00",
+              "cost_per_km": "0.1041666666666666666666666667",
+              "id": "c3050f1f-528e-4ec6-8f82-c5a032bd3c3a",
+              "interval_km": "12000.00",
+              "name": "Revisão preventiva demo"
+            }
+          ],
+          "maintenance_per_km": "0.1041666666666666666666666667",
+          "ownership_type": "OWNED",
+          "pricing_model": null
+        },
+        "fuel_efficiency_km_per_l": "11.500",
+        "fuel_type": "DIESEL",
+        "helper_policy": "OPTIONAL",
+        "id": "dbdb9e14-e711-44fe-9f6c-fc9de507fe97",
+        "max_payload_kg": "850.000",
+        "max_range_km": "430.00",
+        "max_volume_m3": "4.8000",
+        "ownership_type": "OWNED",
+        "plate": "FMD1A04",
+        "refrigerated": false,
+        "status": "AVAILABLE",
+        "type": "VAN_COMPACT"
+      },
+      {
+        "active": true,
+        "cost": {
+          "contract_price_brl": null,
+          "depreciation_per_km": "0.5952380952380952380952380952",
+          "driver_included": false,
+          "fixed_cost_per_hour": "6.909090909090909090909090909",
+          "fuel_included": false,
+          "helper_included": false,
+          "maintenance_items": [
+            {
+              "active": true,
+              "cost_brl": "3200.00",
+              "cost_per_km": "0.2133333333333333333333333333",
+              "id": "4d068ee8-e195-424a-8f09-eb39eefb74b5",
+              "interval_km": "15000.00",
+              "name": "Revisão preventiva demo"
+            }
+          ],
+          "maintenance_per_km": "0.2133333333333333333333333333",
+          "ownership_type": "OWNED",
+          "pricing_model": null
+        },
+        "fuel_efficiency_km_per_l": "6.500",
+        "fuel_type": "DIESEL",
+        "helper_policy": "OPTIONAL",
+        "id": "c9140190-9afb-44fe-8633-833553477cc9",
+        "max_payload_kg": "4500.000",
+        "max_range_km": "650.00",
+        "max_volume_m3": "24.0000",
+        "ownership_type": "OWNED",
+        "plate": "FMD1A05",
+        "refrigerated": true,
+        "status": "AVAILABLE",
+        "type": "LIGHT_TRUCK"
+      },
+      {
+        "active": true,
+        "cost": {
+          "contract_price_brl": null,
+          "depreciation_per_km": "0.1583333333333333333333333333",
+          "driver_included": false,
+          "fixed_cost_per_hour": "4.181818181818181818181818182",
+          "fuel_included": false,
+          "helper_included": false,
+          "maintenance_items": [
+            {
+              "active": true,
+              "cost_brl": "350.00",
+              "cost_per_km": "0.07",
+              "id": "61417f4d-9cb7-4b89-8242-138822cd40cc",
+              "interval_km": "5000.00",
+              "name": "Revisão preventiva demo"
+            }
+          ],
+          "maintenance_per_km": "0.07",
+          "ownership_type": "OWNED",
+          "pricing_model": null
+        },
+        "fuel_efficiency_km_per_l": "32.000",
+        "fuel_type": "GASOLINE",
+        "helper_policy": "FORBIDDEN",
+        "id": "ed819076-0430-44f4-8c17-332c84c3da3c",
+        "max_payload_kg": "40.000",
+        "max_range_km": "250.00",
+        "max_volume_m3": "0.1500",
+        "ownership_type": "OWNED",
+        "plate": "FMD1A06",
+        "refrigerated": false,
+        "status": "AVAILABLE",
+        "type": "MOTO"
+      },
+      {
+        "active": true,
+        "cost": {
+          "contract_price_brl": "420.00",
+          "depreciation_per_km": null,
+          "driver_included": true,
+          "fixed_cost_per_hour": null,
+          "fuel_included": true,
+          "helper_included": true,
+          "maintenance_items": [],
+          "maintenance_per_km": null,
+          "ownership_type": "AGGREGATED",
+          "pricing_model": "PER_ROUTE"
+        },
+        "fuel_efficiency_km_per_l": "9.000",
+        "fuel_type": "DIESEL",
+        "helper_policy": "OPTIONAL",
+        "id": "bbdd7913-abec-4952-9f54-8c235cd4a34c",
+        "max_payload_kg": "2200.000",
+        "max_range_km": "550.00",
+        "max_volume_m3": "12.0000",
+        "ownership_type": "AGGREGATED",
+        "plate": "FMD1A07",
+        "refrigerated": true,
+        "status": "AVAILABLE",
+        "type": "CARGO_VAN"
+      }
+    ],
+    "workers": [
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "19.00",
+        "engagement_type": "EMPLOYEE",
+        "id": "25c05680-339d-4179-934a-b60d888cf63a",
+        "name": "Ajudante Demo 1",
+        "role": "HELPER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "19.50",
+        "engagement_type": "EMPLOYEE",
+        "id": "c00a80e2-dfd3-4000-8de8-91f370d97ffb",
+        "name": "Ajudante Demo 2",
+        "role": "HELPER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "20.00",
+        "engagement_type": "EMPLOYEE",
+        "id": "991692e7-d330-4b35-be6b-d9edee3b636b",
+        "name": "Ajudante Demo 3",
+        "role": "HELPER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "21.00",
+        "engagement_type": "EMPLOYEE",
+        "id": "210666df-0de0-4186-96bd-7ffcf5008c21",
+        "name": "Ajudante Demo 4",
+        "role": "HELPER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "22.00",
+        "engagement_type": "EMPLOYEE",
+        "id": "d2e37f34-8eaf-4c90-8f84-cbbcce4e59b2",
+        "name": "Ajudante Demo 5",
+        "role": "HELPER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "26.00",
+        "engagement_type": "EMPLOYEE",
+        "id": "a1c1fa2e-0875-4f6a-bf51-c3d3e468e9a2",
+        "name": "Motociclista Demo 1",
+        "role": "MOTORCYCLE_COURIER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "27.00",
+        "engagement_type": "EMPLOYEE",
+        "id": "00c100d8-b55a-43cf-b507-29e836cbabae",
+        "name": "Motociclista Demo 2",
+        "role": "MOTORCYCLE_COURIER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "28.50",
+        "engagement_type": "EMPLOYEE",
+        "id": "ef758ca2-9f00-4b78-a172-a581358568ea",
+        "name": "Motorista Demo 1",
+        "role": "DRIVER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "29.50",
+        "engagement_type": "EMPLOYEE",
+        "id": "12adbf48-f183-4acf-8dde-9a0ba11b1813",
+        "name": "Motorista Demo 2",
+        "role": "DRIVER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "30.00",
+        "engagement_type": "EMPLOYEE",
+        "id": "c8585bd4-58fa-4d98-97b5-f52abfe6a183",
+        "name": "Motorista Demo 3",
+        "role": "DRIVER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "31.00",
+        "engagement_type": "EMPLOYEE",
+        "id": "8153583d-d062-4571-8ba5-3e8e0da60c52",
+        "name": "Motorista Demo 4",
+        "role": "DRIVER"
+      },
+      {
+        "active": true,
+        "compensation_model": "HOURLY",
+        "compensation_value_brl": "33.00",
+        "engagement_type": "EMPLOYEE",
+        "id": "d0580e4e-cccf-472a-80f6-c1fecdd94fd7",
+        "name": "Motorista Demo 5",
+        "role": "DRIVER"
+      }
+    ]
+  },
+  "scenario_name": "BUSY-20-S20260917",
+  "travel_matrix": [
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "12.079513684210526",
+      "origin": null,
+      "travel_minutes": "18.610540923018945"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "9.772589679633867",
+      "origin": null,
+      "travel_minutes": "16.70624382452210333333333333"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "4.96305492260062",
+      "origin": null,
+      "travel_minutes": "10.25845146518563333333333333"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "7.488154462242563",
+      "origin": null,
+      "travel_minutes": "9.642745199062101666666666667"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "15.13463228832952",
+      "origin": null,
+      "travel_minutes": "21.815222429842095"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "12.333824462242563",
+      "origin": null,
+      "travel_minutes": "18.6523458768821"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "16.318587070938214",
+      "origin": null,
+      "travel_minutes": "20.5152556526621"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "11.412044462242564",
+      "origin": null,
+      "travel_minutes": "16.92227724116209833333333333"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "8.162370114416475",
+      "origin": null,
+      "travel_minutes": "13.0546273932821"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "12.602319244851258",
+      "origin": null,
+      "travel_minutes": "19.26691309052210166666666667"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "14.406969244851258",
+      "origin": null,
+      "travel_minutes": "19.58033054984209666666666667"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "11.973791578947368",
+      "origin": null,
+      "travel_minutes": "18.364734490951575"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "10.355700549199084",
+      "origin": null,
+      "travel_minutes": "13.5009758404421"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "6.425127940503432",
+      "origin": null,
+      "travel_minutes": "10.20410383880210333333333333"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "7.551405766590389",
+      "origin": null,
+      "travel_minutes": "12.53714868716210333333333333"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "14.716207505720824",
+      "origin": null,
+      "travel_minutes": "21.5968358021621"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "9.322537505720824",
+      "origin": null,
+      "travel_minutes": "14.4624375626021"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "9.484207070938215",
+      "origin": null,
+      "travel_minutes": "14.9494289738021"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "11.119530549199086",
+      "origin": null,
+      "travel_minutes": "16.84963832876210333333333333"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "10.284938375286041",
+      "origin": null,
+      "travel_minutes": "17.8791337658021"
+    },
+    {
+      "destination": null,
+      "distance_km": "12.713886315789472",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "19.486247364101045"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "2.9964059954233408",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "6.375607985103157666666666667"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "7.370171238390093",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "16.30286222976668166666666667"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "7.795080778032036",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "13.30023691434315833333333333"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "9.371678604118993",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "11.91580097538315833333333333"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "5.421670778032036",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "7.946564174823156666666666667"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "5.964353386727688",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "6.356045521383159333333333333"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "11.962090778032038",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "13.25814952242316333333333333"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "5.461686430205949",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "9.295410879423156666666666667"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "0.5227655606407324",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "1.226227203663158166666666667"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "8.644015560640733",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "9.680909095383158333333333333"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "0.4681978947368421",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "1.0885713420126315"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "6.151186864988558",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "10.61324784618315666666666667"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "6.593974256292906",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "10.75097992698315833333333333"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "5.940712082379862",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "10.67788161534315666666666667"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "4.934663821510297",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "7.784910438903158333333333333"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "14.027283821510297",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "15.64474927602315833333333333"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "13.041173386727687",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "15.33726942942316166666666667"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "8.224736864988557",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "11.82641165670315666666666667"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "3.9458146910755145",
+      "origin": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "travel_minutes": "9.991595808303158333333333333"
+    },
+    {
+      "destination": null,
+      "distance_km": "10.291350320366131",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "17.88667732731789"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "2.880794004576659",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "6.655185159536841666666666667"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "7.025405242966752",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "16.804591178103525"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "6.5204147826086955",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "12.41604290268"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "7.522752608695652",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "15.14581446011999666666666667"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "4.502854782608695",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "9.979858616999998333333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "7.122927391304347",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "11.40483912101999666666666667"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "11.972844782608698",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "17.24677754417999666666666667"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "4.187020434782608",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "8.411216867759999166666666667"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "3.403599565217391",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "7.31155732704"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "8.654769565217393",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "13.669537117139995"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "2.775071899313501",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "6.409378727469473333333333333"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "4.876520869565217",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "9.72905383452"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "4.171438260869565",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "9.1514098902"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "2.3704960869565216",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "7.728605112239999166666666667"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "5.519467826086956",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "10.05402068868"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "14.038037826086957",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "19.633377297779995"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "13.051927391304345",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "19.32589745118"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "8.235790869565217",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "14.06232194927999833333333333"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "4.530818695652173",
+      "origin": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "travel_minutes": "11.00058918624"
+    },
+    {
+      "destination": null,
+      "distance_km": "5.342755077399381",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "12.183210792814365"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "8.045108761609907",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "18.70890978491331"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "5.164404757033248",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "17.540955211616465"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "11.683089539641942",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "19.30550855795647"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "9.2427973657289",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "22.20445241513646666666666667"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "8.300949539641944",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "18.90606603077647"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "14.006822148337596",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "20.98711937555646666666666667"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "9.100279539641944",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "17.394140964056465"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "7.847225191815856",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "18.31930091933646333333333333"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "8.567914322250639",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "19.36528195241647"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "12.09520432225064",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "20.05219427273646666666666667"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "7.939386656346748",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "18.46310335284594"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "9.110655626598465",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "20.154299292056465"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "6.109983017902813",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "15.46877736485646666666666667"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "3.51754084398977",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "12.10044711305647"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "10.683332583120206",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "21.85055595605646666666666667"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "7.010772583120203",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "14.93430128549646666666666667"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "7.172442148337595",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "15.42129269669646666666666667"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "7.0866556265984655",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "17.10335848265646666666666667"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "6.251613452685421",
+      "origin": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "travel_minutes": "17.654967923696465"
+    },
+    {
+      "destination": null,
+      "distance_km": "7.708445537757437",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "9.869246852437895"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "8.310859221967963",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "12.94474280927683833333333333"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "7.151805217391304",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "11.78097162317999833333333333"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "11.523680460358055",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "17.60725088370352666666666667"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "12.952817826086957",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "21.43537210985999333333333333"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "9.93292",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "16.26941626673999833333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "12.552992608695653",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "17.69439677075999166666666667"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "15.679100000000002",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "22.9143156237"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "4.0377656521739127",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "6.609923941499999"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "8.833664782608696",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "13.60111497678"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "14.084834782608696",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "19.959094766879995"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "8.205137116704806",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "12.69893637720947166666666667"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "3.7973860869565215",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "6.631694164259999"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "6.09993347826087",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "9.36155973306"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "8.373471304347826",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "13.10543670977999666666666667"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "10.949533043478263",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "16.34357833841999666666666667"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "15.88316304347826",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "21.811236981119995"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "16.044832608695651",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "22.29822839231999666666666667"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "11.942586086956524",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "18.10834807937999333333333333"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "9.960883913043479",
+      "origin": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "travel_minutes": "17.290146835979995"
+    },
+    {
+      "destination": null,
+      "distance_km": "13.213107711670478",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "21.763341251077895"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "6.240401395881007",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "12.30660553529684"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "6.941127391304348",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "13.9146504612"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "7.8709226342711",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "18.72795104274352666666666667"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "11.739802173913042",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "20.83927939044"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "2.7771321739130435",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "7.429055627159998333333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "3.9733147826086956",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "7.2670726929"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "5.379772173913043",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "9.909388017120003333333333333"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "9.406407826086954",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "16.83445335552000333333333333"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "6.407296956521739",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "11.32533796662"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "1.131916956521739",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "3.476488242239999666666666667"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "6.134679290617849",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "12.06079910322947166666666667"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "10.095908260869564",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "18.15229032228000166666666667"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "9.963725652173911",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "17.94829324595999666666666667"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "6.44146347826087",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "13.10297042832"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "2.3700052173913045",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "6.881873328119998333333333333"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "7.444965217391304",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "12.29598777072"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "6.458854782608696",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "11.98850792412000333333333333"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "1.998978260869565",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "5.752544353919999333333333333"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "2.587236086956522",
+      "origin": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "travel_minutes": "7.976097216479998333333333333"
+    },
+    {
+      "destination": null,
+      "distance_km": "11.584605537757436",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "20.53722673755789166666666667"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "3.4632092219679635",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "8.512772869136840833333333333"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "4.163935217391304",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "10.12081779504"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "6.241970460358057",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "17.046046955223525"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "8.962609999999999",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "17.04544672427999833333333333"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "3.949487826086957",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "11.12798027447999833333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "5.845502608695652",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "9.865454219339998333333333333"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "8.39924",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "14.25596088792000333333333333"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "6.629215652173913",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "13.04062068935999666666666667"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "3.0560547826086954",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "8.95717617552"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "4.151674782608696",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "11.70631551059999666666666667"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "3.3574871167048054",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "8.266966437069472333333333333"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "7.318716086956521",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "14.35845765611999666666666667"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "7.76150347826087",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "14.49618973691999666666666667"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "4.812511304347826",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "11.4210663408"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "4.242043043478261",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "8.514635786999999333333333333"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "8.60483304347826",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "15.21242922143999666666666667"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "8.766502608695651",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "15.69942063263999666666666667"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "4.662726086956522",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "9.449993343600001666666666667"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "0.9579639130434783",
+      "origin": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "travel_minutes": "3.0732916982399995"
+    },
+    {
+      "destination": null,
+      "distance_km": "17.549632929061783",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "23.66444541363789166666666667"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "6.205036613272312",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "9.309459164816841666666666667"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "6.905312608695653",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "12.54242949083999833333333333"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "13.928647851662403",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "20.89033008090352666666666667"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "11.703987391304348",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "19.46705842008"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "4.337245217391304",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "8.22360800568"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "5.036957391304348",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "9.1297783608"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "6.927657391304348",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "9.565956552720003333333333333"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "9.37059304347826",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "15.46223238516"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "5.223912173913044",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "7.89008314104"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "3.6095821739130433",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "5.98871612568"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "6.0993145080091535",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "9.063652732749473333333333333"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "10.06009347826087",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "16.78006935191999833333333333"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "10.502880869565217",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "16.91780143271999833333333333"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "10.778528695652174",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "16.3462356588"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "1.7601604347826085",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "5.042162622119999166666666667"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "8.992850434782607",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "11.95255630632000166666666667"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "8.006740000000001",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "11.64507645972000166666666667"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "6.90998347826087",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "10.09726817640000166666666667"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "5.994881304347826",
+      "origin": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "travel_minutes": "11.24101117212"
+    },
+    {
+      "destination": null,
+      "distance_km": "10.622055537757436",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "17.93303674635789166666666667"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "12.970829221967962",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "15.92954991401684166666666667"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "12.523235217391304",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "18.85220411399999833333333333"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "7.001070460358056",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "15.15892141362352833333333333"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "14.668640000000001",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "24.87890987981999166666666667"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "5.581807826086956",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "10.49340666276"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "6.499379999999999",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "13.42218482603999833333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "6.765762608695652",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "9.193439885580001666666666667"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "14.988515652173912",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "21.772007008320005"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "11.989704782608696",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "14.51017389024"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "4.854144782608695",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "8.258514782760000666666666667"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "12.865107116704805",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "15.68374348194947333333333333"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "15.678016086956522",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "23.089843975080005"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "10.816493478260869",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "20.04515669796"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "7.294231304347826",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "15.19983388031999833333333333"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "7.95196304347826",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "11.57686032924"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "2.0652730434782607",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "6.221147639039999"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "1.0791226086956522",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "3.2506021857599995"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "3.4256860869565216",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "8.95086639792"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "6.3094839130434775",
+      "origin": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "travel_minutes": "13.96922641536"
+    },
+    {
+      "destination": null,
+      "distance_km": "10.615779885583523",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "13.10739716865788666666666667"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "4.84701356979405",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "8.046668417216841666666666667"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "3.687959565217391",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "6.8828972311199995"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "8.061364808184143",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "16.65867356778352333333333333"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "2.907314347826087",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "5.716675584359998333333333333"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "9.488972173913044",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "16.53729771779999333333333333"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "6.4690743478260865",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "11.37134187467999666666666667"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "9.08914695652174",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "12.79632237869999333333333333"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "13.939064347826088",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "18.63826080185999666666666667"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "5.369819130434783",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "8.70304058472"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "10.620989130434784",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "15.06102037481999"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "4.741291464530892",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "7.800861985149472833333333333"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "1.2634204347826087",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "3.029686516199999333333333333"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "2.6360878260869567",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "4.463485341"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "5.484185652173913",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "10.79406284232"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "7.485687391304347",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "11.445503946359995"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "16.004257391304347",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "21.02486055545999833333333333"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "15.018146956521738",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "20.71738070886"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "10.202010434782609",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "15.45380520695999666666666667"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "6.4970382608695645",
+      "origin": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "travel_minutes": "12.39207244391999666666666667"
+    },
+    {
+      "destination": null,
+      "distance_km": "13.695000755148742",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "20.55927395211788333333333333"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "1.5550244393592677",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "3.249804822176841666666666667"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "3.9775204347826084",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "7.44863457312"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "8.35128567774936",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "17.37588881778352333333333333"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "8.776195217391305",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "14.37326350235999833333333333"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "8.848903043478262",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "11.5405276374"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "4.898895217391304",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "7.571290836839998833333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "5.4415778260869565",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "5.980772183400001666666666667"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "11.439315217391306",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "12.882876184440005"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "6.442800869565217",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "10.36843746743999833333333333"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "8.12124",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "9.3056357574"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "1.44930233409611",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "3.003998390109473333333333333"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "7.132301304347826",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "11.68627443419999833333333333"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "7.575088695652174",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "11.82400651499999833333333333"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "6.92182652173913",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "11.75090820335999666666666667"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "4.411888260869565",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "7.409637100920000833333333333"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "13.504508260869565",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "15.26947593804"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "12.518397826086957",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "14.96199609144000333333333333"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "7.701961304347826",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "11.45113831872"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "5.856819130434782",
+      "origin": "679337fb-5234-59ad-917c-17e371071746",
+      "travel_minutes": "9.68252364816"
+    },
+    {
+      "destination": null,
+      "distance_km": "15.79963075514874",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "23.38710941019788833333333333"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "9.976264439359267",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "13.38241525349684333333333333"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "7.668990434782609",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "15.58664800295999833333333333"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "8.59848567774936",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "20.48968417746352333333333333"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "12.467665217391304",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "22.5112769322"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "0.7276630434782609",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "2.234891879999999666666666667"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "3.5047952173913045",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "9.66394750716"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "3.7711978260869564",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "6.64630522506"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "5.177655217391304",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "9.288620549280001666666666667"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "10.134270869565218",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "18.50645089728"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "8.995140000000001",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "11.96303922972"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "9.87054233409611",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "13.136608821429475"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "10.823771304347827",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "19.82428786404"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "10.691288695652174",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "19.710026380679995"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "7.169026521739131",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "14.86470356304"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "3.097718260869565",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "8.311304218199998333333333333"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "7.242848260869564",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "11.67522030288000166666666667"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "6.256737826086956",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "11.36774045628000333333333333"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "2.7266213043478256",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "7.60040958144"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "3.3148991304347824",
+      "origin": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "travel_minutes": "10.21098909648"
+    },
+    {
+      "destination": null,
+      "distance_km": "12.81960842105263",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "19.732053796168415"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "0.6796421052631579",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "1.5801842061473685"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "3.102128100686499",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "6.621414417170526666666666667"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "7.475893343653252",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "16.54866866183405"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "7.900802883295194",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "13.54604334641052666666666667"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "9.477400709382151",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "12.16160740745052666666666667"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "5.527392883295194",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "8.192370606890525"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "6.070075491990847",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "6.601851953450527833333333333"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "12.067812883295195",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "13.50395595449053166666666667"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "5.567408535469108",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "9.541217311490525"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "0.6284876659038902",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "1.472033635730526666666666667"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "8.749737665903891",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "9.926715527450526666666666667"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "6.256908970251717",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "10.859054278250525"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "6.699696361556064",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "10.99678635905052666666666667"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "6.046434187643021",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "10.923688047410525"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "5.040385926773455",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "8.030716870970526666666666667"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "14.133005926773454",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "15.89055570809052666666666667"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "13.146895491990845",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "15.58307586149053"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "8.330458970251717",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "12.07221808877052333333333333"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "4.0515367963386725",
+      "origin": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "travel_minutes": "10.23740224037052666666666667"
+    },
+    {
+      "destination": null,
+      "distance_km": "12.222099450800913",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "14.93371723959788833333333333"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "6.235193135011442",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "11.44847798405683833333333333"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "5.076139130434783",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "10.28470679796"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "9.449544373401533",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "20.06048313462352666666666667"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "3.365613913043478",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "7.822418407199998333333333333"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "10.877151739130433",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "19.939107284639995"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "7.857253913043478",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "14.77315144151999833333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "10.47732652173913",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "16.19813194553999333333333333"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "15.327243913043478",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "22.040070368699995"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "1.9620995652173913",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "5.11365911628"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "6.757998695652173",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "12.10485015156"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "12.009168695652173",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "18.46282994165999333333333333"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "6.129471029748283",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "11.20267155198947"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "4.0242673913043477",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "7.86529490784"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "6.872365217391304",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "14.19587240916"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "8.873866956521739",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "14.84731351319999666666666667"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "17.39243695652174",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "24.42667012229999333333333333"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "16.40632652173913",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "24.119190275699995"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "11.590189999999999",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "18.8556147738"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "7.885217826086956",
+      "origin": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "travel_minutes": "15.793882010759995"
+    },
+    {
+      "destination": null,
+      "distance_km": "7.049692059496568",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "11.67330157383789"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "6.584165743707094",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "11.34447122093684166666666667"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "4.277241739130435",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "9.44017412244"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "6.355056982097187",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "15.133222363503525"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "2.9226365217391303",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "8.23049794272"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "10.650854347826087",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "19.61224705115999666666666667"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "8.20622652173913",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "14.66914467840000166666666667"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "10.826299130434783",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "16.09412518241999666666666667"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "12.231226521739132",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "19.31712066300000333333333333"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "1.7372021739130435",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "5.23961678412"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "7.106971304347826",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "12.00084338844"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "12.358141304347826",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "18.35882317853999333333333333"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "6.478443638443936",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "11.09866478886947333333333333"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "3.9304526086956516",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "7.623556063919999333333333333"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "3.7778778260869562",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "9.26861163804"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "9.222839565217391",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "14.74330675007999833333333333"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "12.435829565217391",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "19.69008649451999"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "12.597499130434782",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "20.17707790571999333333333333"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "8.494712608695654",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "14.51115311867999666666666667"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "7.659670434782609",
+      "origin": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "travel_minutes": "15.06276255972"
+    },
+    {
+      "destination": null,
+      "distance_km": "8.494354233409611",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "15.13985268531788833333333333"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "4.527657917620138",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "12.09569325809684"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "1.6468639130434783",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "5.440508098559998333333333333"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "3.15117915601023",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "11.42140580898352833333333333"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "7.019058695652173",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "15.17032400448000166666666667"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "7.4469765217391305",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "15.900430496639995"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "6.5051286956521735",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "12.60204411228"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "10.490431304347827",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "15.80465981177999833333333333"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "9.027348695652174",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "15.60530410848000166666666667"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "5.259604347826086",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "11.34567170795999833333333333"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "5.050463478260869",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "12.7520654256"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "8.57881347826087",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "14.86973470896"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "4.421935812356979",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "11.84988682602947333333333333"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "6.523034782608695",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "13.18067008067999833333333333"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "3.522362173913043",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "8.495148153479998333333333333"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "7.1663317391304345",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "15.49452878723999833333333333"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "9.232491739130433",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "16.48384370399999166666666667"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "9.394161304347825",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "16.97083511519999166666666667"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "5.290834782608696",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "10.79933656415999833333333333"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "4.455792608695651",
+      "origin": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "travel_minutes": "11.35094600519999833333333333"
+    },
+    {
+      "destination": null,
+      "distance_km": "15.434592494279175",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "23.27131732503788666666666667"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "5.0187161784897025",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "7.7162035923568425"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "5.719092173913044",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "10.56339354803999833333333333"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "10.092407416879794",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "20.23592711670352166666666667"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "10.517766956521738",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "17.488022477279995"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "3.1511047826086956",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "8.379843534719998333333333333"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "3.850736956521739",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "7.150742417999998333333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "1.6035195652173911",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "4.5934485606"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "7.601196956521739",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "10.48080661878000166666666667"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "8.184372608695652",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "13.48319644235999666666666667"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "4.0375917391304342",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "6.29682756858"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "4.283121739130434",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "6.90356619174"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "4.912994073226544",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "7.470397160289474"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "8.873873043478261",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "14.80103340911999666666666667"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "9.316660434782609",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "14.93876548991999666666666667"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "8.662948260869565",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "14.61094650227999666666666667"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "9.66639",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "12.86740637238"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "8.68027956521739",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "12.55992652578000333333333333"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "7.583523043478261",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "11.01211824246000166666666667"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "4.808660869565218",
+      "origin": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "travel_minutes": "9.261975229319998333333333333"
+    },
+    {
+      "destination": null,
+      "distance_km": "9.704582494279175",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "15.91514936715789166666666667"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "15.278436178489701",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "18.30058073033684"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "12.041182173913043",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "20.11236096816"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "6.083597416879796",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "13.14103403442352833333333333"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "16.044916956521738",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "23.03744713229998833333333333"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "7.8894147826086955",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "12.86443747908"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "7.8771869565217385",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "13.62676613411999833333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "9.073369565217392",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "11.56447070189999833333333333"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "4.166826956521739",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "7.971492290399999166666666667"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "13.930552608695652",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "22.52412411851999333333333333"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "14.297311739130435",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "16.88120470655999666666666667"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "7.1617517391304345",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "10.62954559908"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "15.172714073226543",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "18.05477429826947166666666667"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "15.195963043478261",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "24.35000082924000666666666667"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "12.193310434782608",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "19.67360056403999833333333333"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "8.671588260869565",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "15.34858287239999666666666667"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "10.25957",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "13.94789114555999666666666667"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "2.2389895652173914",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "5.99864402304"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "6.662893043478261",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "11.82405858599999666666666667"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "7.687290869565217",
+      "origin": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "travel_minutes": "14.17380772344"
+    },
+    {
+      "destination": null,
+      "distance_km": "9.542952929061783",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "15.42827844651789"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "10.031066613272309",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "17.71838867777684"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "10.73179260869565",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "19.32643360367999666666666667"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "5.921967851662404",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "12.65416311378352666666666667"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "15.883287391304346",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "22.55057621165998833333333333"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "6.580025217391304",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "12.32893918656000166666666667"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "6.567797391304348",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "12.84083876963999833333333333"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "7.76398",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "11.02897240938"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "1.9278573913043479",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "5.80721541696"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "13.768923043478258",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "22.03725319787999166666666667"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "12.987922173913043",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "16.34570641403999666666666667"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "5.852362173913043",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "10.09404730656000166666666667"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "9.925344508009151",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "17.47258224570947166666666667"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "13.886573478260869",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "23.564073464760005"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "12.031680869565216",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "19.18672964339999666666666667"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "7.362648695652174",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "14.61848782391999666666666667"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "8.95018043478261",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "13.41239285303999666666666667"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "1.9156904347826087",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "5.0247816912"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "3.494313478260869",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "9.890688418559998333333333333"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "6.377901304347825",
+      "origin": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "travel_minutes": "13.38788035896"
+    },
+    {
+      "destination": null,
+      "distance_km": "11.788009450800915",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "18.43467001011789166666666667"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "6.537003135011441",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "11.50464608921683833333333333"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "7.237729130434783",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "13.11269101511999833333333333"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "6.445824373401535",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "15.39927980178352666666666667"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "12.390773913043478",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "19.45337518686001166666666667"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "2.156181739130435",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "5.8484025724800005"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "3.0737339130434784",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "6.62709618108"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "5.19967652173913",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "8.291424622020002666666666667"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "4.884333913043478",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "8.331299249280001166666666667"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "9.703009565217391",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "16.03249390944"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "6.703898695652174",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "10.52337852053999666666666667"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "2.358298695652174",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "6.082196490240000666666666667"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "6.431281029748283",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "11.25883965714947"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "10.39251",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "17.3503308762"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "8.538627391304348",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "14.61962200499999833333333333"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "5.016365217391304",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "9.77429918736"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "5.456116956521739",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "9.571586106359998333333333333"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "6.949526956521739",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "10.71789900288"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "5.963416521739131",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "10.41041915628"
+    },
+    {
+      "destination": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "distance_km": "2.8838378260869567",
+      "origin": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "travel_minutes": "7.174137770399999166666666667"
+    },
+    {
+      "destination": null,
+      "distance_km": "10.626581624713957",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "18.68597503947789166666666667"
+    },
+    {
+      "destination": "07090165-98d3-52c6-a9c6-3c732aeeeb76",
+      "distance_km": "3.6529653089244853",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "9.39351639497684"
+    },
+    {
+      "destination": "0c8beccb-3a7e-5862-9804-c024a7348bcf",
+      "distance_km": "4.353641304347826",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "10.42343325648"
+    },
+    {
+      "destination": "12b68651-9d1b-5190-993b-bfd2ea5b4cf8",
+      "distance_km": "5.283946547314578",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "15.19479525714352666666666667"
+    },
+    {
+      "destination": "1516f484-675c-5fb3-bb12-80928c20a665",
+      "distance_km": "9.152316086956522",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "17.34806218571999666666666667"
+    },
+    {
+      "destination": "31cdd2ff-f22b-5941-bea3-8dfa51bab101",
+      "distance_km": "3.921283913043478",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "12.42558234887999666666666667"
+    },
+    {
+      "destination": "32618ddf-cd96-59a2-a338-f45646f8846e",
+      "distance_km": "2.0494760869565216",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "6.49971063012"
+    },
+    {
+      "destination": "41432f2c-d2d2-507e-bc5d-f5d6cb5ff056",
+      "distance_km": "6.965118695652173",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "12.72724751573999666666666667"
+    },
+    {
+      "destination": "46b80ef3-4e67-537b-8cef-a1cb61b8e743",
+      "distance_km": "8.370976086956522",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "15.42651467544000333333333333"
+    },
+    {
+      "destination": "51b97ed3-c7d4-563d-a12b-ece6a7cd0fd1",
+      "distance_km": "6.818921739130435",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "13.34323615079999833333333333"
+    },
+    {
+      "destination": "679337fb-5234-59ad-917c-17e371071746",
+      "distance_km": "3.245860869565217",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "10.46784428280000166666666667"
+    },
+    {
+      "destination": "7849ad21-372a-55b5-b089-bfc171d39084",
+      "distance_km": "4.123420869565217",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "13.04641124327999666666666667"
+    },
+    {
+      "destination": "81217abf-6e29-5061-8104-2bdb2c11b702",
+      "distance_km": "3.5472432036613272",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "9.147709962909473333333333333"
+    },
+    {
+      "destination": "8580c449-6cb0-5a9e-a81d-031232cba4d4",
+      "distance_km": "7.508422173913043",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "14.66107311755999833333333333"
+    },
+    {
+      "destination": "9478a4de-5593-5cbe-b87d-519ed30c3e0e",
+      "distance_km": "7.376749565217391",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "14.41513746035999833333333333"
+    },
+    {
+      "destination": "97acac11-1993-52a6-9375-7477ef6c7934",
+      "distance_km": "3.8544873913043475",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "9.56981464272"
+    },
+    {
+      "destination": "9a93a5fa-61d1-5c42-aef8-be557b942f3c",
+      "distance_km": "5.361659130434782",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "11.37642908339999833333333333"
+    },
+    {
+      "destination": "9c18462b-b912-5ea6-96ac-aeb59e9e5355",
+      "distance_km": "8.576569130434782",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "16.382983008959995"
+    },
+    {
+      "destination": "a0dfa4ff-dd6e-5a4a-946c-7d0efe438605",
+      "distance_km": "8.738238695652173",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "16.869974420159995"
+    },
+    {
+      "destination": "b80cea90-d623-57fb-acd2-11bc6911d881",
+      "distance_km": "4.634462173913043",
+      "origin": "cd63c82d-9b0a-510f-a2ac-f676dff2e122",
+      "travel_minutes": "10.62054713112"
+    }
+  ],
+  "vehicles": [
+    {
+      "cost_per_hour_brl": "5.545454545454545454545454545",
+      "cost_per_km_brl": "0.61875",
+      "fixed_route_cost_brl": "0",
+      "helper_available": true,
+      "helper_policy": "OPTIONAL",
+      "id": "264b48cf-d573-475f-8ac9-6b89d1e2c5c6",
+      "max_payload_kg": "1800.000",
+      "max_range_km": "520.00",
+      "max_volume_m3": "10.0000",
+      "refrigerated": true
+    },
+    {
+      "cost_per_hour_brl": "5.409090909090909090909090909",
+      "cost_per_km_brl": "0.5750",
+      "fixed_route_cost_brl": "0",
+      "helper_available": true,
+      "helper_policy": "OPTIONAL",
+      "id": "ee069a66-3651-491e-b159-d3f471cf74fc",
+      "max_payload_kg": "1600.000",
+      "max_range_km": "500.00",
+      "max_volume_m3": "9.0000",
+      "refrigerated": false
+    },
+    {
+      "cost_per_hour_brl": "5.181818181818181818181818182",
+      "cost_per_km_brl": "0.5160714285714285714285714286",
+      "fixed_route_cost_brl": "0",
+      "helper_available": true,
+      "helper_policy": "OPTIONAL",
+      "id": "e9c64d69-c789-40ac-bc78-e2138119daee",
+      "max_payload_kg": "900.000",
+      "max_range_km": "430.00",
+      "max_volume_m3": "5.0000",
+      "refrigerated": true
+    },
+    {
+      "cost_per_hour_brl": "5.090909090909090909090909091",
+      "cost_per_km_brl": "0.4863095238095238095238095238",
+      "fixed_route_cost_brl": "0",
+      "helper_available": true,
+      "helper_policy": "OPTIONAL",
+      "id": "dbdb9e14-e711-44fe-9f6c-fc9de507fe97",
+      "max_payload_kg": "850.000",
+      "max_range_km": "430.00",
+      "max_volume_m3": "4.8000",
+      "refrigerated": false
+    },
+    {
+      "cost_per_hour_brl": "6.909090909090909090909090909",
+      "cost_per_km_brl": "0.8085714285714285714285714285",
+      "fixed_route_cost_brl": "0",
+      "helper_available": true,
+      "helper_policy": "OPTIONAL",
+      "id": "c9140190-9afb-44fe-8633-833553477cc9",
+      "max_payload_kg": "4500.000",
+      "max_range_km": "650.00",
+      "max_volume_m3": "24.0000",
+      "refrigerated": true
+    },
+    {
+      "cost_per_hour_brl": "4.181818181818181818181818182",
+      "cost_per_km_brl": "0.2283333333333333333333333333",
+      "fixed_route_cost_brl": "0",
+      "helper_available": true,
+      "helper_policy": "FORBIDDEN",
+      "id": "ed819076-0430-44f4-8c17-332c84c3da3c",
+      "max_payload_kg": "40.000",
+      "max_range_km": "250.00",
+      "max_volume_m3": "0.1500",
+      "refrigerated": false
+    },
+    {
+      "cost_per_hour_brl": "0",
+      "cost_per_km_brl": "0",
+      "fixed_route_cost_brl": "420.00",
+      "helper_available": true,
+      "helper_policy": "OPTIONAL",
+      "id": "bbdd7913-abec-4952-9f54-8c235cd4a34c",
+      "max_payload_kg": "2200.000",
+      "max_range_km": "550.00",
+      "max_volume_m3": "12.0000",
+      "refrigerated": true
+    }
+  ]
+}

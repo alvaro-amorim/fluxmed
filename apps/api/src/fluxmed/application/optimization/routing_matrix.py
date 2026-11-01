@@ -88,7 +88,7 @@ class RoutingMatrixBuilder:
         for origin_key, destination_key in zip(sequence, sequence[1:], strict=False):
             origin = addresses[origin_key]
             destination = addresses[destination_key]
-            _distance, travel_seconds, leg_coordinates = self._travel_with_geometry(
+            _distance, _travel_seconds, leg_coordinates = self._travel_with_geometry(
                 graph=graph,
                 origin=origin,
                 destination=destination,
@@ -98,7 +98,7 @@ class RoutingMatrixBuilder:
                 traffic_overrides=traffic_overrides,
             )
             self._append_coordinates(coordinates, leg_coordinates)
-            departure_at += timedelta(seconds=travel_seconds)
+            # Match the fixed departure snapshot used to construct every matrix leg.
         return {"type": "LineString", "coordinates": coordinates}
 
     def _delivery_addresses(

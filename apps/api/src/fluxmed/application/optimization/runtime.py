@@ -347,6 +347,8 @@ class OptimizationRunCoordinator:
             "hard_violations": fitness.hard_violations,
             "service_penalty": str(fitness.service_penalty),
             "critical_risk": str(fitness.critical_risk),
+            "priority_inversion_minutes": str(fitness.priority_inversion_minutes),
+            "team_feasible": fitness.team_feasible,
             "cost_brl": str(fitness.total_cost_brl),
             "makespan_minutes": str(fitness.makespan_minutes),
             "travel_minutes": str(fitness.travel_minutes),
@@ -370,6 +372,12 @@ class OptimizationRunCoordinator:
         )
         OptimizationRunCoordinator._append_reason(
             reasons, "critical_risk", previous.critical_risk, current.critical_risk
+        )
+        OptimizationRunCoordinator._append_reason(
+            reasons,
+            "priority_inversion_minutes",
+            previous.priority_inversion_minutes,
+            current.priority_inversion_minutes,
         )
         OptimizationRunCoordinator._append_reason(
             reasons, "cost_brl", previous.total_cost_brl, current.total_cost_brl

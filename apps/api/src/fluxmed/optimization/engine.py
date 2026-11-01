@@ -89,6 +89,7 @@ class GeneticOptimizer:
         operation_end_at: datetime | None = None,
         on_progress: ProgressCallback | None = None,
         should_cancel: CancelCheck | None = None,
+        fitness_evaluator: FitnessEvaluator | None = None,
     ) -> OptimizationResult:
         if not deliveries:
             raise ValueError("Genetic optimizer requires at least one delivery.")
@@ -97,6 +98,7 @@ class GeneticOptimizer:
         self._raise_if_cancelled(should_cancel)
 
         rng = random.Random(random_seed)
+        fitness_evaluator = fitness_evaluator or self._fitness
         decoder = RouteDecoder(
             deliveries=deliveries,
             vehicles=vehicles,
@@ -105,10 +107,12 @@ class GeneticOptimizer:
             operation_end_at=operation_end_at,
             advanced_pruning_enabled=self.config.advanced_pruning_enabled,
         )
-        baselines = self._baselines(deliveries, travel_matrix, decoder)
+        baselines = self._baselines(deliveries, travel_matrix, decoder, fitness_evaluator)
         self._raise_if_cancelled(should_cancel)
         population = self._initial_population(deliveries, baselines, rng)
-        evaluated = [self._evaluate(chromosome, decoder, rng) for chromosome in population]
+        evaluated = [
+            self._evaluate(chromosome, decoder, rng, fitness_evaluator) for chromosome in population
+        ]
         best = min(evaluated, key=lambda item: item.fitness.sort_key())
         stagnant = 0
         generations_completed = 0
@@ -171,7 +175,10 @@ class GeneticOptimizer:
                 next_population.append(tuple(candidate))
                 immigrants_added += 1
 
-            evaluated = [self._evaluate(chromosome, decoder, rng) for chromosome in next_population]
+            evaluated = [
+                self._evaluate(chromosome, decoder, rng, fitness_evaluator)
+                for chromosome in next_population
+            ]
             generation_best = min(evaluated, key=lambda item: item.fitness.sort_key())
             improved = generation_best.fitness.sort_key() < best.fitness.sort_key()
             if improved:
@@ -213,6 +220,7 @@ class GeneticOptimizer:
         deliveries: list[OptimizationDelivery],
         travel_matrix: TravelMatrix,
         decoder: RouteDecoder,
+        fitness_evaluator: FitnessEvaluator,
     ) -> tuple[BaselineResult, ...]:
         baseline_specs = (
             ("NEAREST_NEIGHBOR", nearest_neighbor_chromosome(deliveries, travel_matrix)),
@@ -220,7 +228,7 @@ class GeneticOptimizer:
         )
         results: list[BaselineResult] = []
         for name, chromosome in baseline_specs:
-            evaluated = self._evaluate(chromosome, decoder, random.Random(0))
+            evaluated = self._evaluate(chromosome, decoder, random.Random(0), fitness_evaluator)
             results.append(
                 BaselineResult(
                     name=name,
@@ -254,21 +262,22 @@ class GeneticOptimizer:
         chromosome: Chromosome,
         decoder: RouteDecoder,
         rng: random.Random,
+        fitness_evaluator: FitnessEvaluator,
     ) -> EvaluatedIndividual:
         solution = decoder.decode(chromosome)
         if self.config.repair_enabled and solution.unassigned_delivery_ids:
             repaired_chromosome = repair_chromosome(chromosome, solution, rng)
             repaired_solution = decoder.decode(repaired_chromosome)
             if (
-                self._fitness.evaluate(repaired_solution).sort_key()
-                < self._fitness.evaluate(solution).sort_key()
+                fitness_evaluator.evaluate(repaired_solution).sort_key()
+                < fitness_evaluator.evaluate(solution).sort_key()
             ):
                 chromosome = repaired_chromosome
                 solution = repaired_solution
         return EvaluatedIndividual(
             chromosome=chromosome,
             solution=solution,
-            fitness=self._fitness.evaluate(solution),
+            fitness=fitness_evaluator.evaluate(solution),
         )
 
     def _adaptive_mutation_rate(self, stagnant: int, diversity_ratio: float) -> float:

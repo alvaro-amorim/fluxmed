@@ -1,11 +1,10 @@
 # FluxMed — Optimization Trace, SSE e Replay
 
-**Status:** implementação da Fase 14  
 **Escopo:** lifecycle da otimização, Decision Trace, streaming SSE, cancelamento, reconexão e replay.
 
 ## 1. Objetivo
 
-A Fase 14 torna a execução do algoritmo genético observável sem inventar animações. Toda informação exibida durante a otimização vem de snapshots reais emitidos pelo `GeneticOptimizer` e persistidos no PostgreSQL.
+O trace torna a execução do algoritmo genético observável por eventos e métricas. Toda informação exibida durante a otimização vem de snapshots reais emitidos pelo `GeneticOptimizer` e persistidos no PostgreSQL.
 
 O Decision Trace registra evidências estruturadas da execução. Ele não armazena raciocínio privado ou cadeia de pensamento: registra apenas métricas, mudanças de melhor solução, razões objetivas de seleção, mudanças de alocação, contagens de poda, geometria roteada e estado do run.
 
@@ -81,6 +80,8 @@ Registra seed, quantidade de entregas, tamanho da população, máximo de geraç
 ### `generation_snapshot`
 
 Emitido pelo loop real do GA. Registra geração, melhor fitness global, custo, makespan, viagem, distância, quantidade de veículos, diversidade, taxa efetiva de mutação, imigrantes e contagens de poda.
+
+A avaliação considera combustível e equipe efetivamente atribuída, além de espera na duração. A ordem completa da fitness, incluindo qualidade por prioridade, está na [especificação do algoritmo](OPTIMIZATION_SPEC.md#ordem-lexicográfica).
 
 ### `best_solution_updated`
 
@@ -196,7 +197,7 @@ O frontend nunca converte snapshot intermediário em plano aprovado. A solução
 
 Falha de geração de geometria apenas para um snapshot visual do trace não fabrica uma linha: o evento mantém `geometry=null`. O resultado final continua exigindo roteamento e validação normais.
 
-## 11. Testes da fase
+## 11. Verificações
 
 A suíte cobre:
 

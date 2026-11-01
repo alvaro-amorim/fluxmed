@@ -1,0 +1,75 @@
+{
+  "experiment_id": "831811541cf21dea34c4cdf0c0aceb2acbcd35027f19fed28e879d85fcb54e4f",
+  "source_sha256": "c4368d3b6e6ba81917b3ad47a6b28ad71ba73584a597ca616ab2a797c14a5830",
+  "scenarios": 16,
+  "runs": 272,
+  "independently_feasible": 163,
+  "complete_matrix": true,
+  "convergence_points": 19144,
+  "priority_counts_across_inputs": {
+    "HIGH": 197,
+    "CRITICAL": 107,
+    "LOW": 57,
+    "NORMAL": 439
+  },
+  "inputs_sha256": {
+    "BUSY-20-S20260917": "5071edc875ee1768da07af71d499e583c5dd8bbedae0120522b085222e3ff40b",
+    "BUSY-40-S20260917": "ce0b23180046554f5bb4628a14426732b32701177280bdf798e975063fe7e907",
+    "BUSY-60-S20260917": "9be4574e4e90a4727b0ea897b25c3b5a559fbb9b10560d95396430d1f1779d75",
+    "BUSY-80-S20260917": "870f5d19a6c4a6a6320fb15b27b7351c81e63aeefa09ba57156e96b682de3448",
+    "EMERGENCY-20-S20260917": "3765b1bc808b350c36ca9e155ed62d98cd028f343466451d9eef39745bd8b53e",
+    "EMERGENCY-40-S20260917": "ca6ba5c16e24fe4c4db44fb878efc4296ce80ff2755b4f4364da47ffc17d6134",
+    "EMERGENCY-60-S20260917": "eac11e013eaa742450dc763fc421e7db381388fc3e61b98293a8f93bcb344a35",
+    "EMERGENCY-80-S20260917": "c38b5ad752a13553ff81f79ada6002a6850dbfeb1fd4a9d36e752fbd0806f8ad",
+    "HIGH_PRESSURE-20-S20260917": "3428878b6e57f6f51d3164adb5035c924b95aaf779829e89ea7fc91ec374d1e1",
+    "HIGH_PRESSURE-40-S20260917": "11a73b4166470dff13081227ecafff890baa4e1868097c87b441c341cc39aebd",
+    "HIGH_PRESSURE-60-S20260917": "d060866fc14f739d6daf91dd1cf82bb4cf9efb5a887ebc944ddda90c9cefc425",
+    "HIGH_PRESSURE-80-S20260917": "581a64589ad6ff999ff36265d8f7b8fdfe131d3b5902f35e52dcae8d5682bc57",
+    "NORMAL-20-S20260917": "02637a157188fdfa82bd051e07d0daf39db33e48c079553ceea7d64eba17cdf9",
+    "NORMAL-40-S20260917": "ae03ea354918356992b46bb0ba8b8c909246d388ca8f10ecd1ed1062d0bdddb9",
+    "NORMAL-60-S20260917": "a07fc1f8d206df27343dd8f9302d5c04f92870433baee9bba5eebca3f5945a48",
+    "NORMAL-80-S20260917": "aa59cf264ba691cdf7f8e753c13c59414e5baecb7f52ecedd3bca423bc12d8d9"
+  },
+  "methods": {
+    "NEAREST_NEIGHBOR": {
+      "runs": 16,
+      "feasible": 5,
+      "mean_runtime_seconds": 0.015159706250074123,
+      "total_runtime_seconds": 0.24255530000118597,
+      "mean_service_penalty": 4191.355091496875,
+      "mean_priority_inversion_minutes": 76379.17793766562
+    },
+    "BEST_INSERTION": {
+      "runs": 16,
+      "feasible": 3,
+      "mean_runtime_seconds": 0.11106330000023945,
+      "total_runtime_seconds": 1.7770128000038312,
+      "mean_service_penalty": 4498.197646723958,
+      "mean_priority_inversion_minutes": 70908.72114820626
+    },
+    "GA_BASIC": {
+      "runs": 80,
+      "feasible": 13,
+      "mean_runtime_seconds": 51.32459011124985,
+      "total_runtime_seconds": 4105.967208899988,
+      "mean_service_penalty": 2055.5532701452084,
+      "mean_priority_inversion_minutes": 102495.32638155666
+    },
+    "GA_PRUNING": {
+      "runs": 80,
+      "feasible": 62,
+      "mean_runtime_seconds": 49.81038576249998,
+      "total_runtime_seconds": 3984.8308609999985,
+      "mean_service_penalty": 954.8016912912501,
+      "mean_priority_inversion_minutes": 92445.53417931667
+    },
+    "GA_PRUNING_REPAIR": {
+      "runs": 80,
+      "feasible": 80,
+      "mean_runtime_seconds": 82.84557574125012,
+      "total_runtime_seconds": 6627.646059300009,
+      "mean_service_penalty": 451.5004459135416,
+      "mean_priority_inversion_minutes": 97490.13283844979
+    }
+  }
+}

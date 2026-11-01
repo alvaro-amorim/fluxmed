@@ -1,10 +1,11 @@
 import uuid
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from fluxmed.application.optimization.evaluation import OperationalFitnessEvaluator
 from fluxmed.application.optimization.problem_inputs import (
     build_delivery_inputs,
     build_vehicle_input,
@@ -29,6 +30,7 @@ from fluxmed.optimization import (
     OptimizationProgress,
     OptimizationResult,
     SolutionValidator,
+    ValidationIssue,
     ValidationResult,
 )
 
@@ -112,7 +114,10 @@ class OptimizationService:
         selected_ids = set(resource_view.selected_vehicle_ids)
         selected_worker_ids = set(resource_view.selected_worker_ids)
         selected_workers = [
-            worker for worker in resource_view.workers if worker.id in selected_worker_ids
+            worker
+            for worker in resource_view.workers
+            if worker.id in selected_worker_ids
+            and worker.id not in resource_view.unavailable_worker_ids
         ]
         helper_available = any(worker.role is WorkerRole.HELPER for worker in selected_workers)
         selected_vehicle_views = [
@@ -152,12 +157,29 @@ class OptimizationService:
             operation_end_at=operation_end_at,
             on_progress=on_progress,
             should_cancel=should_cancel,
+            fitness_evaluator=OperationalFitnessEvaluator(
+                deliveries=deliveries,
+                vehicles=selected_vehicle_views,
+                workers=selected_workers,
+            ),
         )
         validation = self._validator.validate(
             solution=result.best.solution,
             deliveries=deliveries,
             vehicles=vehicles,
+            travel_matrix=matrix,
+            operation_start_at=operation_start_at,
+            operation_end_at=operation_end_at,
         )
+        if not result.best.fitness.team_feasible:
+            validation = replace(
+                validation,
+                valid=False,
+                issues=(
+                    *validation.issues,
+                    ValidationIssue("TEAM_INFEASIBLE", "No compatible team for candidate routes."),
+                ),
+            )
         if result.best.fitness.feasible != validation.valid:
             raise OptimizationValidationMismatchError(
                 "OPTIMIZER_VALIDATION_MISMATCH: fitness e validator divergiram."

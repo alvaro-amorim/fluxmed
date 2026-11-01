@@ -1,0 +1,18 @@
+{
+  "cell": {
+    "delivery_count": 20,
+    "profile": "NORMAL",
+    "scenario_name": "NORMAL-20-S20260917",
+    "scenario_seed": 20260917
+  },
+  "completed_at_utc": "2026-10-31T16:45:25.456058+00:00",
+  "experiment_id": "831811541cf21dea34c4cdf0c0aceb2acbcd35027f19fed28e879d85fcb54e4f",
+  "files_sha256": {
+    "benchmark-convergence.csv": "5fe1efa1aba6166407abac01178156f6ea7087f5e2ceb987c07df50f2e710a4b",
+    "benchmark-report.json": "0c1cbfa5e3b2da69c5fa44d2d64127a08b50e20aed19d84e32e6c16b1348e807",
+    "benchmark-runs.csv": "0e376012790a4d075f7add2bda9af5ac94d00ca9874d1ec65d6f0964fcfbdaa7",
+    "benchmark-summaries.csv": "5f1a8ffd0b0e15524c3300ab27fb539ce52b0648ae9d4cd9db8e0fab0e276790",
+    "input.json": "02637a157188fdfa82bd051e07d0daf39db33e48c079553ceea7d64eba17cdf9"
+  },
+  "input_sha256": "02637a157188fdfa82bd051e07d0daf39db33e48c079553ceea7d64eba17cdf9"
+}

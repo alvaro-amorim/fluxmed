@@ -1,2491 +1,474 @@
-# FluxMed — API Specification
+# FluxMed — Contrato HTTP da API
 
-**Documento:** `docs/API_SPEC.md`  
-**Status:** Especificação oficial da API da V1  
-**Projeto:** FluxMed — Planejamento Inteligente de Rotas Médicas  
-**Backend:** FastAPI  
-**Contrato:** REST + JSON + Server-Sent Events (SSE)  
-**Versão inicial:** `/api/v1`
+A API implementada utiliza FastAPI, JSON e Server-Sent Events. O prefixo funcional é `/api/v1`; os health checks usam `/health`. Este guia descreve as 68 operações HTTP registradas pela aplicação. A estrutura detalhada de campos, limites, enums e respostas está no OpenAPI gerado pelo mesmo código.
 
----
+Com a API em execução, consulte `/docs` e `/openapi.json` na porta 8000. As fontes são [`main.py`](../apps/api/src/fluxmed/main.py) e os [routers e schemas](../apps/api/src/fluxmed/api/v1/).
 
-# 1. Objetivo deste documento
+## Autenticação e convenções
 
-Este documento define o contrato HTTP de alto nível do FluxMed V1.
+O login recebe `LoginRequest` e grava uma sessão em cookie HTTP-only. As requisições seguintes enviam esse cookie; o backend verifica a sessão persistida e as permissões da ação. O cookie usa SameSite configurável e Secure em ambiente de produção. Logout encerra a sessão correspondente e remove o cookie. Login e health checks permitem o acesso necessário à inicialização; os recursos operacionais exigem autenticação.
 
-Ele estabelece:
+UUIDs identificam entidades. Datas, horas e timestamps usam os formatos declarados no schema; o planejamento usa o fuso da cidade. Campos monetários e quantitativos do domínio usam `Decimal`; o contrato de cada resposta determina sua serialização. Listas paginadas declaram `page` e `page_size`; outras consultas retornam listas diretamente.
 
-- versionamento;
-- autenticação;
-- convenções REST;
-- requests e responses;
-- paginação;
-- filtros;
-- códigos de erro;
-- endpoints principais;
-- streaming SSE;
-- GeoJSON;
-- operações;
-- entregas;
-- frota;
-- equipe;
-- cidade;
-- otimização;
-- relatórios;
-- Assistente IA;
-- health checks.
+As tabelas abaixo mostram o sucesso declarado de cada operação. Erros de autenticação, permissão, conflito e dados indisponíveis dependem da ação. Parâmetros ou corpos inválidos são tratados pela validação do FastAPI, normalmente com status 422.
 
-Este documento descreve a API pública entre frontend e backend.
+## Endpoints implementados
 
-Detalhes internos de implementação continuam definidos em `ARCHITECTURE.md`, `DOMAIN_MODEL.md` e documentos específicos.
+### auth
 
----
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `POST /api/v1/auth/login` | LoginRequest | 200: LoginResponse |
+| `POST /api/v1/auth/logout` | Sem corpo | 204: sem corpo |
+| `GET /api/v1/auth/me` | Sem corpo | 200: UserResponse |
 
-# 2. Princípios da API
+### cities
 
-A API deve ser:
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `GET /api/v1/cities` | Sem corpo | 200: lista de CityResponse |
+| `GET /api/v1/cities/{city_id}` | Sem corpo | 200: CityResponse |
+| `GET /api/v1/cities/{city_id}/districts` | Sem corpo | 200: lista de DistrictResponse |
+| `GET /api/v1/cities/{city_id}/addresses/search` | Sem corpo | 200: AddressSearchResponse |
+| `GET /api/v1/cities/{city_id}/facilities` | Sem corpo | 200: lista de FacilityResponse |
+| `GET /api/v1/cities/{city_id}/map` | Sem corpo | 200: object |
 
-- previsível;
-- tipada;
-- documentada automaticamente por OpenAPI;
-- consistente;
-- segura;
-- orientada a recursos;
-- simples de consumir no frontend;
-- explícita em erros;
-- sem lógica duplicada no cliente.
+### operations
 
----
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `GET /api/v1/operations` | Sem corpo | 200: OperationListResponse |
+| `POST /api/v1/operations` | OperationCreateRequest | 201: OperationResponse |
+| `GET /api/v1/operations/{operation_id}` | Sem corpo | 200: OperationResponse |
+| `PATCH /api/v1/operations/{operation_id}` | OperationUpdateRequest | 200: OperationResponse |
+| `POST /api/v1/operations/{operation_id}/dispatch` | Sem corpo | 200: OperationResponse |
+| `POST /api/v1/operations/{operation_id}/validate` | Sem corpo | 200: PreflightResponse |
 
-# 3. Base URL
+### deliveries
 
-Versão inicial:
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `GET /api/v1/deliveries` | Sem corpo | 200: DeliveryListResponse |
+| `GET /api/v1/deliveries/{delivery_id}` | Sem corpo | 200: DeliveryResponse |
+| `GET /api/v1/operations/{operation_id}/deliveries` | Sem corpo | 200: DeliveryListResponse |
+| `POST /api/v1/operations/{operation_id}/deliveries` | DeliveryCreateRequest | 201: DeliveryResponse |
+| `PATCH /api/v1/operations/{operation_id}/deliveries/{delivery_id}` | DeliveryUpdateRequest | 200: DeliveryResponse |
+| `DELETE /api/v1/operations/{operation_id}/deliveries/{delivery_id}` | Sem corpo | 204: sem corpo |
+| `POST /api/v1/operations/{operation_id}/generate-scenario` | ScenarioRequest | 200: ScenarioResponse |
+| `POST /api/v1/operations/{operation_id}/delivery-imports` | multipart: Body_create_delivery_import_api_v1_operations__operation_id__delivery_imports_post | 201: DeliveryImportResponse |
+| `GET /api/v1/delivery-imports/{import_id}` | Sem corpo | 200: DeliveryImportResponse |
+| `DELETE /api/v1/delivery-imports/{import_id}` | Sem corpo | 204: sem corpo |
+| `POST /api/v1/delivery-imports/{import_id}/confirm` | Sem corpo | 200: DeliveryImportResponse |
 
-```text
-/api/v1
-```
+### resources
 
-Exemplo:
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `GET /api/v1/vehicles` | Sem corpo | 200: lista de VehicleResponse |
+| `POST /api/v1/vehicles` | VehicleCreateRequest | 201: VehicleResponse |
+| `GET /api/v1/vehicles/{vehicle_id}` | Sem corpo | 200: VehicleResponse |
+| `PATCH /api/v1/vehicles/{vehicle_id}` | VehicleUpdateRequest | 200: VehicleResponse |
+| `PUT /api/v1/vehicles/{vehicle_id}/cost-profile` | VehicleCostUpdateRequest | 200: VehicleResponse |
+| `POST /api/v1/vehicles/{vehicle_id}/deactivate` | Sem corpo | 200: VehicleResponse |
+| `GET /api/v1/workers` | Sem corpo | 200: lista de WorkerResponse |
+| `POST /api/v1/workers` | WorkerCreateRequest | 201: WorkerResponse |
+| `GET /api/v1/workers/{worker_id}` | Sem corpo | 200: WorkerResponse |
+| `PATCH /api/v1/workers/{worker_id}` | WorkerUpdateRequest | 200: WorkerResponse |
+| `POST /api/v1/workers/{worker_id}/deactivate` | Sem corpo | 200: WorkerResponse |
+| `GET /api/v1/workers/{worker_id}/availability` | Sem corpo | 200: WorkerAvailabilityResponse |
+| `PUT /api/v1/workers/{worker_id}/availability` | WorkerAvailabilityRequest | 200: WorkerAvailabilityResponse |
+| `GET /api/v1/operations/{operation_id}/resources` | Sem corpo | 200: OperationResourcesResponse |
+| `PUT /api/v1/operations/{operation_id}/resources` | OperationResourceSelectionRequest | 200: OperationResourcesResponse |
+| `POST /api/v1/operations/{operation_id}/resources/demo` | Sem corpo | 200: OperationResourcesResponse |
 
-```text
-GET /api/v1/operations
-```
+### routing
 
----
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `GET /api/v1/operations/{operation_id}/road-overrides` | Sem corpo | 200: lista de RoadOverrideResponse |
+| `POST /api/v1/operations/{operation_id}/road-overrides` | RoadOverrideCreateRequest | 201: RoadOverrideResponse |
+| `PATCH /api/v1/operations/{operation_id}/road-overrides/{override_id}` | RoadOverrideUpdateRequest | 200: RoadOverrideResponse |
+| `DELETE /api/v1/operations/{operation_id}/road-overrides/{override_id}` | Sem corpo | 204: sem corpo |
+| `POST /api/v1/operations/{operation_id}/route-preview` | RoutePreviewRequest | 200: RoutePreviewResponse |
 
-# 4. Versionamento
+### optimization
 
-A V1 usa:
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `POST /api/v1/operations/{operation_id}/optimize` | OptimizeRequest | 202: OptimizeAcceptedResponse |
+| `GET /api/v1/operations/{operation_id}/optimization-runs/latest-run` | Sem corpo | 200: OptimizationRunResponse |
+| `GET /api/v1/optimization-runs/{run_id}` | Sem corpo | 200: OptimizationRunResponse |
+| `GET /api/v1/optimization-runs/{run_id}/trace` | Sem corpo | 200: lista de OptimizationTraceEventResponse |
+| `GET /api/v1/optimization-runs/{run_id}/events` | Sem corpo | 200: SSE |
+| `POST /api/v1/optimization-runs/{run_id}/cancel` | Sem corpo | 200: OptimizationRunResponse |
+| `GET /api/v1/operations/{operation_id}/optimization-runs/latest` | Sem corpo | 200: OptimizationResultResponse |
+| `GET /api/v1/optimization-runs/{run_id}/result` | Sem corpo | 200: OptimizationResultResponse |
+| `GET /api/v1/routes/{route_id}` | Sem corpo | 200: RouteResultResponse |
+| `POST /api/v1/optimization-runs/{run_id}/approve` | Sem corpo | 200: OptimizationResultResponse |
+| `POST /api/v1/routes/{route_id}/team-simulation` | TeamSimulationRequest | 200: TeamSimulationResponse |
+| `PUT /api/v1/routes/{route_id}/team` | TeamSimulationRequest | 200: TeamSimulationResponse |
 
-```text
-/api/v1
-```
+### reports
 
-Não usar versionamento por header na primeira versão.
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `GET /api/v1/reports` | Sem corpo | 200: ReportListResponse |
+| `POST /api/v1/operations/{operation_id}/reports` | ReportCreateRequest | 202: ReportResponse |
+| `POST /api/v1/reports/{report_id}/retry` | Sem corpo | 202: ReportResponse |
+| `GET /api/v1/reports/{report_id}` | Sem corpo | 200: ReportResponse |
+| `GET /api/v1/reports/{report_id}/download` | Sem corpo | 200: arquivo PDF, XLSX ou CSV |
 
-Se houver mudança incompatível futura:
+### assistant
 
-```text
-/api/v2
-```
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `GET /api/v1/assistant/status` | Sem corpo | 200: AssistantStatusResponse |
+| `POST /api/v1/assistant/messages` | AssistantMessageRequest | 200: AssistantMessageResponse |
 
----
+### health
 
-# 5. Formato padrão
+| Operação | Corpo | Sucesso |
+|---|---|---|
+| `GET /health/live` | Sem corpo | 200: object |
+| `GET /health/ready` | Sem corpo | 200: object |
 
-Requests e responses usam:
+## Parâmetros de consulta
 
-```text
-application/json
-```
+Os parâmetros de caminho são os UUIDs indicados nas rotas. A tabela reúne os parâmetros de consulta e seus defaults; os limites numéricos e os valores de enum são definidos pelo schema OpenAPI.
 
-Exceções:
+| Operação | Parâmetros de consulta |
+|---|---|
+| `GET /api/v1/cities/{city_id}/addresses/search` | `q`: string; obrigatório; `limit`: integer; padrão `8` |
+| `GET /api/v1/operations` | `page`: integer; padrão `1`; `page_size`: integer; padrão `20`; `status`: OperationStatus ou null; `date_from`: string (date) ou null; `date_to`: string (date) ou null; `q`: string ou null; `sort`: string com formato validado; padrão `"updated_at"`; `order`: string com formato validado; padrão `"desc"` |
+| `GET /api/v1/deliveries` | `page`: integer; padrão `1`; `page_size`: integer; padrão `20`; `operation_id`: string (uuid) ou null; `priority`: DeliveryPriority ou null; `temperature_class`: TemperatureClass ou null; `status`: DeliveryStatus ou null; `district_id`: string (uuid) ou null; `q`: string ou null |
+| `GET /api/v1/operations/{operation_id}/deliveries` | `page`: integer; padrão `1`; `page_size`: integer; padrão `100` |
+| `GET /api/v1/vehicles` | `active`: boolean ou null; `status`: VehicleStatus ou null; `refrigerated`: boolean ou null; `q`: string ou null |
+| `GET /api/v1/workers` | `active`: boolean ou null; `role`: WorkerRole ou null; `q`: string ou null |
+| `GET /api/v1/workers/{worker_id}/availability` | `date`: string (date); obrigatório |
+| `GET /api/v1/optimization-runs/{run_id}/events` | `after`: integer; padrão `0` |
+| `GET /api/v1/reports` | `operation_id`: string (uuid) ou null |
 
-- upload multipart;
-- SSE;
-- arquivos PDF/XLSX/CSV;
-- GeoJSON ainda transportado via JSON.
+## Corpos de requisição
 
----
+Os modelos abaixo são os schemas de entrada usados pelas rotas. Campos obrigatórios são exigidos pela validação estrutural; regras de domínio e permissões são verificadas pelo serviço da ação. `null` representa um valor nulo, e não a ausência de um campo obrigatório. Modelos citados em outros campos são detalhados no OpenAPI.
 
-# 6. Datas e horários
+### AggregatedVehicleContractRequest
 
-Usar ISO 8601.
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `price_brl` | number ou string decimal | Sim | Sem default declarado |
+| `pricing_model` | AggregatedPricingModel | Não | `"PER_ROUTE"` |
+| `fuel_included` | boolean | Não | `false` |
+| `driver_included` | boolean | Não | `false` |
+| `helper_included` | boolean | Não | `false` |
 
-Exemplos:
+### AssistantContextRequest
 
-```text
-2026-09-13
-2026-09-13T07:30:00-03:00
-```
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `operation_id` | string (uuid) ou null | Não | Sem default declarado |
+| `route_id` | string (uuid) ou null | Não | Sem default declarado |
+| `delivery_id` | string (uuid) ou null | Não | Sem default declarado |
 
-O backend deve considerar timezone da cidade.
+### AssistantHistoryMessageRequest
 
----
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `role` | string | Sim | Sem default declarado |
+| `content` | string | Sim | Sem default declarado |
 
-# 7. IDs
+### AssistantMessageRequest
 
-Entidades usam UUID.
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `message` | string | Sim | Sem default declarado |
+| `context` | AssistantContextRequest | Não | Sem default declarado |
+| `history` | lista de AssistantHistoryMessageRequest | Não | Sem default declarado |
 
-Exemplo:
+### DeliveryCreateRequest
 
-```text
-550e8400-e29b-41d4-a716-446655440000
-```
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `invoice_number` | string | Sim | Sem default declarado |
+| `invoice_series` | string | Sim | Sem default declarado |
+| `issuer_document` | string | Sim | Sem default declarado |
+| `issuer_name` | string ou null | Não | Sem default declarado |
+| `external_reference` | string ou null | Não | Sem default declarado |
+| `recipient_name` | string | Sim | Sem default declarado |
+| `destination_address_id` | string (uuid) | Sim | Sem default declarado |
+| `package_count` | integer | Sim | Sem default declarado |
+| `total_weight_kg` | number ou string decimal | Sim | Sem default declarado |
+| `total_volume_m3` | number ou string decimal | Sim | Sem default declarado |
+| `priority` | DeliveryPriority | Não | `"NORMAL"` |
+| `time_window_start` | string (date-time) ou null | Não | Sem default declarado |
+| `time_window_end` | string (date-time) ou null | Não | Sem default declarado |
+| `time_window_policy` | TimeWindowPolicy | Não | `"SOFT"` |
+| `temperature_class` | TemperatureClass | Não | `"AMBIENT"` |
+| `handling_requirement` | HandlingRequirement | Não | `"STANDARD"` |
+| `service_time_minutes` | integer ou null | Não | Sem default declarado |
+| `cargo_profile` | CargoProfile ou null | Não | Sem default declarado |
+| `notes` | string ou null | Não | Sem default declarado |
 
-Além disso, algumas entidades possuem códigos humanos:
+### DeliveryUpdateRequest
 
-```text
-OP-20260913-001
-DLV-NF45872-001
-```
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `invoice_number` | string ou null | Não | Sem default declarado |
+| `invoice_series` | string ou null | Não | Sem default declarado |
+| `issuer_document` | string ou null | Não | Sem default declarado |
+| `issuer_name` | string ou null | Não | Sem default declarado |
+| `external_reference` | string ou null | Não | Sem default declarado |
+| `recipient_name` | string ou null | Não | Sem default declarado |
+| `destination_address_id` | string (uuid) ou null | Não | Sem default declarado |
+| `package_count` | integer ou null | Não | Sem default declarado |
+| `total_weight_kg` | number ou string decimal ou null | Não | Sem default declarado |
+| `total_volume_m3` | number ou string decimal ou null | Não | Sem default declarado |
+| `priority` | DeliveryPriority ou null | Não | Sem default declarado |
+| `time_window_start` | string (date-time) ou null | Não | Sem default declarado |
+| `time_window_end` | string (date-time) ou null | Não | Sem default declarado |
+| `time_window_policy` | TimeWindowPolicy ou null | Não | Sem default declarado |
+| `temperature_class` | TemperatureClass ou null | Não | Sem default declarado |
+| `handling_requirement` | HandlingRequirement ou null | Não | Sem default declarado |
+| `service_time_minutes` | integer ou null | Não | Sem default declarado |
+| `cargo_profile` | CargoProfile ou null | Não | Sem default declarado |
+| `notes` | string ou null | Não | Sem default declarado |
 
----
+### LoginRequest
 
-# 8. Dinheiro
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `email` | string | Sim | Sem default declarado |
+| `password` | string | Sim | Sem default declarado |
 
-Valores monetários devem ser serializados com precisão segura.
+### MaintenanceItemRequest
 
-Preferência:
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `name` | string | Sim | Sem default declarado |
+| `cost_brl` | number ou string decimal | Sim | Sem default declarado |
+| `interval_km` | number ou string decimal | Sim | Sem default declarado |
+| `active` | boolean | Não | `true` |
+
+### OperationCreateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `operation_date` | string (date) | Sim | Sem default declarado |
+| `operation_start_time` | string (time) | Sim | Sem default declarado |
+| `operation_end_time` | string (time) | Sim | Sem default declarado |
+| `traffic_mode` | TrafficMode | Não | `"AUTOMATIC"` |
+
+### OperationResourceSelectionRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `vehicle_ids` | lista de string (uuid) | Não | Sem default declarado |
+| `worker_ids` | lista de string (uuid) | Não | Sem default declarado |
+
+### OperationUpdateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `operation_date` | string (date) ou null | Não | Sem default declarado |
+| `operation_start_time` | string (time) ou null | Não | Sem default declarado |
+| `operation_end_time` | string (time) ou null | Não | Sem default declarado |
+| `traffic_mode` | TrafficMode ou null | Não | Sem default declarado |
+
+### OptimizeRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `random_seed` | integer ou null | Não | Sem default declarado |
+
+### OwnedVehicleCostRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `acquisition_value_brl` | number ou string decimal | Sim | Sem default declarado |
+| `residual_value_brl` | number ou string decimal | Sim | Sem default declarado |
+| `useful_life_km` | number ou string decimal | Sim | Sem default declarado |
+| `annual_ipva_brl` | number ou string decimal | Sim | Sem default declarado |
+| `annual_insurance_brl` | number ou string decimal | Sim | Sem default declarado |
+| `annual_fixed_costs_brl` | number ou string decimal | Sim | Sem default declarado |
+| `expected_productive_hours_per_year` | number ou string decimal | Sim | Sem default declarado |
+| `maintenance_items` | lista de MaintenanceItemRequest | Não | Sem default declarado |
+
+### ReportCreateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `report_type` | string | Não | `"DAILY_OPERATION"` |
+| `format` | string | Sim | Sem default declarado |
+
+### RoadOverrideCreateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `road_segment_id` | string (uuid) | Sim | Sem default declarado |
+| `override_type` | RoadOverrideType | Sim | Sem default declarado |
+| `direction_scope` | RoadOverrideDirectionScope | Não | `"SEGMENT_DIRECTION"` |
+| `traffic_level` | TrafficLevel ou null | Não | Sem default declarado |
+| `reason` | string | Sim | Sem default declarado |
+| `notes` | string ou null | Não | Sem default declarado |
+
+### RoadOverrideUpdateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `traffic_level` | TrafficLevel ou null | Não | Sem default declarado |
+| `reason` | string ou null | Não | Sem default declarado |
+| `notes` | string ou null | Não | Sem default declarado |
+
+### RoutePreviewRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `destination_address_id` | string (uuid) | Sim | Sem default declarado |
+| `departure_time` | string (time) ou null | Não | Sem default declarado |
+| `algorithm` | RoutingAlgorithm | Não | `"ASTAR"` |
+
+### ScenarioRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `profile` | ScenarioProfile | Não | `"NORMAL"` |
+| `delivery_count` | integer | Não | `20` |
+| `random_seed` | integer ou null | Não | Sem default declarado |
+
+### TeamSimulationRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `primary_worker_id` | string (uuid) ou null | Não | Sem default declarado |
+| `helper_worker_id` | string (uuid) ou null | Não | Sem default declarado |
+
+### VehicleCostUpdateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `owned_cost` | OwnedVehicleCostRequest ou null | Não | Sem default declarado |
+| `aggregated_contract` | AggregatedVehicleContractRequest ou null | Não | Sem default declarado |
+
+### VehicleCreateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `plate` | string | Sim | Sem default declarado |
+| `type` | VehicleType | Sim | Sem default declarado |
+| `ownership_type` | VehicleOwnershipType | Sim | Sem default declarado |
+| `max_payload_kg` | number ou string decimal | Sim | Sem default declarado |
+| `max_volume_m3` | number ou string decimal | Sim | Sem default declarado |
+| `max_range_km` | number ou string decimal | Sim | Sem default declarado |
+| `refrigerated` | boolean | Não | `false` |
+| `status` | VehicleStatus | Não | `"AVAILABLE"` |
+| `helper_policy` | HelperPolicy | Não | `"OPTIONAL"` |
+| `fuel_type` | FuelType ou null | Não | Sem default declarado |
+| `fuel_efficiency_km_per_l` | number ou string decimal ou null | Não | Sem default declarado |
+| `owned_cost` | OwnedVehicleCostRequest ou null | Não | Sem default declarado |
+| `aggregated_contract` | AggregatedVehicleContractRequest ou null | Não | Sem default declarado |
+
+### VehicleUpdateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `plate` | string ou null | Não | Sem default declarado |
+| `type` | VehicleType ou null | Não | Sem default declarado |
+| `max_payload_kg` | number ou string decimal ou null | Não | Sem default declarado |
+| `max_volume_m3` | number ou string decimal ou null | Não | Sem default declarado |
+| `max_range_km` | number ou string decimal ou null | Não | Sem default declarado |
+| `refrigerated` | boolean ou null | Não | Sem default declarado |
+| `status` | VehicleStatus ou null | Não | Sem default declarado |
+| `helper_policy` | HelperPolicy ou null | Não | Sem default declarado |
+| `fuel_type` | FuelType ou null | Não | Sem default declarado |
+| `fuel_efficiency_km_per_l` | number ou string decimal ou null | Não | Sem default declarado |
+
+### WorkerAvailabilityRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `date` | string (date) | Sim | Sem default declarado |
+| `available` | boolean | Sim | Sem default declarado |
+| `notes` | string ou null | Não | Sem default declarado |
+
+### WorkerCreateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `name` | string | Sim | Sem default declarado |
+| `role` | WorkerRole | Sim | Sem default declarado |
+| `engagement_type` | WorkerEngagementType | Sim | Sem default declarado |
+| `compensation_model` | CompensationModel | Sim | Sem default declarado |
+| `compensation_value_brl` | number ou string decimal | Sim | Sem default declarado |
+
+### WorkerUpdateRequest
+
+| Campo | Tipo | Obrigatório | Padrão |
+|---|---|---|---|
+| `name` | string ou null | Não | Sem default declarado |
+| `role` | WorkerRole ou null | Não | Sem default declarado |
+| `engagement_type` | WorkerEngagementType ou null | Não | Sem default declarado |
+| `compensation_model` | CompensationModel ou null | Não | Sem default declarado |
+| `compensation_value_brl` | number ou string decimal ou null | Não | Sem default declarado |
+
+## Exemplos estruturais
+
+Criação de operação (`OperationCreateRequest`):
 
 ```json
 {
-  "total_cost_brl": "1742.30"
-}
-```
-
-ou schema decimal compatível com OpenAPI.
-
-Evitar depender de float binário como fonte oficial.
-
----
-
-# 9. Unidades nos campos
-
-Campos devem indicar unidade.
-
-Exemplos:
-
-```text
-weight_kg
-volume_m3
-distance_km
-length_m
-duration_minutes
-elapsed_ms
-speed_limit_kmh
-```
-
----
-
-# 10. Envelope de resposta
-
-Para recursos simples, retornar o recurso diretamente.
-
-Exemplo:
-
-```json
-{
-  "id": "...",
-  "operation_code": "OP-20260913-001",
-  "status": "DRAFT"
-}
-```
-
-Não criar envelope genérico desnecessário como:
-
-```json
-{
-  "success": true,
-  "data": {}
-}
-```
-
-para toda resposta.
-
----
-
-# 11. Respostas paginadas
-
-Formato recomendado:
-
-```json
-{
-  "items": [],
-  "page": 1,
-  "page_size": 20,
-  "total": 127,
-  "total_pages": 7
-}
-```
-
----
-
-# 12. Query params de paginação
-
-Padrão:
-
-```text
-?page=1&page_size=20
-```
-
-Limite sugerido:
-
-```text
-page_size <= 100
-```
-
----
-
-# 13. Ordenação
-
-Quando aplicável:
-
-```text
-?sort=created_at&order=desc
-```
-
-Valores inválidos devem retornar erro 422.
-
----
-
-# 14. Busca textual
-
-Padrão:
-
-```text
-?q=texto
-```
-
-Cada endpoint decide campos pesquisáveis.
-
----
-
-# 15. Filtros
-
-Exemplo:
-
-```text
-GET /operations?status=OPTIMIZED
-GET /deliveries?priority=CRITICAL
-GET /vehicles?status=AVAILABLE
-```
-
-Filtros combinados usam semântica AND.
-
----
-
-# 16. Autenticação
-
-A V1 usa autenticação própria via FastAPI + PostgreSQL.
-
-Endpoints:
-
-```text
-POST /auth/login
-POST /auth/logout
-GET  /auth/me
-```
-
----
-
-# 17. POST /auth/login
-
-Request:
-
-```json
-{
-  "email": "planner@fluxmed.demo",
-  "password": "..."
-}
-```
-
-Response:
-
-```json
-{
-  "user": {
-    "id": "...",
-    "email": "planner@fluxmed.demo",
-    "display_name": "Planner Demo",
-    "role": "PLANNER"
-  }
-}
-```
-
-O mecanismo de sessão/token pode ser cookie seguro ou bearer token, conforme implementação.
-
-Preferir solução simples e segura.
-
----
-
-# 18. GET /auth/me
-
-Response:
-
-```json
-{
-  "id": "...",
-  "email": "planner@fluxmed.demo",
-  "display_name": "Planner Demo",
-  "role": "PLANNER"
-}
-```
-
----
-
-# 19. RBAC
-
-Backend valida roles.
-
-Exemplo:
-
-```text
-/admin-only endpoint
-→ ADMIN
-```
-
-Frontend pode esconder ação, mas isso não substitui autorização no backend.
-
----
-
-# 20. Erro padrão
-
-Formato recomendado:
-
-```json
-{
-  "error": {
-    "code": "NO_FEASIBLE_VEHICLE",
-    "message": "Nenhum veículo elegível foi encontrado.",
-    "details": {
-      "delivery_id": "...",
-      "delivery_code": "DLV-NF45872-001"
-    },
-    "request_id": "..."
-  }
-}
-```
-
----
-
-# 21. Códigos HTTP
-
-Uso recomendado:
-
-```text
-200 OK
-201 Created
-202 Accepted
-204 No Content
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-404 Not Found
-409 Conflict
-422 Unprocessable Entity
-429 Too Many Requests
-500 Internal Server Error
-503 Service Unavailable
-```
-
----
-
-# 22. Erros de domínio
-
-Códigos previstos:
-
-```text
-INVALID_OPERATION_STATE
-OPERATION_OUTDATED
-OPERATION_ALREADY_DISPATCHED
-NO_FEASIBLE_VEHICLE
-HARD_WINDOW_INFEASIBLE
-CAPACITY_INFEASIBLE
-VOLUME_INFEASIBLE
-RANGE_INFEASIBLE
-TEAM_INFEASIBLE
-ROAD_GRAPH_DISCONNECTED
-ADDRESS_NOT_FOUND
-ADDRESS_AMBIGUOUS
-IMPORT_VALIDATION_FAILED
-OPTIMIZATION_ALREADY_RUNNING
-OPTIMIZATION_TIMEOUT_NO_SOLUTION
-OPTIMIZER_VALIDATION_MISMATCH
-LLM_PROVIDER_UNAVAILABLE
-REPORT_GENERATION_FAILED
-DATABASE_UNAVAILABLE
-FORBIDDEN_ACTION
-```
-
----
-
-# 23. Request ID
-
-Toda request pode receber/gerar:
-
-```text
-X-Request-ID
-```
-
-Se cliente não enviar, backend gera.
-
-Esse ID deve aparecer em logs e erros.
-
----
-
-# 24. Health checks
-
-Endpoints:
-
-```text
-GET /health/live
-GET /health/ready
-```
-
----
-
-# 25. GET /health/live
-
-Response:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-Não verificar dependências externas pesadas.
-
----
-
-# 26. GET /health/ready
-
-Response exemplo:
-
-```json
-{
-  "status": "healthy",
-  "components": {
-    "database": "healthy",
-    "postgis": "healthy",
-    "city_dataset": "healthy",
-    "llm": "degraded"
-  }
-}
-```
-
-LLM degradada não torna core indisponível.
-
----
-
-# 27. Operações — endpoints principais
-
-```text
-GET    /operations
-POST   /operations
-GET    /operations/{operation_id}
-PATCH  /operations/{operation_id}
-DELETE /operations/{operation_id}   [apenas quando permitido]
-```
-
-Preferir inativação/estado em vez de delete se houver histórico.
-
----
-
-# 28. GET /operations
-
-Filtros possíveis:
-
-```text
-status
-date_from
-date_to
-q
-page
-page_size
-sort
-order
-```
-
-Response:
-
-```json
-{
-  "items": [
-    {
-      "id": "...",
-      "operation_code": "OP-20260913-001",
-      "operation_date": "2026-09-13",
-      "city_name": "Santa Aurora",
-      "status": "OPTIMIZED",
-      "delivery_count": 40,
-      "vehicles_used": 6,
-      "total_cost_brl": "1742.30",
-      "updated_at": "..."
-    }
-  ],
-  "page": 1,
-  "page_size": 20,
-  "total": 1,
-  "total_pages": 1
-}
-```
-
----
-
-# 29. POST /operations
-
-Request:
-
-```json
-{
-  "operation_date": "2026-09-13",
-  "city_id": "...",
-  "depot_facility_id": "...",
+  "operation_date": "2026-09-15",
   "operation_start_time": "07:30:00",
   "operation_end_time": "18:00:00",
   "traffic_mode": "AUTOMATIC"
 }
 ```
 
-Response:
-
-```text
-201 Created
-```
-
-com `OperationResponse`.
-
----
-
-# 30. PATCH /operations/{id}
-
-Permitido apenas antes de dispatch.
-
-Exemplo:
+Otimização (`OptimizeRequest`) de uma operação com entregas e recursos já selecionados:
 
 ```json
 {
-  "operation_start_time": "08:00:00",
-  "traffic_mode": "FREE"
+  "random_seed": 101
 }
 ```
 
-Mudança relevante após otimização deve marcar plano como `OUTDATED`.
+Esses corpos são exemplos sintéticos validados pelos modelos de entrada. A existência dos recursos e a viabilidade da operação são verificações de domínio feitas ao executar a ação.
 
----
+## Otimização, resultado e equipe
 
-# 31. Operation detail
+O POST de otimização retorna `202 Accepted` com `optimization_run_id`, estado e URLs de resultado, status e eventos. O run é persistido antes de ser encaminhado ao coordenador em processo. O resultado concluído passa pela validação independente, atribuição efetiva de equipe e cálculo de custo antes da conclusão transacional.
 
-`GET /operations/{id}` deve retornar visão de produto, não payload gigantesco.
+`latest-run` retorna os dados do run mais recente; `latest` consulta o resultado operacional. Aprovação recebe o ID do run. Despacho recebe o ID da operação e congela a revisão. A simulação de equipe calcula o impacto sem aplicar; o PUT da equipe aplica a atribuição quando permitida pelas regras do plano.
 
-Exemplo:
+O stream de eventos usa `text/event-stream`, sequência persistida e os campos SSE `id`, `event` e `data`. A retomada usa `Last-Event-ID` ou `after`; o cabeçalho válido prevalece. Há mensagem de retry, keep-alive e encerramento após o estado terminal e o consumo dos eventos. Veja [Decision Trace](OPTIMIZATION_TRACE.md).
 
-```json
-{
-  "id": "...",
-  "operation_code": "OP-20260913-001",
-  "status": "OPTIMIZED",
-  "operation_date": "2026-09-13",
-  "operation_start_time": "07:30:00",
-  "operation_end_time": "18:00:00",
-  "traffic_mode": "AUTOMATIC",
-  "city": {
-    "id": "...",
-    "name": "Santa Aurora",
-    "dataset_version": "1.0.0"
-  },
-  "depot": {
-    "id": "...",
-    "name": "Centro de Distribuição FluxMed"
-  },
-  "summary": {
-    "delivery_count": 40,
-    "critical_count": 5,
-    "refrigerated_count": 8,
-    "hard_window_count": 12
-  },
-  "current_revision": {
-    "id": "...",
-    "revision_number": 3,
-    "status": "OPTIMIZED"
-  }
-}
-```
+## Upload, relatórios e assistente
 
----
+A importação de entregas usa `multipart/form-data` com o campo `file`; a confirmação da importação é uma ação separada. O download de relatórios devolve o arquivo persistido no formato solicitado, com nome e MIME type apropriados. Criação e retry retornam 202; a geração atual é síncrona na requisição e preserva o snapshot, conforme [REPORTS.md](REPORTS.md).
 
-# 32. Revisões
+O assistente recebe `AssistantMessageRequest`, com mensagem, contexto e histórico. As consultas e simulações são limitadas ao contexto autorizado. O status informa configuração do provider; a evidência de uma resposta externa depende da requisição de mensagem. Veja [LLM_IMPLEMENTATION.md](LLM_IMPLEMENTATION.md).
 
-Endpoints:
+## Erros e disponibilidade
 
-```text
-GET /operations/{id}/revisions
-GET /operations/{id}/revisions/{revision_id}
-```
-
-Criar revisão explícita por endpoint somente se necessário na implementação.
-
-A maior parte pode ser controlada por casos de uso.
-
----
-
-# 33. Entregas da operação
-
-Endpoints:
-
-```text
-GET    /operations/{id}/deliveries
-POST   /operations/{id}/deliveries
-PATCH  /operations/{id}/deliveries/{delivery_id}
-DELETE /operations/{id}/deliveries/{delivery_id}
-```
-
----
-
-# 34. POST delivery manual
-
-Request:
-
-```json
-{
-  "invoice_number": "45872",
-  "invoice_series": "1",
-  "issuer_document": "12.345.678/0001-90",
-  "issuer_name": "Distribuidora Médica Aurora",
-  "recipient_name": "Hospital Universitário de Santa Aurora",
-  "destination_address_id": "...",
-  "package_count": 8,
-  "total_weight_kg": "84.50",
-  "total_volume_m3": "0.72",
-  "priority": "HIGH",
-  "time_window_start": "2026-09-13T09:00:00-03:00",
-  "time_window_end": "2026-09-13T11:00:00-03:00",
-  "time_window_policy": "HARD",
-  "temperature_class": "REFRIGERATED",
-  "handling_requirement": "STANDARD",
-  "service_time_minutes": 15,
-  "notes": null
-}
-```
-
----
-
-# 35. Listagem global de entregas
-
-```text
-GET /deliveries
-```
-
-Filtros:
-
-```text
-operation_id
-priority
-temperature_class
-status
-district_id
-q
-```
-
----
-
-# 36. Importação de entregas
-
-Endpoints:
-
-```text
-POST /operations/{id}/delivery-imports
-GET  /delivery-imports/{import_id}
-POST /delivery-imports/{import_id}/confirm
-DELETE /delivery-imports/{import_id}
-```
-
----
-
-# 37. Upload de importação
-
-`POST /operations/{id}/delivery-imports`
-
-Tipo:
-
-```text
-multipart/form-data
-```
-
-Arquivo:
-
-```text
-file
-```
-
-Formatos:
-
-```text
-.xlsx
-.csv
-```
-
-Response:
-
-```text
-202 Accepted
-```
-
-ou `201` se parsing for síncrono rápido.
-
----
-
-# 38. Import preview
-
-Response exemplo:
-
-```json
-{
-  "id": "...",
-  "status": "REVIEW",
-  "summary": {
-    "total_rows": 40,
-    "valid_rows": 35,
-    "warning_rows": 3,
-    "error_rows": 2
-  },
-  "rows": [
-    {
-      "row_number": 2,
-      "status": "VALID",
-      "normalized": {}
-    },
-    {
-      "row_number": 7,
-      "status": "ERROR",
-      "errors": [
-        {
-          "code": "ADDRESS_NOT_FOUND",
-          "message": "Número 600 não existe nesta rua."
-        }
-      ],
-      "suggestions": []
-    }
-  ]
-}
-```
-
----
-
-# 39. Confirmação de importação
-
-```text
-POST /delivery-imports/{id}/confirm
-```
-
-Persistência deve ser atômica.
-
-Se houver erros bloqueantes:
-
-```text
-409 ou 422
-```
-
----
-
-# 40. Template de importação
-
-Endpoint opcional:
-
-```text
-GET /delivery-imports/template
-```
-
-Retorna XLSX.
-
----
-
-# 41. Geração de cenário
-
-Endpoint:
-
-```text
-POST /operations/{id}/generate-scenario
-```
-
-Request:
-
-```json
-{
-  "profile": "NORMAL",
-  "delivery_count": 40,
-  "random_seed": 12345
-}
-```
-
-`random_seed` opcional.
-
----
-
-# 42. Scenario response
-
-Exemplo:
-
-```json
-{
-  "seed": 12345,
-  "generated_count": 40,
-  "summary": {
-    "critical_count": 4,
-    "refrigerated_count": 7,
-    "hard_window_count": 9,
-    "total_weight_kg": "4280.00",
-    "total_volume_m3": "31.70"
-  },
-  "validation": {
-    "status": "FEASIBLE"
-  }
-}
-```
-
----
-
-# 43. Frota
-
-Endpoints:
-
-```text
-GET    /vehicles
-POST   /vehicles
-GET    /vehicles/{vehicle_id}
-PATCH  /vehicles/{vehicle_id}
-POST   /vehicles/{vehicle_id}/deactivate
-```
-
-Evitar DELETE físico.
-
----
-
-# 44. Vehicle response
-
-Exemplo:
-
-```json
-{
-  "id": "...",
-  "plate": "ABC1D23",
-  "type": "CARGO_VAN",
-  "ownership_type": "OWNED",
-  "max_payload_kg": "1500.00",
-  "max_volume_m3": "8.50",
-  "max_range_km": "450.00",
-  "refrigerated": true,
-  "helper_policy": "OPTIONAL",
-  "status": "AVAILABLE",
-  "active": true
-}
-```
-
----
-
-# 45. Vehicle cost profile
-
-Endpoints opcionais/separados:
-
-```text
-GET  /vehicles/{id}/cost-profile
-PUT  /vehicles/{id}/cost-profile
-```
-
-Pode ser embutido no create/update se simplificar V1.
-
----
-
-# 46. Equipe
-
-Endpoints:
-
-```text
-GET    /workers
-POST   /workers
-GET    /workers/{worker_id}
-PATCH  /workers/{worker_id}
-POST   /workers/{worker_id}/deactivate
-```
-
----
-
-# 47. Worker response
-
-```json
-{
-  "id": "...",
-  "name": "Carlos Almeida",
-  "role": "DRIVER",
-  "engagement_type": "EMPLOYEE",
-  "compensation_model": "HOURLY",
-  "compensation_value_brl": "28.50",
-  "active": true
-}
-```
-
----
-
-# 48. Disponibilidade
-
-Pode ser controlada por:
-
-```text
-GET /workers/{id}/availability
-PUT /workers/{id}/availability
-```
-
-ou via seleção da operação.
-
-A implementação deve escolher a forma mais simples coerente.
-
----
-
-# 49. Seleção de recursos da operação
-
-Endpoints:
-
-```text
-GET /operations/{id}/resources
-PUT /operations/{id}/resources
-```
-
-Request exemplo:
-
-```json
-{
-  "vehicle_ids": ["...", "..."],
-  "worker_ids": ["...", "...", "..."]
-}
-```
-
-Backend valida elegibilidade básica.
-
----
-
-# 50. Cidade — metadata
-
-```text
-GET /cities
-GET /cities/{city_id}
-```
-
-Response:
-
-```json
-{
-  "id": "...",
-  "name": "Santa Aurora",
-  "country_code": "BR",
-  "timezone": "America/Sao_Paulo",
-  "dataset_version": "1.0.0",
-  "source_type": "SYNTHETIC"
-}
-```
-
----
-
-# 51. Bairros
-
-```text
-GET /cities/{city_id}/districts
-```
-
-Pode retornar GeoJSON FeatureCollection ou DTO comum.
-
----
-
-# 52. Facilities
-
-```text
-GET /cities/{city_id}/facilities
-```
-
-Filtros:
-
-```text
-type
-district_id
-q
-```
-
----
-
-# 53. Busca de endereço
-
-Endpoint:
-
-```text
-GET /cities/{city_id}/addresses/search
-```
-
-Query:
-
-```text
-?q=Rua das Acacias 593
-&limit=10
-```
-
----
-
-# 54. Address search response
-
-```json
-{
-  "items": [
-    {
-      "id": "...",
-      "street_name": "Rua das Acácias",
-      "house_number": "593",
-      "district_name": "Jardim das Flores",
-      "label": "Rua das Acácias, 593 — Jardim das Flores",
-      "match_type": "EXACT"
-    }
-  ]
-}
-```
-
----
-
-# 55. Busca em duas etapas
-
-Também pode existir:
-
-```text
-GET /cities/{city_id}/streets/search?q=Acassias
-GET /streets/{street_id}/addresses?number=600
-```
-
-Se isso melhorar UX.
-
-Não é obrigatório expor ambos se uma busca unificada resolver.
-
----
-
-# 56. Address not found
-
-Response de domínio:
+Erros de aplicação tratados por `ApiError` usam o envelope:
 
 ```json
 {
   "error": {
-    "code": "ADDRESS_NOT_FOUND",
-    "message": "Número não encontrado.",
-    "details": {
-      "street_id": "...",
-      "requested_number": "600",
-      "nearest_numbers": ["593", "611"]
-    }
+    "code": "DATABASE_UNAVAILABLE",
+    "message": "Serviço de dados temporariamente indisponível.",
+    "details": {}
   }
 }
 ```
 
----
+Esse exemplo corresponde ao tratamento de indisponibilidade de dados, com status 503. Erros estruturais de validação mantêm o formato do FastAPI (`detail`). Erros internos são sanitizados e podem incluir `request_id` para correlação; a API retorna `X-Request-ID` nas respostas do middleware.
 
-# 57. Map layers
+`/health/live` informa vida do processo. `/health/ready` verifica o banco e pode responder 503 quando indisponível. O health check não executa otimização nem uma chamada de LLM.
 
-Endpoint recomendado:
+## Fontes do contrato
 
-```text
-GET /cities/{city_id}/map
-```
-
-Pode aceitar:
-
-```text
-layers=water,districts,roads,facilities,depot
-```
-
----
-
-# 58. Map response
-
-Formato:
-
-```json
-{
-  "city": {...},
-  "layers": {
-    "water": {...GeoJSON...},
-    "districts": {...GeoJSON...},
-    "roads": {...GeoJSON...},
-    "facilities": {...GeoJSON...},
-    "depot": {...GeoJSON...}
-  }
-}
-```
-
-Se payload ficar grande, separar endpoints.
-
-Medir antes de sofisticar.
-
----
-
-# 59. GeoJSON
-
-Usar formato padrão:
-
-```text
-Feature
-FeatureCollection
-```
-
-Properties devem conter apenas campos úteis ao frontend.
-
-Não expor ORM completo.
-
----
-
-# 60. Road overrides
-
-Endpoints:
-
-```text
-GET    /operations/{id}/road-overrides
-POST   /operations/{id}/road-overrides
-PATCH  /operations/{id}/road-overrides/{override_id}
-DELETE /operations/{id}/road-overrides/{override_id}
-```
-
----
-
-# 61. Criar closure
-
-Request:
-
-```json
-{
-  "road_segment_id": "...",
-  "override_type": "CLOSURE",
-  "direction_scope": "SEGMENT_DIRECTION",
-  "reason": "ROADWORK",
-  "notes": "Obra simulada"
-}
-```
-
----
-
-# 62. Criar traffic override
-
-```json
-{
-  "road_segment_id": "...",
-  "override_type": "TRAFFIC",
-  "direction_scope": "SEGMENT_DIRECTION",
-  "traffic_level": "HEAVY",
-  "reason": "EVENT"
-}
-```
-
-Backend converte `traffic_level` em fator.
-
----
-
-# 63. Buscar segmento clicado
-
-Endpoint útil:
-
-```text
-GET /cities/{city_id}/road-segments/nearest
-```
-
-Query:
-
-```text
-lat
-lng
-max_distance_m
-```
-
-Ou frontend usa properties já presentes na layer.
-
-Preferir evitar roundtrip se `road_segment_id` já estiver no GeoJSON.
-
----
-
-# 64. Preflight
-
-Endpoint:
-
-```text
-POST /operations/{id}/validate
-```
-
-Response:
-
-```json
-{
-  "status": "VALID",
-  "blocking_errors": [],
-  "warnings": [],
-  "summary": {
-    "delivery_count": 40,
-    "vehicle_count": 8,
-    "worker_count": 11
-  }
-}
-```
-
----
-
-# 65. Preflight inválido
-
-```json
-{
-  "status": "INVALID",
-  "blocking_errors": [
-    {
-      "code": "NO_FEASIBLE_VEHICLE",
-      "message": "Nenhum veículo refrigerado foi selecionado.",
-      "related_delivery_ids": ["..."]
-    }
-  ],
-  "warnings": []
-}
-```
-
----
-
-# 66. Iniciar otimização
-
-Endpoint:
-
-```text
-POST /operations/{id}/optimize
-```
-
-Request opcional:
-
-```json
-{
-  "random_seed": 582914
-}
-```
-
-Parâmetros internos do GA não devem vir do PLANNER.
-
----
-
-# 67. Optimize response
-
-```text
-202 Accepted
-```
-
-Response:
-
-```json
-{
-  "optimization_run_id": "...",
-  "status": "QUEUED",
-  "stream_url": "/api/v1/optimization-runs/.../events"
-}
-```
-
-Se execução já existir:
-
-```text
-409 OPTIMIZATION_ALREADY_RUNNING
-```
-
-ou retornar a ativa de forma idempotente.
-
----
-
-# 68. Optimization run status
-
-```text
-GET /optimization-runs/{run_id}
-```
-
-Response:
-
-```json
-{
-  "id": "...",
-  "operation_revision_id": "...",
-  "status": "RUNNING",
-  "generation": 37,
-  "elapsed_ms": 8400,
-  "best_metrics": {
-    "total_cost_brl": "1742.30",
-    "makespan_minutes": 318,
-    "distance_km": "126.40",
-    "hard_violations": 0
-  },
-  "pruned_total": 1842,
-  "stop_reason": null
-}
-```
-
----
-
-# 69. SSE endpoint
-
-```text
-GET /optimization-runs/{run_id}/events
-```
-
-Content-Type:
-
-```text
-text/event-stream
-```
-
----
-
-# 70. SSE event format
-
-Exemplo:
-
-```text
-event: generation_snapshot
-data: {"generation":37,"elapsed_ms":8400,...}
-```
-
----
-
-# 71. optimization_started
-
-Payload:
-
-```json
-{
-  "run_id": "...",
-  "started_at": "...",
-  "algorithm_version": "1.0.0",
-  "configuration_version": "production-v1"
-}
-```
-
----
-
-# 72. generation_snapshot
-
-```json
-{
-  "generation": 37,
-  "elapsed_ms": 8400,
-  "best_cost_brl": "1742.30",
-  "best_makespan_minutes": 318,
-  "best_distance_km": "126.40",
-  "hard_violations": 0,
-  "diversity": 0.61,
-  "mutation_rate": 0.08,
-  "pruned_total": 1842
-}
-```
-
----
-
-# 73. best_solution_updated
-
-Pode incluir resumo suficiente para atualizar mapa:
-
-```json
-{
-  "generation": 37,
-  "routes": [
-    {
-      "vehicle_id": "...",
-      "delivery_ids": ["...", "..."]
-    }
-  ],
-  "metrics": {
-    "total_cost_brl": "1742.30",
-    "makespan_minutes": 318
-  }
-}
-```
-
-Não incluir detalhes excessivos.
-
----
-
-# 74. pruning_summary
-
-```json
-{
-  "generation": 37,
-  "total_pruned": 1842,
-  "by_reason": {
-    "CAPACITY_EXCEEDED": 812,
-    "HARD_TIME_WINDOW_IMPOSSIBLE": 327,
-    "DOMINATED_STATE": 529,
-    "RANGE_IMPOSSIBLE": 83
-  }
-}
-```
-
----
-
-# 75. optimization_completed
-
-```json
-{
-  "run_id": "...",
-  "result_id": "...",
-  "status": "COMPLETED",
-  "stop_reason": "EARLY_STOPPING"
-}
-```
-
----
-
-# 76. optimization_failed
-
-```json
-{
-  "run_id": "...",
-  "status": "FAILED",
-  "error": {
-    "code": "OPTIMIZER_INTERNAL_ERROR",
-    "message": "..."
-  }
-}
-```
-
----
-
-# 77. Cancelar otimização
-
-```text
-POST /optimization-runs/{run_id}/cancel
-```
-
-Response:
-
-```text
-202 Accepted
-```
-
-ou status final se imediato.
-
----
-
-# 78. Resultado da otimização
-
-```text
-GET /optimization-runs/{run_id}/result
-```
-
-Response principal deve conter:
-
-- métricas;
-- rotas;
-- equipes;
-- custos;
-- validação;
-- versão;
-- stop reason.
-
----
-
-# 79. Result response — resumo
-
-```json
-{
-  "run_id": "...",
-  "status": "COMPLETED",
-  "validated": true,
-  "metrics": {
-    "delivery_count": 40,
-    "vehicles_used": 6,
-    "total_cost_brl": "1742.30",
-    "distance_km": "126.40",
-    "makespan_minutes": 318,
-    "critical_delays": 0,
-    "on_time_percentage": 97.5
-  },
-  "routes": []
-}
-```
-
----
-
-# 80. Route response
-
-```json
-{
-  "id": "...",
-  "route_code": "R-01",
-  "vehicle": {
-    "id": "...",
-    "plate": "ABC1D23",
-    "type": "CARGO_VAN"
-  },
-  "team": {
-    "driver": {...},
-    "helper": {...}
-  },
-  "metrics": {
-    "distance_km": "24.80",
-    "duration_minutes": 142,
-    "cost_brl": "318.20",
-    "weight_utilization_pct": 82.0,
-    "volume_utilization_pct": 54.0
-  },
-  "stops": [],
-  "geometry": {...}
-}
-```
-
----
-
-# 81. Stop response
-
-```json
-{
-  "sequence": 1,
-  "stop_type": "DELIVERY",
-  "delivery": {
-    "id": "...",
-    "delivery_code": "DLV-NF45872-001",
-    "recipient_name": "Hospital Universitário"
-  },
-  "address": {
-    "label": "Avenida da Integração, 420"
-  },
-  "priority": "HIGH",
-  "planned_arrival_at": "...",
-  "planned_departure_at": "...",
-  "time_window": {
-    "start": "...",
-    "end": "...",
-    "policy": "HARD"
-  }
-}
-```
-
----
-
-# 82. Route detail endpoint
-
-```text
-GET /routes/{route_id}
-```
-
-Pode incluir detalhes maiores do que result summary.
-
----
-
-# 83. Explicação estruturada
-
-Endpoint:
-
-```text
-GET /routes/{route_id}/explanation
-```
-
-ou:
-
-```text
-GET /optimization-runs/{run_id}/decisions
-```
-
-Pode retornar:
-
-```json
-{
-  "vehicle_selection": {
-    "reason_codes": [
-      "REFRIGERATION_REQUIRED",
-      "LOWER_MARGINAL_COST"
-    ],
-    "facts": []
-  }
-}
-```
-
----
-
-# 84. Decision Trace
-
-Endpoints:
-
-```text
-GET /optimization-runs/{run_id}/trace
-GET /optimization-runs/{run_id}/trace/events
-```
-
-Pode suportar paginação/timeline.
-
----
-
-# 85. Replay
-
-Frontend usa:
-
-```text
-GET /optimization-runs/{run_id}/trace
-```
-
-Não precisa de endpoint específico “replay” se trace já for suficiente.
-
----
-
-# 86. Aprovar plano
-
-```text
-POST /operations/{id}/approve
-```
-
-Request opcional:
-
-```json
-{
-  "optimization_run_id": "..."
-}
-```
-
-Backend valida se:
-
-- run pertence à revisão;
-- solução é válida;
-- plano não está OUTDATED.
-
----
-
-# 87. Dispatch
-
-```text
-POST /operations/{id}/dispatch
-```
-
-Request:
-
-```json
-{
-  "revision_id": "...",
-  "confirmation": true
-}
-```
-
-Response:
-
-```json
-{
-  "status": "DISPATCHED",
-  "dispatch_snapshot_id": "..."
-}
-```
-
-Operação passa a ser imutável.
-
----
-
-# 88. Troca manual de equipe
-
-Endpoint:
-
-```text
-POST /routes/{route_id}/team/simulate
-POST /routes/{route_id}/team/apply
-```
-
----
-
-# 89. Simulate team change
-
-Request:
-
-```json
-{
-  "driver_worker_id": "...",
-  "helper_worker_id": "..."
-}
-```
-
-Response:
-
-```json
-{
-  "valid": true,
-  "current_cost_brl": "230.00",
-  "new_cost_brl": "258.00",
-  "cost_delta_brl": "28.00",
-  "duration_delta_minutes": 0,
-  "warnings": []
-}
-```
-
----
-
-# 90. Reports
-
-Endpoints:
-
-```text
-GET  /reports
-POST /operations/{id}/reports
-GET  /reports/{report_id}
-GET  /reports/{report_id}/download
-```
-
----
-
-# 91. Criar relatório
-
-Request:
-
-```json
-{
-  "report_type": "DAILY_OPERATION",
-  "format": "PDF"
-}
-```
-
-Response:
-
-```text
-202 Accepted
-```
-
-com `report_id`.
-
----
-
-# 92. Report status
-
-```json
-{
-  "id": "...",
-  "status": "COMPLETED",
-  "format": "PDF",
-  "report_type": "DAILY_OPERATION",
-  "download_url": "/api/v1/reports/.../download"
-}
-```
-
----
-
-# 93. CSV/XLSX
-
-Download deve definir headers corretos:
-
-```text
-Content-Type
-Content-Disposition
-```
-
-Nome sugerido:
-
-```text
-fluxmed_OP-20260913-001_report.pdf
-```
-
----
-
-# 94. Assistente IA
-
-Endpoint principal:
-
-```text
-POST /assistant/messages
-```
-
----
-
-# 95. Assistant request
-
-```json
-{
-  "message": "Por que a van ABC1D23 foi escolhida?",
-  "context": {
-    "operation_id": "...",
-    "route_id": "...",
-    "delivery_id": null
-  }
-}
-```
-
----
-
-# 96. Assistant response
-
-```json
-{
-  "message": "A van ABC1D23 foi escolhida porque...",
-  "provider": "gemini",
-  "model": "...",
-  "tool_calls": [
-    {
-      "name": "get_route_details",
-      "status": "success"
-    }
-  ],
-  "suggested_actions": []
-}
-```
-
----
-
-# 97. Assistant simulation
-
-Pode utilizar:
-
-```text
-POST /assistant/simulations
-```
-
-ou tool calling interno dentro do mesmo endpoint.
-
-Se houver impacto operacional, resultado deve ser estruturado.
-
----
-
-# 98. Suggested action
-
-Exemplo:
-
-```json
-{
-  "type": "SIMULATE_HELPER_REMOVAL",
-  "label": "Simular remoção do ajudante",
-  "payload": {
-    "route_id": "..."
-  }
-}
-```
-
-Frontend nunca aplica automaticamente.
-
----
-
-# 99. Configurações
-
-Endpoints ADMIN:
-
-```text
-GET   /settings
-PATCH /settings
-```
-
-Expor somente configurações apropriadas.
-
----
-
-# 100. Settings response
-
-Exemplo:
-
-```json
-{
-  "fuel_prices": {
-    "gasoline_brl_per_l": "6.19",
-    "diesel_brl_per_l": "6.05"
-  },
-  "llm": {
-    "provider": "gemini",
-    "status": "healthy"
-  },
-  "optimizer": {
-    "algorithm_version": "1.0.0",
-    "configuration_version": "production-v1"
-  },
-  "city": {
-    "dataset_version": "1.0.0"
-  }
-}
-```
-
-Não retornar API keys.
-
----
-
-# 101. Audit log
-
-Endpoint ADMIN opcional:
-
-```text
-GET /audit-logs
-```
-
-Filtros:
-
-```text
-operation_id
-user_id
-action
-date_from
-date_to
-```
-
----
-
-# 102. Rate limiting
-
-Aplicar principalmente a:
-
-- login;
-- assistant;
-- optimize;
-- reports pesados.
-
-Não precisa infraestrutura externa na V1.
-
-Implementação simples é aceitável.
-
----
-
-# 103. Limite de payload
-
-Definir limites razoáveis para:
-
-- XLSX;
-- CSV;
-- JSON.
-
-Evitar uploads arbitrariamente grandes.
-
----
-
-# 104. CORS
-
-Produção:
-
-- permitir apenas frontend conhecido;
-- não usar wildcard com credenciais.
-
-Desenvolvimento:
-
-- localhost configurado.
-
----
-
-# 105. Security headers
-
-Backend/proxy deve usar boas práticas básicas.
-
-Não precisa construir sistema customizado complexo.
-
----
-
-# 106. OpenAPI
-
-FastAPI deve expor documentação automática em ambiente apropriado.
-
-Exemplos:
-
-```text
-/docs
-/openapi.json
-```
-
-Produção pública pode manter ou restringir conforme decisão final.
-
----
-
-# 107. TypeScript client
-
-Pipeline prevista:
-
-```text
-openapi.json
- ↓
-client generator
- ↓
-apps/web/src/services/generated/
-```
-
-Não editar cliente gerado manualmente.
-
-Criar wrappers quando necessário.
-
----
-
-# 108. Contract tests
-
-Garantir que:
-
-- OpenAPI é válido;
-- schemas principais permanecem compatíveis;
-- SSE payloads seguem contratos esperados;
-- frontend não quebra silenciosamente.
-
----
-
-# 109. Backward compatibility interna
-
-Durante desenvolvimento pré-v1, pequenas quebras são aceitáveis desde que:
-
-- frontend seja atualizado junto;
-- docs sejam atualizadas;
-- testes passem.
-
-Após marcar `v1.0.0`, mudanças incompatíveis exigem mais cuidado.
-
----
-
-# 110. Idempotência
-
-Ações críticas devem ser protegidas.
-
-Exemplos:
-
-```text
-POST /operations/{id}/optimize
-POST /operations/{id}/dispatch
-POST /delivery-imports/{id}/confirm
-POST /operations/{id}/reports
-```
-
-Pode usar:
-
-```text
-Idempotency-Key
-```
-
-quando útil.
-
----
-
-# 111. Conflict response
-
-Exemplo:
-
-```json
-{
-  "error": {
-    "code": "OPTIMIZATION_ALREADY_RUNNING",
-    "message": "Já existe uma otimização ativa para esta revisão.",
-    "details": {
-      "optimization_run_id": "..."
-    }
-  }
-}
-```
-
-HTTP:
-
-```text
-409 Conflict
-```
-
----
-
-# 112. Optimistic concurrency
-
-Pode ser adotada para edição de operação se conflitos aparecerem.
-
-Exemplo:
-
-```text
-revision_number
-```
-
-No início, não criar mecanismo sofisticado sem necessidade.
-
----
-
-# 113. Cache headers
-
-Dados estáticos da cidade podem usar:
-
-```text
-ETag
-Cache-Control
-```
-
-quando útil.
-
-Dados operacionais devem ser tratados com maior cautela.
-
----
-
-# 114. Mapa e payload grande
-
-Se `/map` ficar pesado:
-
-separar em:
-
-```text
-/cities/{id}/map/base
-/cities/{id}/map/roads
-/cities/{id}/map/facilities
-```
-
-Não fragmentar antes de medir.
-
----
-
-# 115. Compressão
-
-Permitir gzip/brotli na plataforma quando disponível.
-
-Útil para GeoJSON.
-
----
-
-# 116. Download de relatório
-
-Pode usar URL direta da API.
-
-Não é necessário introduzir object storage na V1 se arquivos pequenos puderem ser gerados sob demanda ou temporariamente.
-
-Se persistência de arquivo for necessária, documentar depois.
-
----
-
-# 117. Erro do provider LLM
-
-Response:
-
-```text
-503 Service Unavailable
-```
-
-com:
-
-```text
-LLM_PROVIDER_UNAVAILABLE
-```
-
-Core permanece funcional.
-
----
-
-# 118. Erro do banco
-
-Quando persistência não estiver disponível:
-
-```text
-503
-DATABASE_UNAVAILABLE
-```
-
-Não responder sucesso falso.
-
----
-
-# 119. Timeout do optimizer
-
-Se houver solução válida:
-
-run pode finalizar normalmente com:
-
-```text
-stop_reason = TIME_BUDGET
-```
-
-Se não houver solução válida:
-
-```text
-OPTIMIZATION_TIMEOUT_NO_SOLUTION
-```
-
----
-
-# 120. Erro de SolutionValidator
-
-```text
-500
-OPTIMIZER_VALIDATION_MISMATCH
-```
-
-e run falha.
-
-Nunca retornar resultado inválido.
-
----
-
-# 121. Endpoint de benchmarks
-
-Não criar endpoint público para benchmark na V1.
-
-Benchmarks rodam via:
-
-```text
-scripts
-CLI
-notebooks
-```
-
----
-
-# 122. Endpoint de parâmetros do GA
-
-Não expor edição de parâmetros do GA ao PLANNER.
-
-Settings pode mostrar versão ativa, apenas leitura.
-
----
-
-# 123. Endpoint de versão
-
-Opcional:
-
-```text
-GET /version
-```
-
-Response:
-
-```json
-{
-  "app_version": "0.1.0",
-  "api_version": "v1",
-  "optimizer_version": "1.0.0",
-  "city_dataset_version": "1.0.0"
-}
-```
-
-Útil para demo e debugging.
-
----
-
-# 124. API de replay
-
-Não criar endpoints redundantes.
-
-Preferir reutilizar:
-
-```text
-trace
-+
-result
-```
-
----
-
-# 125. WebSocket
-
-Não usar na V1.
-
-SSE cobre progresso de otimização.
-
-WebSocket fica para futura telemetria/GPS.
-
----
-
-# 126. GraphQL
-
-Não usar.
-
-REST é suficiente e mais simples para o projeto.
-
----
-
-# 127. gRPC
-
-Não usar.
-
-Não há microserviços que justifiquem.
-
----
-
-# 128. Regras de naming
-
-Paths:
-
-```text
-kebab-case ou plural nouns consistentes
-```
-
-JSON:
-
-```text
-snake_case
-```
-
-Recomendação principal:
-
-```text
-snake_case
-```
-
-para alinhar Python/Pydantic.
-
-Frontend adapta tipos sem renomear arbitrariamente.
-
----
-
-# 129. Status enums
-
-Valores em uppercase snake case:
-
-```text
-HIGH_PRESSURE
-HARD
-REFRIGERATED
-```
-
----
-
-# 130. Nullable fields
-
-Diferenciar:
-
-- campo ausente;
-- campo `null`;
-- campo vazio.
-
-Pydantic deve definir semântica clara.
-
----
-
-# 131. Partial updates
-
-`PATCH` deve aceitar apenas campos alteráveis.
-
-Nunca permitir mudar via PATCH:
-
-- id;
-- created_at;
-- algorithm_version;
-- immutable snapshot.
-
----
-
-# 132. DELETE
-
-Usar DELETE apenas quando:
-
-- recurso ainda não possui histórico;
-- remoção é conceitualmente válida.
-
-Para Vehicle/Worker histórico:
-
-```text
-deactivate
-```
-
-é preferível.
-
----
-
-# 133. Bulk actions
-
-Evitar endpoints bulk genéricos na V1.
-
-Adicionar somente onde há necessidade clara:
-
-- import;
-- resource selection;
-- scenario generation.
-
----
-
-# 134. Segurança de dados
-
-Mesmo usando dados sintéticos na demo:
-
-- não logar senhas;
-- não logar tokens;
-- não logar secrets;
-- limitar exposição de dados de usuário.
-
----
-
-# 135. API tests prioritários
-
-Cobrir:
-
-- auth;
-- operations CRUD/state;
-- import;
-- scenario generation;
-- resources;
-- address search;
-- road overrides;
-- preflight;
-- optimize start;
-- SSE;
-- result;
-- approve;
-- dispatch;
-- reports;
-- assistant degraded state.
-
----
-
-# 136. Smoke flow
-
-Fluxo mínimo:
-
-```text
-login
- ↓
-GET city
- ↓
-create operation
- ↓
-generate scenario 20
- ↓
-select resources
- ↓
-validate
- ↓
-optimize
- ↓
-get result
-```
-
----
-
-# 137. Critério de aceite da API
-
-A API V1 está pronta quando:
-
-- OpenAPI descreve os endpoints;
-- frontend consegue consumir sem contratos manuais conflitantes;
-- erros são tipados;
-- auth funciona;
-- operações funcionam;
-- cidade funciona;
-- optimization SSE funciona;
-- reports funcionam;
-- assistant funciona;
-- testes passam.
-
----
-
-# 138. Ordem recomendada de implementação
-
-```text
-1. health
-2. auth
-3. operations
-4. city metadata/map
-5. deliveries
-6. vehicles
-7. workers
-8. resource selection
-9. scenario generation
-10. address search
-11. road overrides
-12. preflight
-13. optimization run
-14. SSE
-15. result/routes
-16. approval/dispatch
-17. reports
-18. assistant
-19. settings
-```
-
----
-
-# 139. O que não fazer
-
-Não:
-
-- expor banco diretamente ao frontend;
-- usar endpoints RPC genéricos como `/execute`;
-- retornar ORM cru;
-- criar GraphQL paralelo;
-- criar WebSocket sem necessidade;
-- expor API key de LLM;
-- permitir frontend enviar fitness weights livremente;
-- permitir alterar snapshot despachado;
-- transformar API em gateway de microserviços inexistentes.
-
----
-
-# 140. Regra final
-
-> A API do FluxMed deve refletir o domínio e os fluxos reais do produto, mantendo contratos claros entre React e FastAPI sem transformar a camada HTTP em lugar de regras de negócio.
-
-O backend é a autoridade operacional; o frontend é o consumidor tipado dessas decisões.
+- [Routers e modelos de entrada/saída](../apps/api/src/fluxmed/api/v1/).
+- [Dependências de autenticação](../apps/api/src/fluxmed/api/dependencies.py).
+- [Tratamento de erros](../apps/api/src/fluxmed/api/errors.py).
+- [Configuração do cookie e limites HTTP](../apps/api/src/fluxmed/security/http.py).
+- [Modelo de domínio](DOMAIN_MODEL.md) e [arquitetura](ARCHITECTURE.md).

@@ -1,9 +1,11 @@
 import uuid
 from dataclasses import dataclass
+from functools import partial
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from fluxmed.application.optimization.evaluation import OperationalFitnessEvaluator
 from fluxmed.application.optimization.problem_inputs import (
     build_delivery_inputs,
     build_vehicle_input,
@@ -80,7 +82,10 @@ class SantaAuroraBenchmarkLoader:
         selected_vehicle_ids = set(resource_view.selected_vehicle_ids)
         selected_worker_ids = set(resource_view.selected_worker_ids)
         selected_workers = [
-            worker for worker in resource_view.workers if worker.id in selected_worker_ids
+            worker
+            for worker in resource_view.workers
+            if worker.id in selected_worker_ids
+            and worker.id not in resource_view.unavailable_worker_ids
         ]
         helper_available = any(worker.role is WorkerRole.HELPER for worker in selected_workers)
         selected_vehicles = [
@@ -118,6 +123,12 @@ class SantaAuroraBenchmarkLoader:
             travel_matrix=travel_matrix,
             operation_start_at=operation_start_at,
             operation_end_at=operation_end_at,
+            fitness_evaluator_factory=partial(
+                OperationalFitnessEvaluator,
+                deliveries=deliveries,
+                vehicles=selected_vehicles,
+                workers=selected_workers,
+            ),
         )
         return LoadedBenchmarkOperation(
             operation_id=operation.id,

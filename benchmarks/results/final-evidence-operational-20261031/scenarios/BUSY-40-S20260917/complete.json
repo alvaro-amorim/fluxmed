@@ -1,0 +1,18 @@
+{
+  "cell": {
+    "delivery_count": 40,
+    "profile": "BUSY",
+    "scenario_name": "BUSY-40-S20260917",
+    "scenario_seed": 20260917
+  },
+  "completed_at_utc": "2026-10-31T17:52:57.097013+00:00",
+  "experiment_id": "831811541cf21dea34c4cdf0c0aceb2acbcd35027f19fed28e879d85fcb54e4f",
+  "files_sha256": {
+    "benchmark-convergence.csv": "96b62abca95e5e4c8f8896a4bffbad2f6ef590def133014d012cc6ae11ee9e65",
+    "benchmark-report.json": "7bed534e47732aff981bd0f70d939f8f3c9d9baed91e6b286d43896a31538b41",
+    "benchmark-runs.csv": "11c0f3ecdbb7dfc06f55138cbf0a8a002e5b31523490ddcc3aa12c090227b524",
+    "benchmark-summaries.csv": "215fdbb6578563dd739eeeeecc07f9ac307ac969f75dd7f5d0366fe1b39b01cf",
+    "input.json": "ce0b23180046554f5bb4628a14426732b32701177280bdf798e975063fe7e907"
+  },
+  "input_sha256": "ce0b23180046554f5bb4628a14426732b32701177280bdf798e975063fe7e907"
+}

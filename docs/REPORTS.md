@@ -1,8 +1,6 @@
 # FluxMed — Relatórios da operação
 
-**Fase:** 15  
-**Status:** implementação da V1  
-**Escopo:** PDF, XLSX e CSV a partir do plano otimizado validado
+Os relatórios operacionais são diários, por operação, em PDF, XLSX e CSV, a partir do plano otimizado validado. No escopo de relatórios diários/semanais citado no enunciado, a implementação abrange o diário por operação; a consolidação semanal não foi implementada. Esses artefatos documentam uma operação e são distintos do relatório técnico acadêmico.
 
 ## Objetivo
 
@@ -93,8 +91,7 @@ A tabela `reports` guarda:
 - timestamps de criação e conclusão.
 
 Para a V1 a geração é síncrona dentro da request, mas o recurso mantém lifecycle explícito
-`QUEUED/COMPLETED/FAILED`. O contrato HTTP continua usando `202 Accepted`, permitindo mover a
-geração para background futuramente sem quebrar o frontend.
+`QUEUED/COMPLETED/FAILED`. O contrato HTTP continua usando `202 Accepted`, mantendo o estado do recurso explícito para a interface.
 
 ## Falhas e retry
 
@@ -149,9 +146,9 @@ A rota `/reports` oferece:
 A UI explicita que o relatório é baseado em snapshot para não sugerir que arquivos antigos mudam
 quando a operação é reotimizada.
 
-## Critério de aceite da Fase 15
+## Verificações de consistência
 
-A fase pode ser encerrada quando:
+A conferência dos artefatos considera:
 
 1. migrations passam em banco limpo;
 2. PDF é válido, contém as seções operacionais, usa o fuso operacional e é baixável;
@@ -161,5 +158,5 @@ A fase pode ser encerrada quando:
 6. snapshot de um relatório concluído não muda após alterações posteriores;
 7. falha de geração permanece visível e retry usa exatamente o snapshot que falhou;
 8. frontend gera e baixa os três formatos;
-9. CI completo está verde;
+9. resultado da execução de testes/CI é registrado com sua revisão;
 10. validação manual confirma arquivos reais de uma operação otimizada.

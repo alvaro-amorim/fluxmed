@@ -1,0 +1,18 @@
+{
+  "cell": {
+    "delivery_count": 40,
+    "profile": "HIGH_PRESSURE",
+    "scenario_name": "HIGH_PRESSURE-40-S20260917",
+    "scenario_seed": 20260917
+  },
+  "completed_at_utc": "2026-10-31T18:57:57.677537+00:00",
+  "experiment_id": "831811541cf21dea34c4cdf0c0aceb2acbcd35027f19fed28e879d85fcb54e4f",
+  "files_sha256": {
+    "benchmark-convergence.csv": "904c0c59c317d767bdfe2051a4a858edeab37cd9d13ad81a790ff49b7484e5fc",
+    "benchmark-report.json": "c6ad26af37d65925d996910a18842668bf21432d08e8a00c185716a88532e186",
+    "benchmark-runs.csv": "23537bd93d3f418ff600bfd6d9b935063ba74aaaeaa0e1b21205353ef0e94026",
+    "benchmark-summaries.csv": "61abff96ce06c32f78b3663bd2068e75fba897891ac07b06eaba809fbaea3f08",
+    "input.json": "11a73b4166470dff13081227ecafff890baa4e1868097c87b441c341cc39aebd"
+  },
+  "input_sha256": "11a73b4166470dff13081227ecafff890baa4e1868097c87b441c341cc39aebd"
+}

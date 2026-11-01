@@ -1,0 +1,394 @@
+OFFICIAL_START: 16 scenarios, 272 runs, independent of pilot; dedicated read-only database
+Preset final: profiles=ALL sizes=20,40,60,80 scenario_seed=20260917 ga_seeds=101,202,303,404,505
+Matrix cell: NORMAL · deliveries=20 · scenario_seed=20260917
+Run complete: NORMAL-20-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.010s feasible=True cost=1960.23
+Run complete: NORMAL-20-S20260917 BEST_INSERTION seed=None runtime=0.017s feasible=True cost=1928.97
+Run complete: NORMAL-20-S20260917 GA_BASIC seed=101 runtime=7.742s feasible=True cost=1133.21
+Run complete: NORMAL-20-S20260917 GA_BASIC seed=202 runtime=18.258s feasible=True cost=1294.04
+Run complete: NORMAL-20-S20260917 GA_BASIC seed=303 runtime=15.919s feasible=True cost=1532.49
+Run complete: NORMAL-20-S20260917 GA_BASIC seed=404 runtime=8.176s feasible=True cost=1394.21
+Run complete: NORMAL-20-S20260917 GA_BASIC seed=505 runtime=10.778s feasible=True cost=1723.24
+Run complete: NORMAL-20-S20260917 GA_PRUNING seed=101 runtime=17.332s feasible=True cost=1859.91
+Run complete: NORMAL-20-S20260917 GA_PRUNING seed=202 runtime=12.013s feasible=True cost=1781.23
+Run complete: NORMAL-20-S20260917 GA_PRUNING seed=303 runtime=19.628s feasible=True cost=1517.16
+Run complete: NORMAL-20-S20260917 GA_PRUNING seed=404 runtime=16.840s feasible=True cost=1573.87
+Run complete: NORMAL-20-S20260917 GA_PRUNING seed=505 runtime=6.291s feasible=True cost=1500.53
+Run complete: NORMAL-20-S20260917 GA_PRUNING_REPAIR seed=101 runtime=18.335s feasible=True cost=1575.27
+Run complete: NORMAL-20-S20260917 GA_PRUNING_REPAIR seed=202 runtime=17.575s feasible=True cost=1186.54
+Run complete: NORMAL-20-S20260917 GA_PRUNING_REPAIR seed=303 runtime=19.922s feasible=True cost=1517.16
+Run complete: NORMAL-20-S20260917 GA_PRUNING_REPAIR seed=404 runtime=17.006s feasible=True cost=1573.87
+Run complete: NORMAL-20-S20260917 GA_PRUNING_REPAIR seed=505 runtime=5.835s feasible=True cost=1500.53
+Scenario saved: NORMAL-20-S20260917 (17 runs)
+Matrix cell: NORMAL · deliveries=40 · scenario_seed=20260917
+Run complete: NORMAL-40-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.013s feasible=True cost=2608.59
+Run complete: NORMAL-40-S20260917 BEST_INSERTION seed=None runtime=0.052s feasible=False cost=2584.60
+Run complete: NORMAL-40-S20260917 GA_BASIC seed=101 runtime=47.882s feasible=True cost=2381.63
+Run complete: NORMAL-40-S20260917 GA_BASIC seed=202 runtime=37.446s feasible=True cost=2483.29
+Run complete: NORMAL-40-S20260917 GA_BASIC seed=303 runtime=52.131s feasible=True cost=2346.91
+Run complete: NORMAL-40-S20260917 GA_BASIC seed=404 runtime=24.212s feasible=True cost=2608.04
+Run complete: NORMAL-40-S20260917 GA_BASIC seed=505 runtime=48.307s feasible=True cost=2643.43
+Run complete: NORMAL-40-S20260917 GA_PRUNING seed=101 runtime=21.237s feasible=True cost=2573.35
+Run complete: NORMAL-40-S20260917 GA_PRUNING seed=202 runtime=31.674s feasible=True cost=2463.91
+Run complete: NORMAL-40-S20260917 GA_PRUNING seed=303 runtime=32.597s feasible=True cost=2450.65
+Run complete: NORMAL-40-S20260917 GA_PRUNING seed=404 runtime=15.470s feasible=True cost=2377.16
+Run complete: NORMAL-40-S20260917 GA_PRUNING seed=505 runtime=30.347s feasible=True cost=2686.84
+Run complete: NORMAL-40-S20260917 GA_PRUNING_REPAIR seed=101 runtime=41.417s feasible=True cost=2356.12
+Run complete: NORMAL-40-S20260917 GA_PRUNING_REPAIR seed=202 runtime=22.048s feasible=True cost=2330.30
+Run complete: NORMAL-40-S20260917 GA_PRUNING_REPAIR seed=303 runtime=51.925s feasible=True cost=2351.24
+Run complete: NORMAL-40-S20260917 GA_PRUNING_REPAIR seed=404 runtime=26.759s feasible=True cost=2035.36
+Run complete: NORMAL-40-S20260917 GA_PRUNING_REPAIR seed=505 runtime=20.021s feasible=True cost=2348.74
+Scenario saved: NORMAL-40-S20260917 (17 runs)
+Matrix cell: NORMAL · deliveries=60 · scenario_seed=20260917
+Run complete: NORMAL-60-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.018s feasible=False cost=3017.57
+Run complete: NORMAL-60-S20260917 BEST_INSERTION seed=None runtime=0.103s feasible=False cost=2454.17
+Run complete: NORMAL-60-S20260917 GA_BASIC seed=101 runtime=76.135s feasible=False cost=3117.20
+Run complete: NORMAL-60-S20260917 GA_BASIC seed=202 runtime=64.685s feasible=False cost=2958.21
+Run complete: NORMAL-60-S20260917 GA_BASIC seed=303 runtime=62.090s feasible=False cost=3225.14
+Run complete: NORMAL-60-S20260917 GA_BASIC seed=404 runtime=34.693s feasible=False cost=3022.56
+Run complete: NORMAL-60-S20260917 GA_BASIC seed=505 runtime=59.322s feasible=False cost=2514.61
+Run complete: NORMAL-60-S20260917 GA_PRUNING seed=101 runtime=93.404s feasible=True cost=2652.45
+Run complete: NORMAL-60-S20260917 GA_PRUNING seed=202 runtime=49.635s feasible=True cost=2870.34
+Run complete: NORMAL-60-S20260917 GA_PRUNING seed=303 runtime=92.204s feasible=True cost=2870.80
+Run complete: NORMAL-60-S20260917 GA_PRUNING seed=404 runtime=65.796s feasible=True cost=2755.17
+Run complete: NORMAL-60-S20260917 GA_PRUNING seed=505 runtime=54.159s feasible=True cost=2970.75
+Run complete: NORMAL-60-S20260917 GA_PRUNING_REPAIR seed=101 runtime=128.343s feasible=True cost=2893.48
+Run complete: NORMAL-60-S20260917 GA_PRUNING_REPAIR seed=202 runtime=43.745s feasible=True cost=2812.68
+Run complete: NORMAL-60-S20260917 GA_PRUNING_REPAIR seed=303 runtime=99.680s feasible=True cost=2594.62
+Run complete: NORMAL-60-S20260917 GA_PRUNING_REPAIR seed=404 runtime=102.454s feasible=True cost=2748.12
+Run complete: NORMAL-60-S20260917 GA_PRUNING_REPAIR seed=505 runtime=68.585s feasible=True cost=2915.04
+Scenario saved: NORMAL-60-S20260917 (17 runs)
+Matrix cell: NORMAL · deliveries=80 · scenario_seed=20260917
+Run complete: NORMAL-80-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.024s feasible=False cost=3175.49
+Run complete: NORMAL-80-S20260917 BEST_INSERTION seed=None runtime=0.230s feasible=False cost=3121.70
+Run complete: NORMAL-80-S20260917 GA_BASIC seed=101 runtime=49.088s feasible=False cost=3514.41
+Run complete: NORMAL-80-S20260917 GA_BASIC seed=202 runtime=39.494s feasible=False cost=3932.19
+Run complete: NORMAL-80-S20260917 GA_BASIC seed=303 runtime=43.534s feasible=False cost=3817.70
+Run complete: NORMAL-80-S20260917 GA_BASIC seed=404 runtime=153.541s feasible=False cost=2841.50
+Run complete: NORMAL-80-S20260917 GA_BASIC seed=505 runtime=79.850s feasible=False cost=4041.42
+Run complete: NORMAL-80-S20260917 GA_PRUNING seed=101 runtime=86.300s feasible=True cost=3159.52
+Run complete: NORMAL-80-S20260917 GA_PRUNING seed=202 runtime=140.988s feasible=True cost=3582.88
+Run complete: NORMAL-80-S20260917 GA_PRUNING seed=303 runtime=105.810s feasible=True cost=2980.88
+Run complete: NORMAL-80-S20260917 GA_PRUNING seed=404 runtime=79.009s feasible=True cost=3332.38
+Run complete: NORMAL-80-S20260917 GA_PRUNING seed=505 runtime=138.374s feasible=True cost=3264.36
+Run complete: NORMAL-80-S20260917 GA_PRUNING_REPAIR seed=101 runtime=127.610s feasible=True cost=3262.58
+Run complete: NORMAL-80-S20260917 GA_PRUNING_REPAIR seed=202 runtime=215.016s feasible=True cost=3490.58
+Run complete: NORMAL-80-S20260917 GA_PRUNING_REPAIR seed=303 runtime=88.010s feasible=True cost=3434.35
+Run complete: NORMAL-80-S20260917 GA_PRUNING_REPAIR seed=404 runtime=263.542s feasible=True cost=3031.30
+Run complete: NORMAL-80-S20260917 GA_PRUNING_REPAIR seed=505 runtime=128.835s feasible=True cost=3358.87
+Scenario saved: NORMAL-80-S20260917 (17 runs)
+Matrix cell: BUSY · deliveries=20 · scenario_seed=20260917
+Run complete: BUSY-20-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.003s feasible=True cost=2076.45
+Run complete: BUSY-20-S20260917 BEST_INSERTION seed=None runtime=0.010s feasible=True cost=1960.96
+Run complete: BUSY-20-S20260917 GA_BASIC seed=101 runtime=23.294s feasible=False cost=1245.77
+Run complete: BUSY-20-S20260917 GA_BASIC seed=202 runtime=14.324s feasible=False cost=1334.52
+Run complete: BUSY-20-S20260917 GA_BASIC seed=303 runtime=11.138s feasible=False cost=1947.80
+Run complete: BUSY-20-S20260917 GA_BASIC seed=404 runtime=17.137s feasible=False cost=2065.15
+Run complete: BUSY-20-S20260917 GA_BASIC seed=505 runtime=9.848s feasible=False cost=1333.25
+Run complete: BUSY-20-S20260917 GA_PRUNING seed=101 runtime=3.662s feasible=True cost=1993.11
+Run complete: BUSY-20-S20260917 GA_PRUNING seed=202 runtime=13.785s feasible=True cost=1659.69
+Run complete: BUSY-20-S20260917 GA_PRUNING seed=303 runtime=13.576s feasible=True cost=1249.82
+Run complete: BUSY-20-S20260917 GA_PRUNING seed=404 runtime=12.798s feasible=True cost=2019.73
+Run complete: BUSY-20-S20260917 GA_PRUNING seed=505 runtime=10.068s feasible=True cost=1486.26
+Run complete: BUSY-20-S20260917 GA_PRUNING_REPAIR seed=101 runtime=4.165s feasible=True cost=1993.11
+Run complete: BUSY-20-S20260917 GA_PRUNING_REPAIR seed=202 runtime=13.190s feasible=True cost=1938.46
+Run complete: BUSY-20-S20260917 GA_PRUNING_REPAIR seed=303 runtime=8.480s feasible=True cost=2063.89
+Run complete: BUSY-20-S20260917 GA_PRUNING_REPAIR seed=404 runtime=6.929s feasible=True cost=1826.16
+Run complete: BUSY-20-S20260917 GA_PRUNING_REPAIR seed=505 runtime=9.703s feasible=True cost=2076.94
+Scenario saved: BUSY-20-S20260917 (17 runs)
+Matrix cell: BUSY · deliveries=40 · scenario_seed=20260917
+Run complete: BUSY-40-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.006s feasible=False cost=2705.37
+Run complete: BUSY-40-S20260917 BEST_INSERTION seed=None runtime=0.037s feasible=False cost=2830.26
+Run complete: BUSY-40-S20260917 GA_BASIC seed=101 runtime=51.049s feasible=False cost=2979.64
+Run complete: BUSY-40-S20260917 GA_BASIC seed=202 runtime=23.252s feasible=False cost=2869.80
+Run complete: BUSY-40-S20260917 GA_BASIC seed=303 runtime=20.265s feasible=False cost=3197.97
+Run complete: BUSY-40-S20260917 GA_BASIC seed=404 runtime=45.429s feasible=False cost=2823.93
+Run complete: BUSY-40-S20260917 GA_BASIC seed=505 runtime=19.100s feasible=False cost=3030.08
+Run complete: BUSY-40-S20260917 GA_PRUNING seed=101 runtime=15.190s feasible=True cost=2748.49
+Run complete: BUSY-40-S20260917 GA_PRUNING seed=202 runtime=36.316s feasible=True cost=2827.35
+Run complete: BUSY-40-S20260917 GA_PRUNING seed=303 runtime=18.698s feasible=True cost=2531.47
+Run complete: BUSY-40-S20260917 GA_PRUNING seed=404 runtime=15.021s feasible=True cost=2674.46
+Run complete: BUSY-40-S20260917 GA_PRUNING seed=505 runtime=16.397s feasible=True cost=2389.30
+Run complete: BUSY-40-S20260917 GA_PRUNING_REPAIR seed=101 runtime=37.009s feasible=True cost=2798.77
+Run complete: BUSY-40-S20260917 GA_PRUNING_REPAIR seed=202 runtime=55.364s feasible=True cost=2768.62
+Run complete: BUSY-40-S20260917 GA_PRUNING_REPAIR seed=303 runtime=54.965s feasible=True cost=2732.99
+Run complete: BUSY-40-S20260917 GA_PRUNING_REPAIR seed=404 runtime=20.756s feasible=True cost=2954.27
+Run complete: BUSY-40-S20260917 GA_PRUNING_REPAIR seed=505 runtime=60.393s feasible=True cost=2542.14
+Scenario saved: BUSY-40-S20260917 (17 runs)
+Matrix cell: BUSY · deliveries=60 · scenario_seed=20260917
+Run complete: BUSY-60-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.012s feasible=False cost=2992.21
+Run complete: BUSY-60-S20260917 BEST_INSERTION seed=None runtime=0.123s feasible=False cost=3451.63
+Run complete: BUSY-60-S20260917 GA_BASIC seed=101 runtime=59.336s feasible=False cost=3425.17
+Run complete: BUSY-60-S20260917 GA_BASIC seed=202 runtime=52.851s feasible=False cost=3236.86
+Run complete: BUSY-60-S20260917 GA_BASIC seed=303 runtime=35.440s feasible=False cost=3094.64
+Run complete: BUSY-60-S20260917 GA_BASIC seed=404 runtime=93.486s feasible=False cost=3078.50
+Run complete: BUSY-60-S20260917 GA_BASIC seed=505 runtime=39.746s feasible=False cost=3163.35
+Run complete: BUSY-60-S20260917 GA_PRUNING seed=101 runtime=76.570s feasible=True cost=3184.88
+Run complete: BUSY-60-S20260917 GA_PRUNING seed=202 runtime=55.865s feasible=True cost=2999.80
+Run complete: BUSY-60-S20260917 GA_PRUNING seed=303 runtime=87.585s feasible=True cost=2940.92
+Run complete: BUSY-60-S20260917 GA_PRUNING seed=404 runtime=54.403s feasible=True cost=2973.59
+Run complete: BUSY-60-S20260917 GA_PRUNING seed=505 runtime=89.435s feasible=True cost=2961.55
+Run complete: BUSY-60-S20260917 GA_PRUNING_REPAIR seed=101 runtime=45.551s feasible=True cost=3169.53
+Run complete: BUSY-60-S20260917 GA_PRUNING_REPAIR seed=202 runtime=83.853s feasible=True cost=3130.71
+Run complete: BUSY-60-S20260917 GA_PRUNING_REPAIR seed=303 runtime=122.892s feasible=True cost=2770.37
+Run complete: BUSY-60-S20260917 GA_PRUNING_REPAIR seed=404 runtime=49.258s feasible=True cost=3015.88
+Run complete: BUSY-60-S20260917 GA_PRUNING_REPAIR seed=505 runtime=94.702s feasible=True cost=2958.09
+Scenario saved: BUSY-60-S20260917 (17 runs)
+Matrix cell: BUSY · deliveries=80 · scenario_seed=20260917
+Run complete: BUSY-80-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.043s feasible=False cost=3441.24
+Run complete: BUSY-80-S20260917 BEST_INSERTION seed=None runtime=0.301s feasible=False cost=3041.62
+Run complete: BUSY-80-S20260917 GA_BASIC seed=101 runtime=104.757s feasible=False cost=4188.47
+Run complete: BUSY-80-S20260917 GA_BASIC seed=202 runtime=168.684s feasible=False cost=3558.64
+Run complete: BUSY-80-S20260917 GA_BASIC seed=303 runtime=151.856s feasible=False cost=3156.85
+Run complete: BUSY-80-S20260917 GA_BASIC seed=404 runtime=88.819s feasible=False cost=3731.06
+Run complete: BUSY-80-S20260917 GA_BASIC seed=505 runtime=68.890s feasible=False cost=3356.49
+Run complete: BUSY-80-S20260917 GA_PRUNING seed=101 runtime=100.111s feasible=True cost=3435.25
+Run complete: BUSY-80-S20260917 GA_PRUNING seed=202 runtime=54.656s feasible=True cost=3977.29
+Run complete: BUSY-80-S20260917 GA_PRUNING seed=303 runtime=78.368s feasible=False cost=3573.64
+Run complete: BUSY-80-S20260917 GA_PRUNING seed=404 runtime=138.675s feasible=False cost=3431.94
+Run complete: BUSY-80-S20260917 GA_PRUNING seed=505 runtime=70.285s feasible=True cost=3555.53
+Run complete: BUSY-80-S20260917 GA_PRUNING_REPAIR seed=101 runtime=252.662s feasible=True cost=3273.60
+Run complete: BUSY-80-S20260917 GA_PRUNING_REPAIR seed=202 runtime=276.904s feasible=True cost=3462.33
+Run complete: BUSY-80-S20260917 GA_PRUNING_REPAIR seed=303 runtime=138.740s feasible=True cost=3368.57
+Run complete: BUSY-80-S20260917 GA_PRUNING_REPAIR seed=404 runtime=204.024s feasible=True cost=3619.94
+Run complete: BUSY-80-S20260917 GA_PRUNING_REPAIR seed=505 runtime=177.043s feasible=True cost=3469.50
+Scenario saved: BUSY-80-S20260917 (17 runs)
+Matrix cell: HIGH_PRESSURE · deliveries=20 · scenario_seed=20260917
+Run complete: HIGH_PRESSURE-20-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.007s feasible=True cost=2207.93
+Run complete: HIGH_PRESSURE-20-S20260917 BEST_INSERTION seed=None runtime=0.017s feasible=False cost=2520.24
+Run complete: HIGH_PRESSURE-20-S20260917 GA_BASIC seed=101 runtime=6.562s feasible=True cost=2101.45
+Run complete: HIGH_PRESSURE-20-S20260917 GA_BASIC seed=202 runtime=19.605s feasible=True cost=1781.54
+Run complete: HIGH_PRESSURE-20-S20260917 GA_BASIC seed=303 runtime=9.104s feasible=False cost=1739.59
+Run complete: HIGH_PRESSURE-20-S20260917 GA_BASIC seed=404 runtime=7.613s feasible=True cost=1859.11
+Run complete: HIGH_PRESSURE-20-S20260917 GA_BASIC seed=505 runtime=18.747s feasible=False cost=2116.03
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING seed=101 runtime=14.119s feasible=True cost=2097.23
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING seed=202 runtime=11.213s feasible=True cost=1784.98
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING seed=303 runtime=11.620s feasible=True cost=1793.74
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING seed=404 runtime=6.008s feasible=True cost=1873.36
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING seed=505 runtime=9.443s feasible=True cost=2134.75
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING_REPAIR seed=101 runtime=9.009s feasible=True cost=1998.30
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING_REPAIR seed=202 runtime=9.060s feasible=True cost=2148.67
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING_REPAIR seed=303 runtime=8.334s feasible=True cost=2199.63
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING_REPAIR seed=404 runtime=12.943s feasible=True cost=1469.89
+Run complete: HIGH_PRESSURE-20-S20260917 GA_PRUNING_REPAIR seed=505 runtime=9.522s feasible=True cost=1706.40
+Scenario saved: HIGH_PRESSURE-20-S20260917 (17 runs)
+Matrix cell: HIGH_PRESSURE · deliveries=40 · scenario_seed=20260917
+Run complete: HIGH_PRESSURE-40-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.017s feasible=False cost=3062.21
+Run complete: HIGH_PRESSURE-40-S20260917 BEST_INSERTION seed=None runtime=0.056s feasible=False cost=2963.41
+Run complete: HIGH_PRESSURE-40-S20260917 GA_BASIC seed=101 runtime=38.677s feasible=False cost=2761.74
+Run complete: HIGH_PRESSURE-40-S20260917 GA_BASIC seed=202 runtime=32.035s feasible=False cost=3175.86
+Run complete: HIGH_PRESSURE-40-S20260917 GA_BASIC seed=303 runtime=30.220s feasible=False cost=3171.20
+Run complete: HIGH_PRESSURE-40-S20260917 GA_BASIC seed=404 runtime=23.681s feasible=False cost=2788.44
+Run complete: HIGH_PRESSURE-40-S20260917 GA_BASIC seed=505 runtime=17.372s feasible=False cost=2675.94
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING seed=101 runtime=45.208s feasible=True cost=2873.33
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING seed=202 runtime=32.680s feasible=True cost=2936.29
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING seed=303 runtime=23.690s feasible=True cost=2941.64
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING seed=404 runtime=37.019s feasible=True cost=3119.78
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING seed=505 runtime=47.656s feasible=True cost=2704.01
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING_REPAIR seed=101 runtime=45.923s feasible=True cost=2380.04
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING_REPAIR seed=202 runtime=56.123s feasible=True cost=2867.41
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING_REPAIR seed=303 runtime=83.822s feasible=True cost=2840.31
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING_REPAIR seed=404 runtime=32.275s feasible=True cost=2903.94
+Run complete: HIGH_PRESSURE-40-S20260917 GA_PRUNING_REPAIR seed=505 runtime=32.966s feasible=True cost=2759.44
+Scenario saved: HIGH_PRESSURE-40-S20260917 (17 runs)
+Matrix cell: HIGH_PRESSURE · deliveries=60 · scenario_seed=20260917
+Run complete: HIGH_PRESSURE-60-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.025s feasible=False cost=3425.75
+Run complete: HIGH_PRESSURE-60-S20260917 BEST_INSERTION seed=None runtime=0.199s feasible=False cost=3052.76
+Run complete: HIGH_PRESSURE-60-S20260917 GA_BASIC seed=101 runtime=95.495s feasible=False cost=3908.62
+Run complete: HIGH_PRESSURE-60-S20260917 GA_BASIC seed=202 runtime=61.506s feasible=False cost=3979.29
+Run complete: HIGH_PRESSURE-60-S20260917 GA_BASIC seed=303 runtime=58.000s feasible=False cost=3264.98
+Run complete: HIGH_PRESSURE-60-S20260917 GA_BASIC seed=404 runtime=31.792s feasible=False cost=3600.08
+Run complete: HIGH_PRESSURE-60-S20260917 GA_BASIC seed=505 runtime=96.110s feasible=False cost=3077.98
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING seed=101 runtime=85.007s feasible=True cost=3062.52
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING seed=202 runtime=82.354s feasible=True cost=3039.25
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING seed=303 runtime=85.651s feasible=True cost=3078.72
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING seed=404 runtime=69.478s feasible=True cost=2963.22
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING seed=505 runtime=54.103s feasible=False cost=3078.22
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING_REPAIR seed=101 runtime=118.074s feasible=True cost=3020.24
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING_REPAIR seed=202 runtime=107.347s feasible=True cost=3339.59
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING_REPAIR seed=303 runtime=86.142s feasible=True cost=2859.32
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING_REPAIR seed=404 runtime=157.738s feasible=True cost=3241.68
+Run complete: HIGH_PRESSURE-60-S20260917 GA_PRUNING_REPAIR seed=505 runtime=51.594s feasible=True cost=3016.71
+Scenario saved: HIGH_PRESSURE-60-S20260917 (17 runs)
+Matrix cell: HIGH_PRESSURE · deliveries=80 · scenario_seed=20260917
+Run complete: HIGH_PRESSURE-80-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.018s feasible=False cost=3557.42
+Run complete: HIGH_PRESSURE-80-S20260917 BEST_INSERTION seed=None runtime=0.233s feasible=False cost=3638.73
+Run complete: HIGH_PRESSURE-80-S20260917 GA_BASIC seed=101 runtime=69.842s feasible=False cost=4339.93
+Run complete: HIGH_PRESSURE-80-S20260917 GA_BASIC seed=202 runtime=131.851s feasible=False cost=4899.32
+Run complete: HIGH_PRESSURE-80-S20260917 GA_BASIC seed=303 runtime=147.829s feasible=False cost=4295.35
+Run complete: HIGH_PRESSURE-80-S20260917 GA_BASIC seed=404 runtime=75.396s feasible=False cost=4356.87
+Run complete: HIGH_PRESSURE-80-S20260917 GA_BASIC seed=505 runtime=46.180s feasible=False cost=3979.39
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING seed=101 runtime=44.293s feasible=False cost=3749.07
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING seed=202 runtime=116.525s feasible=False cost=3768.37
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING seed=303 runtime=125.578s feasible=False cost=3345.13
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING seed=404 runtime=91.552s feasible=False cost=3544.36
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING seed=505 runtime=63.986s feasible=False cost=3914.71
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING_REPAIR seed=101 runtime=250.517s feasible=True cost=3540.17
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING_REPAIR seed=202 runtime=234.801s feasible=True cost=3617.45
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING_REPAIR seed=303 runtime=241.978s feasible=True cost=3717.67
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING_REPAIR seed=404 runtime=241.818s feasible=True cost=3261.05
+Run complete: HIGH_PRESSURE-80-S20260917 GA_PRUNING_REPAIR seed=505 runtime=179.604s feasible=True cost=3493.93
+Scenario saved: HIGH_PRESSURE-80-S20260917 (17 runs)
+Matrix cell: EMERGENCY · deliveries=20 · scenario_seed=20260917
+Run complete: EMERGENCY-20-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.007s feasible=True cost=1845.12
+Run complete: EMERGENCY-20-S20260917 BEST_INSERTION seed=None runtime=0.017s feasible=True cost=1965.19
+Run complete: EMERGENCY-20-S20260917 GA_BASIC seed=101 runtime=7.273s feasible=False cost=2248.45
+Run complete: EMERGENCY-20-S20260917 GA_BASIC seed=202 runtime=21.932s feasible=False cost=2103.08
+Run complete: EMERGENCY-20-S20260917 GA_BASIC seed=303 runtime=10.673s feasible=False cost=2268.83
+Run complete: EMERGENCY-20-S20260917 GA_BASIC seed=404 runtime=20.946s feasible=False cost=2421.55
+Run complete: EMERGENCY-20-S20260917 GA_BASIC seed=505 runtime=21.762s feasible=False cost=2115.55
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING seed=101 runtime=7.639s feasible=True cost=1643.86
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING seed=202 runtime=10.905s feasible=True cost=1624.39
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING seed=303 runtime=10.940s feasible=True cost=1755.75
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING seed=404 runtime=16.836s feasible=True cost=1518.51
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING seed=505 runtime=9.148s feasible=True cost=1932.90
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING_REPAIR seed=101 runtime=15.574s feasible=True cost=1994.14
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING_REPAIR seed=202 runtime=8.681s feasible=True cost=1962.04
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING_REPAIR seed=303 runtime=12.880s feasible=True cost=2093.00
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING_REPAIR seed=404 runtime=23.464s feasible=True cost=1970.41
+Run complete: EMERGENCY-20-S20260917 GA_PRUNING_REPAIR seed=505 runtime=23.838s feasible=True cost=1866.61
+Scenario saved: EMERGENCY-20-S20260917 (17 runs)
+Matrix cell: EMERGENCY · deliveries=40 · scenario_seed=20260917
+Run complete: EMERGENCY-40-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.008s feasible=False cost=2657.01
+Run complete: EMERGENCY-40-S20260917 BEST_INSERTION seed=None runtime=0.039s feasible=False cost=3012.03
+Run complete: EMERGENCY-40-S20260917 GA_BASIC seed=101 runtime=55.537s feasible=False cost=3097.10
+Run complete: EMERGENCY-40-S20260917 GA_BASIC seed=202 runtime=31.889s feasible=False cost=2587.95
+Run complete: EMERGENCY-40-S20260917 GA_BASIC seed=303 runtime=29.182s feasible=False cost=2627.58
+Run complete: EMERGENCY-40-S20260917 GA_BASIC seed=404 runtime=44.555s feasible=False cost=2818.07
+Run complete: EMERGENCY-40-S20260917 GA_BASIC seed=505 runtime=48.365s feasible=False cost=2636.17
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING seed=101 runtime=33.879s feasible=True cost=2566.91
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING seed=202 runtime=36.148s feasible=True cost=2524.15
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING seed=303 runtime=28.423s feasible=True cost=2857.29
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING seed=404 runtime=41.691s feasible=True cost=3079.64
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING seed=505 runtime=17.555s feasible=True cost=2535.06
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING_REPAIR seed=101 runtime=70.531s feasible=True cost=2590.85
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING_REPAIR seed=202 runtime=53.502s feasible=True cost=2854.26
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING_REPAIR seed=303 runtime=38.619s feasible=True cost=2591.66
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING_REPAIR seed=404 runtime=79.426s feasible=True cost=2890.19
+Run complete: EMERGENCY-40-S20260917 GA_PRUNING_REPAIR seed=505 runtime=35.716s feasible=True cost=3019.80
+Scenario saved: EMERGENCY-40-S20260917 (17 runs)
+Matrix cell: EMERGENCY · deliveries=60 · scenario_seed=20260917
+Run complete: EMERGENCY-60-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.013s feasible=False cost=3277.30
+Run complete: EMERGENCY-60-S20260917 BEST_INSERTION seed=None runtime=0.101s feasible=False cost=3168.58
+Run complete: EMERGENCY-60-S20260917 GA_BASIC seed=101 runtime=88.103s feasible=False cost=3020.03
+Run complete: EMERGENCY-60-S20260917 GA_BASIC seed=202 runtime=20.679s feasible=False cost=3958.83
+Run complete: EMERGENCY-60-S20260917 GA_BASIC seed=303 runtime=89.510s feasible=False cost=3304.94
+Run complete: EMERGENCY-60-S20260917 GA_BASIC seed=404 runtime=58.100s feasible=False cost=3889.59
+Run complete: EMERGENCY-60-S20260917 GA_BASIC seed=505 runtime=40.119s feasible=False cost=3815.69
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING seed=101 runtime=46.439s feasible=False cost=3319.11
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING seed=202 runtime=38.926s feasible=False cost=3050.39
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING seed=303 runtime=52.264s feasible=False cost=3477.97
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING seed=404 runtime=21.253s feasible=False cost=3160.35
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING seed=505 runtime=36.972s feasible=False cost=3385.50
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING_REPAIR seed=101 runtime=58.957s feasible=True cost=3050.15
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING_REPAIR seed=202 runtime=73.423s feasible=True cost=3414.77
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING_REPAIR seed=303 runtime=145.098s feasible=True cost=3193.02
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING_REPAIR seed=404 runtime=50.535s feasible=True cost=3357.02
+Run complete: EMERGENCY-60-S20260917 GA_PRUNING_REPAIR seed=505 runtime=99.672s feasible=True cost=3216.01
+Scenario saved: EMERGENCY-60-S20260917 (17 runs)
+Matrix cell: EMERGENCY · deliveries=80 · scenario_seed=20260917
+Run complete: EMERGENCY-80-S20260917 NEAREST_NEIGHBOR seed=None runtime=0.018s feasible=False cost=3213.35
+Run complete: EMERGENCY-80-S20260917 BEST_INSERTION seed=None runtime=0.244s feasible=False cost=3070.80
+Run complete: EMERGENCY-80-S20260917 GA_BASIC seed=101 runtime=83.841s feasible=False cost=3000.80
+Run complete: EMERGENCY-80-S20260917 GA_BASIC seed=202 runtime=132.499s feasible=False cost=4774.69
+Run complete: EMERGENCY-80-S20260917 GA_BASIC seed=303 runtime=47.256s feasible=False cost=4111.95
+Run complete: EMERGENCY-80-S20260917 GA_BASIC seed=404 runtime=69.319s feasible=False cost=4153.37
+Run complete: EMERGENCY-80-S20260917 GA_BASIC seed=505 runtime=134.824s feasible=False cost=4458.71
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING seed=101 runtime=88.805s feasible=False cost=3256.99
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING seed=202 runtime=70.787s feasible=False cost=3542.85
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING seed=303 runtime=111.669s feasible=False cost=3614.38
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING seed=404 runtime=114.966s feasible=False cost=3777.79
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING seed=505 runtime=61.831s feasible=False cost=3743.45
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING_REPAIR seed=101 runtime=117.151s feasible=True cost=3739.79
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING_REPAIR seed=202 runtime=67.233s feasible=True cost=3739.42
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING_REPAIR seed=303 runtime=106.884s feasible=True cost=3628.26
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING_REPAIR seed=404 runtime=135.077s feasible=True cost=4045.13
+Run complete: EMERGENCY-80-S20260917 GA_PRUNING_REPAIR seed=505 runtime=218.550s feasible=True cost=3750.13
+Scenario saved: EMERGENCY-80-S20260917 (17 runs)
+Matrix manifest: benchmarks\results\final-evidence-operational-20261031\matrix-manifest.json
+Benchmark complete: 272 runs
+JSON: benchmarks\results\final-evidence-operational-20261031\benchmark-report.json
+CSV: benchmarks\results\final-evidence-operational-20261031\benchmark-runs.csv
+Summary CSV: benchmarks\results\final-evidence-operational-20261031\benchmark-summaries.csv
+Convergence CSV: benchmarks\results\final-evidence-operational-20261031\benchmark-convergence.csv
+Academic artifacts: 6 files
+NORMAL-20-S20260917 · NEAREST_NEIGHBOR: feasible=1/1 mean_cost=1960.2317997937691 mean_runtime=0.0101s
+NORMAL-20-S20260917 · BEST_INSERTION: feasible=1/1 mean_cost=1928.9661385455754 mean_runtime=0.0171s
+NORMAL-20-S20260917 · GA_BASIC: feasible=5/5 mean_cost=1415.437130412917 mean_runtime=12.1746s
+NORMAL-20-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=1646.54280972903 mean_runtime=14.4208s
+NORMAL-20-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=1470.6743184034551 mean_runtime=15.7346s
+NORMAL-40-S20260917 · NEAREST_NEIGHBOR: feasible=1/1 mean_cost=2608.589875490333 mean_runtime=0.0135s
+NORMAL-40-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.0522s
+NORMAL-40-S20260917 · GA_BASIC: feasible=5/5 mean_cost=2492.6601098940628 mean_runtime=41.9957s
+NORMAL-40-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=2510.384097180588 mean_runtime=26.2652s
+NORMAL-40-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=2284.353343602567 mean_runtime=32.4340s
+NORMAL-60-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0175s
+NORMAL-60-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.1033s
+NORMAL-60-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=59.3850s
+NORMAL-60-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=2823.904732745423 mean_runtime=71.0395s
+NORMAL-60-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=2792.7877463934087 mean_runtime=88.5613s
+NORMAL-80-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0240s
+NORMAL-80-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.2299s
+NORMAL-80-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=73.1012s
+NORMAL-80-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=3264.002988297787 mean_runtime=110.0962s
+NORMAL-80-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=3315.5356812904456 mean_runtime=164.6026s
+BUSY-20-S20260917 · NEAREST_NEIGHBOR: feasible=1/1 mean_cost=2076.4507425441952 mean_runtime=0.0030s
+BUSY-20-S20260917 · BEST_INSERTION: feasible=1/1 mean_cost=1960.9566930127887 mean_runtime=0.0095s
+BUSY-20-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=15.1482s
+BUSY-20-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=1681.722408659794 mean_runtime=10.7779s
+BUSY-20-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=1979.7138043805455 mean_runtime=8.4934s
+BUSY-40-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0062s
+BUSY-40-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.0372s
+BUSY-40-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=31.8188s
+BUSY-40-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=2634.214027169616 mean_runtime=20.3244s
+BUSY-40-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=2759.354857457814 mean_runtime=45.6975s
+BUSY-60-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0124s
+BUSY-60-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.1228s
+BUSY-60-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=56.1719s
+BUSY-60-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=3012.148647450558 mean_runtime=72.7716s
+BUSY-60-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=3008.916624151821 mean_runtime=79.2512s
+BUSY-80-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0434s
+BUSY-80-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.3007s
+BUSY-80-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=116.6013s
+BUSY-80-S20260917 · GA_PRUNING: feasible=3/5 mean_cost=3656.025313497594 mean_runtime=88.4190s
+BUSY-80-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=3438.787034919561 mean_runtime=209.8745s
+HIGH_PRESSURE-20-S20260917 · NEAREST_NEIGHBOR: feasible=1/1 mean_cost=2207.9335618490277 mean_runtime=0.0065s
+HIGH_PRESSURE-20-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.0166s
+HIGH_PRESSURE-20-S20260917 · GA_BASIC: feasible=3/5 mean_cost=1914.0344415723148 mean_runtime=12.3264s
+HIGH_PRESSURE-20-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=1936.8140300874798 mean_runtime=10.4804s
+HIGH_PRESSURE-20-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=1904.5783379145407 mean_runtime=9.7735s
+HIGH_PRESSURE-40-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0172s
+HIGH_PRESSURE-40-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.0560s
+HIGH_PRESSURE-40-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=28.3969s
+HIGH_PRESSURE-40-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=2915.008848561726 mean_runtime=37.2505s
+HIGH_PRESSURE-40-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=2750.230209492273 mean_runtime=50.2215s
+HIGH_PRESSURE-60-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0246s
+HIGH_PRESSURE-60-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.1985s
+HIGH_PRESSURE-60-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=68.5807s
+HIGH_PRESSURE-60-S20260917 · GA_PRUNING: feasible=4/5 mean_cost=3035.9274706799206 mean_runtime=75.3185s
+HIGH_PRESSURE-60-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=3095.508938232527 mean_runtime=104.1790s
+HIGH_PRESSURE-80-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0178s
+HIGH_PRESSURE-80-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.2332s
+HIGH_PRESSURE-80-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=94.2197s
+HIGH_PRESSURE-80-S20260917 · GA_PRUNING: feasible=0/5 mean_cost=None mean_runtime=88.3869s
+HIGH_PRESSURE-80-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=3526.054338230828 mean_runtime=229.7435s
+EMERGENCY-20-S20260917 · NEAREST_NEIGHBOR: feasible=1/1 mean_cost=1845.1177728766006 mean_runtime=0.0074s
+EMERGENCY-20-S20260917 · BEST_INSERTION: feasible=1/1 mean_cost=1965.1933352897463 mean_runtime=0.0166s
+EMERGENCY-20-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=16.5170s
+EMERGENCY-20-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=1695.0812585193203 mean_runtime=11.0935s
+EMERGENCY-20-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=1977.2440097136564 mean_runtime=16.8873s
+EMERGENCY-40-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0077s
+EMERGENCY-40-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.0386s
+EMERGENCY-40-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=41.9057s
+EMERGENCY-40-S20260917 · GA_PRUNING: feasible=5/5 mean_cost=2712.6095844121364 mean_runtime=31.5393s
+EMERGENCY-40-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=2789.3506459921527 mean_runtime=55.5587s
+EMERGENCY-60-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0129s
+EMERGENCY-60-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.1005s
+EMERGENCY-60-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=59.3021s
+EMERGENCY-60-S20260917 · GA_PRUNING: feasible=0/5 mean_cost=None mean_runtime=39.1709s
+EMERGENCY-60-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=3246.1938390674122 mean_runtime=85.5372s
+EMERGENCY-80-S20260917 · NEAREST_NEIGHBOR: feasible=0/1 mean_cost=None mean_runtime=0.0182s
+EMERGENCY-80-S20260917 · BEST_INSERTION: feasible=0/1 mean_cost=None mean_runtime=0.2442s
+EMERGENCY-80-S20260917 · GA_BASIC: feasible=0/5 mean_cost=None mean_runtime=93.5481s
+EMERGENCY-80-S20260917 · GA_PRUNING: feasible=0/5 mean_cost=None mean_runtime=89.6116s
+EMERGENCY-80-S20260917 · GA_PRUNING_REPAIR: feasible=5/5 mean_cost=3780.546646231215 mean_runtime=128.9793s
+OFFICIAL_WALL_SECONDS 14895.496

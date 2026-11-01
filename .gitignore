@@ -35,3 +35,9 @@ Thumbs.db
 benchmarks/results/smoke/
 benchmarks/results/*-quick/
 benchmarks/results/validation-*/
+
+# Current academic delivery: retain one official matrix; local experiments stay local.
+benchmarks/results/**/.run.lock
+benchmarks/results/final-evidence-20260917/
+benchmarks/results/pilot-operational-20261031/
+!benchmarks/results/final-evidence-operational-20261031/execution.log

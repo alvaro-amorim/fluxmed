@@ -1,5 +1,7 @@
 import argparse
 import uuid
+from dataclasses import asdict
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -8,6 +10,7 @@ from sqlalchemy.exc import OperationalError
 from fluxmed.application.deliveries.scenario import ScenarioProfile
 from fluxmed.benchmarks import (
     BenchmarkProblem,
+    BenchmarkRun,
     OptimizerBenchmarkRunner,
     SantaAuroraBenchmarkLoader,
     SantaAuroraScenarioProblemFactory,
@@ -17,6 +20,7 @@ from fluxmed.benchmarks import (
     write_benchmark_report,
     write_matrix_manifest,
 )
+from fluxmed.benchmarks.checkpoint import MatrixCheckpoint
 from fluxmed.infrastructure.database import SessionFactory
 from fluxmed.optimization import (
     GeneticOptimizerConfig,
@@ -104,6 +108,15 @@ def _load_operation(operation_code: str) -> tuple[BenchmarkProblem, str]:
         session.close()
 
 
+def _show_run(run: BenchmarkRun) -> None:
+    print(
+        f"Run complete: {run.scenario_name} {run.method.value} seed={run.seed} "
+        f"runtime={run.runtime_seconds:.3f}s feasible={run.feasible} "
+        f"cost={run.cost_brl:.2f}",
+        flush=True,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="FluxMed optimizer benchmark runner for smoke and Santa Aurora operations."
@@ -165,7 +178,14 @@ def main() -> None:
         default=None,
         help="Directory for JSON and CSV outputs.",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Reuse completed matrix scenarios with identical code and inputs.",
+    )
     args = parser.parse_args()
+    if args.resume and (not args.matrix_template_code or args.output is None):
+        parser.error("--resume requires --matrix-template-code and an explicit --output.")
 
     if args.preset == "final":
         if not args.matrix_template_code:
@@ -177,7 +197,8 @@ def main() -> None:
         args.scenario_seeds = list(FINAL_SCENARIO_SEEDS)
         args.seeds = list(FINAL_GA_SEEDS)
         if args.output is None:
-            args.output = Path("benchmarks/results/final-evidence-20260917")
+            stamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
+            args.output = Path(f"benchmarks/results/final-evidence-{stamp}")
         print(
             "Preset final: profiles=ALL sizes=20,40,60,80 "
             "scenario_seed=20260917 ga_seeds=101,202,303,404,505"
@@ -218,7 +239,7 @@ def main() -> None:
             )
             matrix_runner = ScenarioMatrixBenchmarkRunner(
                 problem_factory=factory.build,
-                benchmark_runner=OptimizerBenchmarkRunner(config),
+                benchmark_runner=OptimizerBenchmarkRunner(config, on_run_complete=_show_run),
             )
 
             def show_cell(cell: ScenarioMatrixCell) -> None:
@@ -228,14 +249,31 @@ def main() -> None:
                     f"scenario_seed={cell.scenario_seed}"
                 )
 
-            matrix_result = matrix_runner.run(
-                template_operation_code=factory.template_operation_code,
-                profiles=tuple(ScenarioProfile(value) for value in args.profiles),
-                sizes=tuple(args.sizes),
-                scenario_seeds=tuple(args.scenario_seeds),
-                ga_seeds=tuple(args.seeds),
-                on_cell_start=show_cell,
-            )
+            recipe = {
+                "template_operation_code": factory.template_operation_code,
+                "profiles": args.profiles,
+                "sizes": args.sizes,
+                "scenario_seeds": args.scenario_seeds,
+                "ga_seeds": args.seeds,
+                "ga_config": asdict(config),
+                "quick": args.quick,
+                "cost_metric": "operational_vehicle_fuel_and_global_team",
+            }
+            with MatrixCheckpoint(
+                output_dir,
+                root=Path(__file__).resolve().parents[5],
+                recipe=recipe,
+                resume=args.resume,
+            ) as checkpoint:
+                matrix_result = matrix_runner.run(
+                    template_operation_code=factory.template_operation_code,
+                    profiles=tuple(ScenarioProfile(value) for value in args.profiles),
+                    sizes=tuple(args.sizes),
+                    scenario_seeds=tuple(args.scenario_seeds),
+                    ga_seeds=tuple(args.seeds),
+                    on_cell_start=show_cell,
+                    checkpoint=checkpoint,
+                )
             report = matrix_result.report
             manifest_path = write_matrix_manifest(
                 matrix_result,

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+<rect width="100%" height="100%" fill="white"/>
+<text x="480.0" y="36" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700">Paired cost by scale: pruning variants</text>
+<line x1="90" y1="80" x2="90" y2="465" stroke="#222" stroke-width="1.5"/>
+<line x1="90" y1="465" x2="920" y2="465" stroke="#222" stroke-width="1.5"/>
+<line x1="90" y1="465.00" x2="920" y2="465.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="78" y="469.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">1606.36</text>
+<line x1="90" y1="388.00" x2="920" y2="388.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="78" y="392.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">1994.03</text>
+<line x1="90" y1="311.00" x2="920" y2="311.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="78" y="315.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">2381.69</text>
+<line x1="90" y1="234.00" x2="920" y2="234.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="78" y="238.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">2769.36</text>
+<line x1="90" y1="157.00" x2="920" y2="157.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="78" y="161.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">3157.02</text>
+<line x1="90" y1="80.00" x2="920" y2="80.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="78" y="84.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">3544.69</text>
+<text x="90.00" y="489" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">20</text>
+<text x="366.67" y="489" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">40</text>
+<text x="643.33" y="489" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">60</text>
+<text x="920.00" y="489" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">80</text>
+<text x="505.0" y="535" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">Deliveries</text>
+<text transform="translate(24 272.5) rotate(-90)" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">Optimizer cost (BRL)</text>
+<polyline points="90.00,438.45 366.67,249.16 643.33,197.78 920.00,106.55" fill="none" stroke="#e56b6f" stroke-width="2.5"/>
+<circle cx="90.00" cy="438.45" r="4" fill="#e56b6f"/>
+<circle cx="366.67" cy="249.16" r="4" fill="#e56b6f"/>
+<circle cx="643.33" cy="197.78" r="4" fill="#e56b6f"/>
+<circle cx="920.00" cy="106.55" r="4" fill="#e56b6f"/>
+<line x1="90" y1="57" x2="114" y2="57" stroke="#e56b6f" stroke-width="3"/>
+<text x="120" y="61" font-family="Arial, sans-serif" font-size="12">GA + Pruning</text>
+<polyline points="90.00,419.97 366.67,258.54 643.33,195.72 920.00,119.09" fill="none" stroke="#2a9d8f" stroke-width="2.5"/>
+<circle cx="90.00" cy="419.97" r="4" fill="#2a9d8f"/>
+<circle cx="366.67" cy="258.54" r="4" fill="#2a9d8f"/>
+<circle cx="643.33" cy="195.72" r="4" fill="#2a9d8f"/>
+<circle cx="920.00" cy="119.09" r="4" fill="#2a9d8f"/>
+<line x1="255" y1="57" x2="279" y2="57" stroke="#2a9d8f" stroke-width="3"/>
+<text x="285" y="61" font-family="Arial, sans-serif" font-size="12">GA + Pruning + Repair</text>
+</svg>

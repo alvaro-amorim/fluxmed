@@ -227,6 +227,7 @@ def test_solution_validator_rechecks_range_and_refrigeration() -> None:
         solution=DecodedSolution(routes=(route,)),
         deliveries=[delivery],
         vehicles=[vehicle],
+        travel_matrix=_matrix([delivery.id]),
     )
     codes = {issue.code for issue in validation.issues}
     assert "RANGE_IMPOSSIBLE" in codes

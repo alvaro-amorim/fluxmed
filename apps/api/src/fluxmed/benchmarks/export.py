@@ -48,6 +48,8 @@ def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[P
         "time_to_best_seconds",
         "service_penalty",
         "critical_risk",
+        "priority_inversion_minutes",
+        "team_feasible",
         "cost_brl",
         "makespan_minutes",
         "travel_minutes",
@@ -62,6 +64,7 @@ def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[P
         writer.writeheader()
         for run in report.runs:
             row = asdict(run)
+            row.pop("solution_evidence", None)  # Full evidence is preserved in the JSON artifact.
             row["method"] = run.method.value
             row["route_hard_violation_counts"] = json.dumps(
                 run.route_hard_violation_counts,
@@ -106,6 +109,8 @@ def write_benchmark_report(report: BenchmarkReport, output_dir: Path) -> tuple[P
         "feasible",
         "hard_violations",
         "service_penalty",
+        "priority_inversion_minutes",
+        "team_feasible",
         "cost_brl",
         "makespan_minutes",
         "distance_km",

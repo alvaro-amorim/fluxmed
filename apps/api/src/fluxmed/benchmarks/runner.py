@@ -1,7 +1,8 @@
+import json
 import uuid
 from collections import Counter
 from collections.abc import Callable
-from dataclasses import replace
+from dataclasses import asdict, replace
 from statistics import fmean, pstdev
 from time import perf_counter
 
@@ -19,7 +20,7 @@ from fluxmed.optimization.baselines import (
 )
 from fluxmed.optimization.decoder import RouteDecoder
 from fluxmed.optimization.engine import GeneticOptimizer, GeneticOptimizerConfig
-from fluxmed.optimization.fitness import FitnessEvaluator
+from fluxmed.optimization.fitness import FitnessEvaluator, SolutionValidator
 from fluxmed.optimization.models import (
     DecodedSolution,
     FitnessVector,
@@ -30,9 +31,14 @@ from fluxmed.optimization.models import (
 
 
 class OptimizerBenchmarkRunner:
-    def __init__(self, ga_config: GeneticOptimizerConfig | None = None) -> None:
+    def __init__(
+        self,
+        ga_config: GeneticOptimizerConfig | None = None,
+        *,
+        on_run_complete: Callable[[BenchmarkRun], None] | None = None,
+    ) -> None:
         self._ga_config = ga_config or GeneticOptimizerConfig()
-        self._fitness = FitnessEvaluator()
+        self._on_run_complete = on_run_complete
 
     def run(
         self,
@@ -56,6 +62,8 @@ class OptimizerBenchmarkRunner:
                 nearest_neighbor_chromosome,
             )
         )
+        if self._on_run_complete:
+            self._on_run_complete(runs[-1])
         runs.append(
             self._run_baseline(
                 problem,
@@ -63,6 +71,8 @@ class OptimizerBenchmarkRunner:
                 best_insertion_chromosome,
             )
         )
+        if self._on_run_complete:
+            self._on_run_complete(runs[-1])
 
         variants = (
             (
@@ -99,6 +109,8 @@ class OptimizerBenchmarkRunner:
                     seed=seed,
                 )
                 runs.append(run)
+                if self._on_run_complete:
+                    self._on_run_complete(run)
                 convergence.extend(points)
 
         return BenchmarkReport(
@@ -125,9 +137,14 @@ class OptimizerBenchmarkRunner:
             advanced_pruning_enabled=True,
         )
         started = perf_counter()
+        evaluator = (
+            problem.fitness_evaluator_factory()
+            if problem.fitness_evaluator_factory
+            else FitnessEvaluator()
+        )
         chromosome = chromosome_factory(problem.deliveries, problem.travel_matrix)
         solution = decoder.decode(chromosome)
-        fitness = self._fitness.evaluate(solution)
+        fitness = evaluator.evaluate(solution)
         runtime = perf_counter() - started
         return self._record(
             problem,
@@ -181,6 +198,8 @@ class OptimizerBenchmarkRunner:
                     effective_mutation_rate=progress.effective_mutation_rate,
                     immigrants_added=progress.immigrants_added,
                     pruning_counts=dict(progress.pruning_counts),
+                    priority_inversion_minutes=float(fitness.priority_inversion_minutes),
+                    team_feasible=fitness.team_feasible,
                 )
             )
 
@@ -192,6 +211,9 @@ class OptimizerBenchmarkRunner:
             operation_start_at=problem.operation_start_at,
             operation_end_at=problem.operation_end_at,
             on_progress=on_progress,
+            fitness_evaluator=(
+                problem.fitness_evaluator_factory() if problem.fitness_evaluator_factory else None
+            ),
         )
         runtime = perf_counter() - started
         candidate_evaluations = 2 + config.population_size * (result.generations_completed + 1)
@@ -230,6 +252,19 @@ class OptimizerBenchmarkRunner:
         route_hard_violation_counts = Counter(
             code for route in solution.routes for code in route.hard_violations
         )
+        validation = SolutionValidator().validate(
+            solution=solution,
+            deliveries=problem.deliveries,
+            vehicles=problem.vehicles,
+            travel_matrix=problem.travel_matrix,
+            operation_start_at=problem.operation_start_at,
+            operation_end_at=problem.operation_end_at,
+        )
+        if not validation.valid and fitness.feasible:
+            fitness = replace(fitness, feasible=False, hard_violations=len(validation.issues))
+            route_hard_violation_counts.update({issue.code for issue in validation.issues})
+        if not fitness.team_feasible:
+            route_hard_violation_counts["TEAM_INFEASIBLE"] += 1
         return BenchmarkRun(
             scenario_name=problem.scenario_name,
             delivery_count=problem.delivery_count,
@@ -253,6 +288,14 @@ class OptimizerBenchmarkRunner:
             pruning_counts=dict(pruning_counts),
             generations_completed=generations_completed,
             stop_reason=stop_reason,
+            priority_inversion_minutes=float(fitness.priority_inversion_minutes),
+            team_feasible=fitness.team_feasible,
+            solution_evidence=json.loads(
+                json.dumps(
+                    {"decoded_solution": asdict(solution), "validation": asdict(validation)},
+                    default=str,
+                )
+            ),
         )
 
     @staticmethod

@@ -2,6 +2,7 @@ import json
 import uuid
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
+from functools import partial
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -9,12 +10,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from fluxmed.application.deliveries.scenario import ScenarioProfile, generate_scenario
+from fluxmed.application.optimization.evaluation import OperationalFitnessEvaluator
 from fluxmed.application.optimization.problem_inputs import (
     build_vehicle_input,
     operation_window,
 )
 from fluxmed.application.optimization.routing_matrix import RoutingMatrixBuilder
 from fluxmed.application.resources import ResourceService
+from fluxmed.benchmarks.checkpoint import MatrixCheckpoint
 from fluxmed.benchmarks.models import (
     BenchmarkConvergencePoint,
     BenchmarkMethod,
@@ -68,12 +71,17 @@ class SantaAuroraScenarioProblemFactory:
         selected_vehicle_ids = set(resources.selected_vehicle_ids)
         selected_worker_ids = set(resources.selected_worker_ids)
         selected_workers = [
-            worker for worker in resources.workers if worker.id in selected_worker_ids
+            worker
+            for worker in resources.workers
+            if worker.id in selected_worker_ids
+            and worker.id not in resources.unavailable_worker_ids
         ]
         helper_available = any(worker.role is WorkerRole.HELPER for worker in selected_workers)
         selected_vehicles = [
             vehicle for vehicle in resources.vehicles if vehicle.id in selected_vehicle_ids
         ]
+        self._vehicle_views = selected_vehicles
+        self._workers = selected_workers
         self._vehicles = [
             build_vehicle_input(vehicle, helper_available=helper_available)
             for vehicle in selected_vehicles
@@ -157,6 +165,12 @@ class SantaAuroraScenarioProblemFactory:
             travel_matrix=travel_matrix,
             operation_start_at=self._operation_start_at,
             operation_end_at=self._operation_end_at,
+            fitness_evaluator_factory=partial(
+                OperationalFitnessEvaluator,
+                deliveries=deliveries,
+                vehicles=self._vehicle_views,
+                workers=self._workers,
+            ),
         )
 
 
@@ -179,12 +193,18 @@ class ScenarioMatrixBenchmarkRunner:
         scenario_seeds: tuple[int, ...],
         ga_seeds: tuple[int, ...],
         on_cell_start: Callable[[ScenarioMatrixCell], None] | None = None,
+        checkpoint: MatrixCheckpoint | None = None,
     ) -> ScenarioMatrixResult:
         if not profiles or not sizes or not scenario_seeds or not ga_seeds:
             raise ValueError("Perfis, tamanhos e seeds do benchmark não podem ficar vazios.")
         invalid_sizes = [size for size in sizes if size <= 0 or size > 100]
         if invalid_sizes:
             raise ValueError("Os tamanhos do benchmark devem ficar entre 1 e 100 entregas.")
+        if any(
+            len(set(values)) != len(values)
+            for values in (profiles, sizes, scenario_seeds, ga_seeds)
+        ):
+            raise ValueError("Matrix parameters must not contain duplicate values.")
 
         all_runs: list[BenchmarkRun] = []
         all_summaries: list[BenchmarkSummary] = []
@@ -206,7 +226,17 @@ class ScenarioMatrixBenchmarkRunner:
                         delivery_count=size,
                         scenario_seed=scenario_seed,
                     )
-                    report = self._benchmark_runner.run(problem, seeds=ga_seeds)
+                    report = checkpoint.load(cell, problem) if checkpoint else None
+                    if report is None:
+                        report = self._benchmark_runner.run(problem, seeds=ga_seeds)
+                        if checkpoint:
+                            checkpoint.save(cell, problem, report)
+                            print(
+                                f"Scenario saved: {cell.scenario_name} ({len(report.runs)} runs)",
+                                flush=True,
+                            )
+                    else:
+                        print(f"Scenario resumed: {cell.scenario_name}", flush=True)
                     cells.append(cell)
                     all_runs.extend(report.runs)
                     all_summaries.extend(report.summaries)

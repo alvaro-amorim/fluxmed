@@ -207,6 +207,9 @@ def test_operation_runs_ga_and_returns_valid_multi_vehicle_plan() -> None:
         ]
         assert result.validation.valid is True
         assert result.result.best.fitness.feasible is True
+        assert result.result.best.fitness.total_cost_brl.quantize(Decimal("0.01")) == (
+            result.persisted_result.total_cost_brl.quantize(Decimal("0.01"))
+        )
         assert set(assigned) == {delivery.id for delivery in deliveries}
         assert deliveries[0].id in assigned
         assert len(result.result.best.solution.routes) == 2

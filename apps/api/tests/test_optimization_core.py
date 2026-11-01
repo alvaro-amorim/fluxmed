@@ -136,7 +136,7 @@ def test_decoder_splits_load_across_vehicles_and_returns_to_depot() -> None:
 
 
 def test_solution_validator_detects_duplicate_and_missing_delivery() -> None:
-    deliveries, vehicles, _matrix = _problem(delivery_count=3)
+    deliveries, vehicles, matrix = _problem(delivery_count=3)
     route = DecodedRoute(
         vehicle_id=vehicles[0].id,
         delivery_ids=(deliveries[0].id, deliveries[0].id, deliveries[1].id),
@@ -152,6 +152,7 @@ def test_solution_validator_detects_duplicate_and_missing_delivery() -> None:
         solution=DecodedSolution(routes=(route,)),
         deliveries=deliveries,
         vehicles=vehicles,
+        travel_matrix=matrix,
     )
 
     codes = {issue.code for issue in result.issues}

@@ -13,6 +13,13 @@ from fluxmed.domain.enums import (
 
 LocationKey = uuid.UUID | None
 ZERO = Decimal("0")
+# Ordinal service weights: every higher priority has one additional unit of urgency.
+PRIORITY_WEIGHTS = {
+    DeliveryPriority.LOW: 1,
+    DeliveryPriority.NORMAL: 2,
+    DeliveryPriority.HIGH: 3,
+    DeliveryPriority.CRITICAL: 4,
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,6 +76,7 @@ class DecodedStop:
     service_start_at: datetime
     departure_at: datetime
     lateness_minutes: Decimal = ZERO
+    priority: DeliveryPriority = DeliveryPriority.NORMAL
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,6 +96,8 @@ class DecodedRoute:
     critical_risk: Decimal = ZERO
     starts_at_depot: bool = True
     returns_to_depot: bool = True
+    waiting_minutes: Decimal = ZERO
+    weighted_lateness_minutes: Decimal | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,6 +118,8 @@ class FitnessVector:
     travel_minutes: Decimal
     distance_km: Decimal
     vehicles_used: int
+    priority_inversion_minutes: Decimal = ZERO
+    team_feasible: bool = True
 
     def sort_key(self) -> tuple[object, ...]:
         return (
@@ -115,6 +127,7 @@ class FitnessVector:
             self.hard_violations,
             self.service_penalty,
             self.critical_risk,
+            self.priority_inversion_minutes,
             self.total_cost_brl,
             self.makespan_minutes,
             self.travel_minutes,

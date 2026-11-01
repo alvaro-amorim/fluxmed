@@ -10,6 +10,7 @@ from fluxmed.domain.enums import (
     TemperatureClass,
 )
 from fluxmed.optimization.models import (
+    PRIORITY_WEIGHTS,
     ZERO,
     DecodedRoute,
     DecodedSolution,
@@ -120,10 +121,8 @@ class RouteDecoder:
             )
             remaining_weight = vehicle.max_payload_kg - (state.weight_kg + delivery.weight_kg)
             remaining_volume = vehicle.max_volume_m3 - (state.volume_m3 + delivery.volume_m3)
-            critical_bias = 0 if delivery.priority is DeliveryPriority.CRITICAL else 1
             rank = (
-                critical_bias,
-                prospective.soft_lateness_minutes,
+                prospective.weighted_lateness_minutes,
                 prospective.critical_risk,
                 marginal_minutes,
                 marginal_distance,
@@ -207,6 +206,8 @@ class RouteDecoder:
         stops: list[DecodedStop] = []
         hard_violations: list[str] = []
         soft_lateness = ZERO
+        weighted_lateness = ZERO
+        waiting_minutes = ZERO
         critical_risk = ZERO
 
         for delivery_id in state.delivery_ids:
@@ -247,14 +248,18 @@ class RouteDecoder:
                     else None
                 )
                 if window_start is not None and service_start_at < window_start:
+                    waiting_minutes += Decimal(
+                        str((window_start - service_start_at).total_seconds())
+                    ) / Decimal("60")
                     service_start_at = window_start
                 lateness = ZERO
                 if window_end is not None and service_start_at > window_end:
-                    lateness = Decimal(str((service_start_at - window_end).total_seconds() / 60))
+                    lateness = Decimal(str((service_start_at - window_end).total_seconds())) / 60
                     if delivery.time_window_policy.value == "HARD":
                         hard_violations.append("HARD_TIME_WINDOW_IMPOSSIBLE")
                     else:
                         soft_lateness += lateness
+                        weighted_lateness += lateness * PRIORITY_WEIGHTS[delivery.priority]
                 if delivery.priority is DeliveryPriority.CRITICAL:
                     if window_end is not None:
                         slack_minutes = Decimal(
@@ -271,6 +276,7 @@ class RouteDecoder:
                         service_start_at=service_start_at,
                         departure_at=departure_at,
                         lateness_minutes=lateness,
+                        priority=delivery.priority,
                     )
                 )
                 current_at = departure_at
@@ -286,7 +292,7 @@ class RouteDecoder:
                 if current_at > operation_end:
                     hard_violations.append("END_OF_SHIFT_IMPOSSIBLE")
 
-        total_duration = travel_minutes + Decimal(service_minutes)
+        total_duration = travel_minutes + Decimal(service_minutes) + waiting_minutes
         vehicle = state.vehicle
         total_cost = (
             vehicle.fixed_route_cost_brl
@@ -310,4 +316,6 @@ class RouteDecoder:
             hard_violations=tuple(dict.fromkeys(hard_violations)),
             soft_lateness_minutes=soft_lateness,
             critical_risk=critical_risk,
+            waiting_minutes=waiting_minutes,
+            weighted_lateness_minutes=weighted_lateness,
         )

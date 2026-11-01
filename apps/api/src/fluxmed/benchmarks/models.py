@@ -1,7 +1,9 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 
+from fluxmed.optimization.fitness import FitnessEvaluator
 from fluxmed.optimization.models import (
     OptimizationDelivery,
     OptimizationVehicle,
@@ -25,6 +27,7 @@ class BenchmarkProblem:
     travel_matrix: TravelMatrix
     operation_start_at: datetime | None = None
     operation_end_at: datetime | None = None
+    fitness_evaluator_factory: Callable[[], FitnessEvaluator] | None = None
 
     @property
     def delivery_count(self) -> int:
@@ -51,6 +54,8 @@ class BenchmarkConvergencePoint:
     effective_mutation_rate: float
     immigrants_added: int
     pruning_counts: dict[str, int]
+    priority_inversion_minutes: float | None = None
+    team_feasible: bool | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +82,9 @@ class BenchmarkRun:
     pruning_counts: dict[str, int]
     generations_completed: int | None = None
     stop_reason: str | None = None
+    priority_inversion_minutes: float | None = None
+    team_feasible: bool | None = None
+    solution_evidence: dict[str, object] | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -48,7 +48,7 @@ O sistema busca os fatos no backend antes de encaminhar o contexto relevante ao 
 
 ## Como comprovar a integração sem entregar uma chave
 
-O autor demonstrará a integração com Gemini real no **vídeo acadêmico** de até 15 minutos, usando sua chave somente na máquina local. O vídeo deve mostrar:
+A demonstração gravada está disponível no **[vídeo acadêmico](https://youtu.be/gHc-irrihV0)**. A chave usada na integração permanece somente no ambiente local do autor. Para conferir a evidência, observe:
 
 1. a operação otimizada e seus dados oficiais;
 2. a tela do Assistente indicando `gemini` e o modelo;
@@ -57,6 +57,8 @@ O autor demonstrará a integração com Gemini real no **vídeo acadêmico** de 
 5. a comparação visual de valores com o resultado/relatório gerado.
 
 Uma chamada externa é identificada pela resposta concluída e pelos metadados do provider, confrontados com as fontes da operação. O ensaio independente utiliza chave e cota da conta configurada.
+
+Os indicadores apresentados descrevem o planejamento da operação. Aprovar o plano não comprova a realização das entregas em campo; essa distinção também deve ser preservada na leitura da resposta da LLM.
 
 ## Segurança das credenciais
 

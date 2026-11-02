@@ -74,3 +74,5 @@ Chegadas e janelas são apresentadas no fuso operacional. Instruções ao motori
 | Simulação | A resposta distingue impacto calculado de alteração aplicada. |
 
 Os testes automatizados usam respostas controladas para verificar grounding, seleção, continuidade, factualidade e resiliência. Ensaios com provider externo devem identificar operação/run, modelo, pergunta, resposta e valores de referência, permitindo confrontar o texto com a fonte. O [guia de avaliação](ASSISTANT_EVALUATION.md) reúne o procedimento; [TESTING_STRATEGY.md](TESTING_STRATEGY.md) delimita a cobertura automatizada e a verificação manual.
+
+O [vídeo acadêmico](https://youtu.be/gHc-irrihV0) apresenta a demonstração do assistente com Gemini e a consulta ao plano da aplicação. O [relatório técnico](academic/Relatorio-Tecnico-FluxMed.pdf) descreve a integração junto do algoritmo e do experimento. A demonstração gravada não substitui uma avaliação de respostas fora das perguntas e condições apresentadas.

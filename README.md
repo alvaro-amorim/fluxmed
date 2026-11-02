@@ -4,6 +4,12 @@ Planejamento de rotas para distribuição de medicamentos e insumos em uma cidad
 
 **Tech Challenge — Fase 2, Projeto 2.** A aplicação realiza planejamento pré-despacho com Santa Aurora, entregas e condições de trânsito sintéticas.
 
+## Entrega acadêmica
+
+- [Vídeo de apresentação e demonstração](https://youtu.be/gHc-irrihV0).
+- [Relatório técnico final em PDF](docs/academic/Relatorio-Tecnico-FluxMed.pdf).
+- [Método, resultados e reprodução do benchmark](benchmarks/README.md).
+
 ## Executar a aplicação
 
 Pré-requisitos: Git, Docker com Compose v2, acesso a este repositório e portas locais 5432, 8000 e 5173 disponíveis.
@@ -61,7 +67,7 @@ Após o despacho, a revisão do plano fica imutável. O banco é persistido em u
 | LLM | Assistente com ferramentas de consulta ao plano persistido, instruções para motoristas, resumo diário e perguntas sobre rotas e custos. O modelo interpreta dados; não recalcula rotas nem altera a operação. [Avaliação](docs/ASSISTANT_EVALUATION.md). |
 | Qualidade e execução | FastAPI e React/TypeScript, migrações PostgreSQL/PostGIS, testes automatizados, CI e Docker Compose local. [Arquitetura](docs/ARCHITECTURE.md). |
 
-O [relatório técnico acadêmico](docs/academic/Relatorio-Tecnico-FluxMed.pdf) e o vídeo de até 15 minutos são entregáveis separados dos relatórios operacionais gerados pela aplicação.
+O [relatório técnico acadêmico](docs/academic/Relatorio-Tecnico-FluxMed.pdf) e o [vídeo de apresentação](https://youtu.be/gHc-irrihV0) são entregáveis separados dos relatórios operacionais gerados pela aplicação.
 
 ## Resultados do benchmark
 
@@ -100,9 +106,9 @@ O seed acadêmico usa banco dedicado de demonstração recém-inicializado, com 
 
 ## Assistente IA: mock e provider real
 
-Por padrão, a instalação usa `LLM_PROVIDER=mock`. Isso permite explorar a interface e as consultas ao backend **sem chamar uma LLM externa**. Para testar Gemini, configure uma chave própria **somente no `.env` da API**, altere `LLM_PROVIDER`/`LLM_MODEL` conforme [o guia de avaliação](docs/ASSISTANT_EVALUATION.md) e reinicie a API. O modelo real pode exigir cota e gerar custos. Uma resposta identificada como `gemini` após uma pergunta é a evidência de chamada; o status de configuração sozinho não comprova conectividade.
+Por padrão, a instalação usa `LLM_PROVIDER=mock`. Isso permite explorar a interface e as consultas ao backend **sem chamar uma LLM externa**. Para testar Gemini, configure uma chave própria **somente no arquivo local `.env` na raiz do repositório**, altere `LLM_PROVIDER`/`LLM_MODEL` conforme [o guia de avaliação](docs/ASSISTANT_EVALUATION.md) e reinicie a API. O modelo real pode exigir cota e gerar custos. Uma resposta identificada como `gemini` após uma pergunta é a evidência de chamada; o status de configuração sozinho não comprova conectividade.
 
-Chaves não são fornecidas no repositório. O vídeo acadêmico deve demonstrar uma pergunta factual e instruções para motorista com Gemini real sem mostrar credenciais.
+Chaves não são fornecidas no repositório. O [vídeo acadêmico](https://youtu.be/gHc-irrihV0) apresenta perguntas sobre o plano e instruções para motorista com Gemini, sem fornecer credenciais ao avaliador. O procedimento de conferência está no [guia de avaliação](docs/ASSISTANT_EVALUATION.md).
 
 ## Arquitetura
 

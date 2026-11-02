@@ -2,6 +2,8 @@
 
 Esta pasta reúne as evidências experimentais da Fase 2, Projeto 2: otimização de rotas médicas. O estudo avalia viabilidade, qualidade de atendimento, custo operacional e tempo computacional em cenários sintéticos controlados.
 
+O [relatório técnico](../docs/academic/Relatorio-Tecnico-FluxMed.pdf) e o [vídeo acadêmico](https://youtu.be/gHc-irrihV0) apresentam o método e os resultados. A operação criada na demonstração da aplicação é distinta dos cenários da matriz oficial; seus indicadores não integram as 272 execuções do experimento.
+
 ## Evidência oficial
 
 **[Abrir o relatório experimental final de 31/10/2026](results/final-evidence-operational-20261031/academic-summary.md)**

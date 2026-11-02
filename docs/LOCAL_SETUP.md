@@ -71,7 +71,7 @@ Aplique a mudança usando `docker compose up -d --force-recreate api`. No Assist
 
 A chave fica exclusivamente no container da API. Nunca a mostre em vídeo, print ou comando de diagnóstico. A conta do avaliador é responsável por seus limites e eventuais custos. O modo mock permite explorar o fluxo com respostas simuladas; o ensaio externo utiliza chave e cota da conta configurada.
 
-O passo a passo completo, exemplos de perguntas, evidências para o vídeo e cuidados com a chave estão no **[guia de avaliação do Assistente IA](ASSISTANT_EVALUATION.md)**.
+O passo a passo completo, exemplos de perguntas, conferência das respostas e cuidados com a chave estão no **[guia de avaliação do Assistente IA](ASSISTANT_EVALUATION.md)**. A demonstração gravada está disponível no [vídeo acadêmico](https://youtu.be/gHc-irrihV0).
 
 ## Diagnóstico e desligamento
 

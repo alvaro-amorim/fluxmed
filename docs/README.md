@@ -6,6 +6,8 @@ O [README principal](../README.md) apresenta o projeto, a execução local e os 
 
 | Documento | Conteúdo |
 |---|---|
+| [Relatório técnico final em PDF](academic/Relatorio-Tecnico-FluxMed.pdf) | Funcionamento, exemplo verificável, experimento e resultados. |
+| [Vídeo de apresentação](https://youtu.be/gHc-irrihV0) | Demonstração da aplicação, algoritmo, comparação experimental e assistente. |
 | [Problema e fluxo operacional](PRODUCT_SPEC.md) | Entradas, planejamento, recursos e resultado. |
 | [Algoritmo genético](OPTIMIZATION_SPEC.md) | Cromossomo, operadores, decoder, fitness, equipe, custos e validação. |
 | [Referência TSP da FIAP](FIAP_TSP_BASE.md) | Relação conceitual e comparação técnica. |
@@ -21,4 +23,4 @@ O [README principal](../README.md) apresenta o projeto, a execução local e os 
 - [Santa Aurora e routing](SANTA_AURORA_SPEC.md), [Decision Trace](OPTIMIZATION_TRACE.md) e [contrato da LLM](LLM_SPEC.md).
 - [Testes e verificações](TESTING_STRATEGY.md), [protocolo experimental](BENCHMARK_PLAN.md) e [política de CI](CI_POLICY.md).
 
-O relatório técnico acadêmico e o vídeo são artefatos de apresentação. Os relatórios PDF/XLSX/CSV da aplicação documentam uma operação específica.
+O [relatório técnico acadêmico](academic/Relatorio-Tecnico-FluxMed.pdf) e o [vídeo](https://youtu.be/gHc-irrihV0) são artefatos de apresentação. Os relatórios PDF/XLSX/CSV da aplicação documentam uma operação específica.
